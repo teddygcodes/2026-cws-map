@@ -325,12 +325,18 @@
     .stadium-photo figcaption { font-family:"Oswald",sans-serif; color:var(--muted); font-size:11px; letter-spacing:.04em; margin-top:8px; }
     .stadium-photo figcaption a { color:var(--muted); text-decoration:underline; }
     .stadium-photo figcaption a:hover { color:var(--accent); }
-    .map-embed { width:100%; aspect-ratio: 16/10; border:1px solid var(--line); border-radius:var(--radius); }
     .stadium-facts { list-style:none; padding:0; margin: 14px 0 0; }
     .stadium-facts li { display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--line); }
     .stadium-facts .k { font-family:"Oswald",sans-serif; text-transform:uppercase; letter-spacing:.1em; font-size:12px; color:var(--muted); }
     .stadium-facts .v { font-weight:600; text-align:right; }
     .blurb { color:#d6d6da; line-height:1.6; margin-top: 14px; font-size: 15px; }
+    /* compact "key players" list on the stadium about-panel */
+    .mini-players { list-style:none; padding:0; margin: 12px 0 0; display:grid; gap:7px; }
+    .mini-players li { display:flex; align-items:baseline; gap:10px; font-size:14px; border-bottom:1px solid var(--line); padding-bottom:7px; }
+    .mini-players li:last-child { border-bottom:none; }
+    .mini-players .mp-pos { font-family:"Oswald",sans-serif; color:var(--accent); font-weight:600; font-size:11px; letter-spacing:.06em; min-width:34px; }
+    .mini-players .mp-name { font-weight:600; flex:1; }
+    .mini-players .mp-line { color:var(--muted); font-size:13px; text-align:right; }
 
     /* ---------- Live scoreboard ticker ---------- */
     .scoreboard { margin: 0 0 18px; }
@@ -920,6 +926,32 @@
     }
 
     // ---- TEAM -------------------------------------------------------------
+    // Honest season narrative built ONLY from verified fields we already hold
+    // (record / RPI / seed / conference / rate stats). Invents nothing; clauses
+    // are omitted when a value is missing rather than printing a TBD mid-sentence.
+    function seasonSummary(t) {
+      var s = findSiteForTeam(t.id), ss = t.stats || {}, out = [];
+      var rec = (t.record && t.record.w != null && t.record.l != null) ? (t.record.w + "–" + t.record.l) : null;
+      var lead = esc(t.name) + (rec ? (" went " + rec) : " enters the 2026 NCAA Tournament");
+      if (t.rpi != null) lead += " with a No. " + t.rpi + " RPI";
+      lead += " out of the " + esc(t.conference);
+      if (s) lead += (t.seed != null)
+        ? (", earning the national No. " + t.seed + " overall seed and hosting the " + esc(s.city) + " " + roundLabel() + ".")
+        : (", reaching the " + esc(s.city) + " " + roundLabel() + ".");
+      else lead += ".";
+      out.push(lead);
+      var off = [];
+      if (ss.runs != null) off.push(esc(ss.runs) + " runs");
+      if (ss.battingAvg != null) off.push("a " + esc(ss.battingAvg) + " team average");
+      if (off.length) out.push("The offense produced " + off.join(" at ") + ".");
+      var d = [];
+      if (ss.era != null) d.push("a " + esc(ss.era) + " ERA");
+      if (ss.runsAllowed != null) d.push(esc(ss.runsAllowed) + " runs allowed");
+      if (ss.sos != null) d.push("a No. " + esc(ss.sos) + " strength of schedule");
+      if (d.length) out.push("On the other side of the ball: " + d.join(", ") + ".");
+      return out.join(" ");
+    }
+
     function showTeam(teamId) {
       var t = team(teamId);
       if (!t) { location.hash = "#/"; return; }
@@ -952,6 +984,8 @@
               (s ? " &middot; " + esc(s.city) + " " + roundLabel() : "") + "</div>" +
           "</div>" +
         "</div>" +
+        '<div class="panel-title">2026 Season</div>' +
+        '<p class="blurb">' + seasonSummary(t) + (t.seasonNote ? " " + esc(t.seasonNote) : "") + "</p>" +
         '<div class="panel-title">Team Stats</div>' +
         '<div class="stat-grid">' + statCells + "</div>" +
         '<div class="panel-title">Key Players</div>' +
@@ -976,12 +1010,6 @@
       if (!t) { location.hash = "#/"; return; }
       var st = t.stadium;
       var s = findSiteForTeam(teamId);
-
-      // Keyless Google Maps embed (no API key) + external Maps / Street View links.
-      var q = st.lat + "," + st.lng;
-      var embed = "https://www.google.com/maps?q=" + q + "&z=16&output=embed";
-      var mapsLink = "https://www.google.com/maps/search/?api=1&query=" + q;
-      var pano = "https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=" + q;
       var capacity = (st.capacity != null) ? esc(st.capacity.toLocaleString()) : '<span class="todo">TBD</span>';
 
       // Real Wikimedia photo + attribution when available; placeholder otherwise.
@@ -1005,6 +1033,12 @@
           "</div></div>";
       }
 
+      // A few key players as flavor on the "about the team" side.
+      var miniPlayers = t.players.slice(0, 3).map(function (p) {
+        return '<li><span class="mp-pos">' + fmt(p.pos) + '</span><span class="mp-name">' + fmt(p.name) +
+               '</span><span class="mp-line">' + fmt(p.line) + "</span></li>";
+      }).join("");
+
       render(document.getElementById("view-stadium"),
         '<div class="section-head">' + esc(st.name) + "</div>" +
         '<div class="section-sub">Home of ' + esc(t.name) + " &middot; " + esc(t.conference) + "</div>" +
@@ -1013,20 +1047,22 @@
             photoBlock +
             '<ul class="stadium-facts">' +
               '<li><span class="k">Capacity</span><span class="v">' + capacity + "</span></li>" +
-              '<li><span class="k">Location</span><span class="v">' + (s ? esc(s.city) : fmt(null)) + "</span></li>" +
-              '<li><span class="k">Coordinates</span><span class="v">' +
-                esc(st.lat.toFixed(4)) + ", " + esc(st.lng.toFixed(4)) +
-                ' <span class="todo">verify</span></span></li>' +
+              '<li><span class="k">Location</span><span class="v">' + esc(st.city) + ", " + esc(st.state) + "</span></li>" +
+              '<li><span class="k">Opened</span><span class="v">' + fmt(st.opened) + "</span></li>" +
+              '<li><span class="k">Conference</span><span class="v">' + esc(t.conference) + "</span></li>" +
             "</ul>" +
+          "</div>" +
+          "<div>" +
+            '<div class="panel-title">History</div>' +
             '<p class="blurb">' + esc(st.blurb) + "</p>" +
+            '<div class="panel-title">About ' + esc(t.name) + "</div>" +
+            '<p class="blurb">' + seasonSummary(t) + (t.seasonNote ? " " + esc(t.seasonNote) : "") + "</p>" +
+            '<ul class="mini-players">' + miniPlayers + "</ul>" +
             '<div class="btn-row">' +
-              '<a class="btn primary" href="' + mapsLink + '" target="_blank" rel="noopener">Open in Google Maps</a>' +
-              '<a class="btn" href="' + pano + '" target="_blank" rel="noopener">Street View</a>' +
-              '<a class="btn" href="#/t/' + esc(teamId) + '">&larr; Back to ' + esc(t.name) + "</a>" +
+              '<a class="btn primary" href="#/t/' + esc(teamId) + '">&larr; Back to ' + esc(t.name) + "</a>" +
+              (s ? '<a class="btn" href="#/r/' + esc(s.id) + '">' + esc(s.city) + " " + roundLabel() + " &rarr;</a>" : "") +
             "</div>" +
           "</div>" +
-          '<div><iframe class="map-embed" src="' + embed +
-            '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map of ' + esc(st.name) + '"></iframe></div>' +
         "</div>");
 
       var crumbs = [{ text: "Map", href: "#/" }];

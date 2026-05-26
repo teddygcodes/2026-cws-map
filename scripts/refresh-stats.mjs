@@ -13,7 +13,7 @@
  *   node scripts/refresh-stats.mjs --check   # no network: assert canonical form
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import vm from "node:vm";
 
@@ -24,7 +24,7 @@ const CHECK = process.argv.includes("--check");
 // teamIds whose ESPN match is ambiguous → pin to an ESPN team id explicitly.
 const ALIASES = {};
 
-function loadTournament() {
+export function loadTournament() {
   const ctx = { window: {} }; vm.createContext(ctx);
   vm.runInContext(readFileSync(join(ROOT, "data.js"), "utf8"), ctx, { filename: "data.js" });
   return ctx.window.TOURNAMENT;
@@ -47,7 +47,12 @@ const HEADER = `/* =============================================================
      stats/players for college baseball.
    - Numbers come only from sources that published them; anything unverifiable is
      left null and renders as a visible "TBD" — nothing is invented.
-   - Stadium lat/lng remain best-known approximations (flagged // verify coords).
+   - Each stadium carries verified city/state, opened year (null if unverifiable),
+     lat/lng, capacity, and a researched history blurb (sources: official
+     athletics sites + Wikipedia/ballpark references). No invented dates/facts.
+   - seasonNote is a short verified 2026-season note per team (null when not
+     source-confirmed); the team page also derives an honest season summary from
+     the verified stats above.
    - Stadium photos + attribution live in photos.js (images/<teamId>).
 
    SUPER_REGIONAL_UPGRADE (≈ June 2, 2026) — NOW AUTOMATIC
@@ -63,7 +68,7 @@ const HEADER = `/* =============================================================
 const S = (v) => JSON.stringify(v);
 const num = (v) => (v === null || v === undefined ? "null" : v);
 
-function serialize(T) {
+export function serialize(T) {
   const out = [HEADER, "", "const TOURNAMENT = {", "  year: " + T.year + ",", "",
     '  // SUPER_REGIONAL_UPGRADE: stays "regional"; the app builds super-regionals in memory.',
     "  round: " + S(T.round) + ",", "",
@@ -72,8 +77,10 @@ function serialize(T) {
   for (const s of T.sites) out.push("    { id: " + S(s.id) + ", city: " + S(s.city) + ", hostTeamId: " + S(s.hostTeamId) + ", teams: [" + s.teams.map(S).join(", ") + "] },");
   out.push("  ],", "",
     "  /* record {w,l}, rpi (national rank|null), stats {runs, runsAllowed,",
-    "     battingAvg, era, sos}, stadium {name,lat,lng,capacity,blurb}, players",
-    "     [{name,pos,line}]. seed = national seed (1-16) for hosts, else null. */",
+    "     battingAvg, era, sos}, stadium {name, city, state, lat, lng, capacity,",
+    "     opened (year|null), blurb (verified history)}, seasonNote (verified 2026",
+    "     note|null), players [{name,pos,line}]. seed = national seed (1-16) for",
+    "     hosts, else null. */",
     "  teams: {");
   for (const s of T.sites) {
     out.push("    // ---- " + s.city + " Regional " + "-".repeat(Math.max(2, 52 - s.city.length)));
@@ -83,8 +90,9 @@ function serialize(T) {
       out.push("      id: " + S(t.id) + ", name: " + S(t.name) + ", seed: " + num(t.seed) + ", conference: " + S(t.conference) + ",");
       out.push("      record: { w: " + num(t.record.w) + ", l: " + num(t.record.l) + " }, rpi: " + num(t.rpi) + ",");
       out.push("      stats: { runs: " + num(ss.runs) + ", runsAllowed: " + num(ss.runsAllowed) + ", battingAvg: " + (ss.battingAvg == null ? "null" : S(ss.battingAvg)) + ", era: " + num(ss.era) + ", sos: " + num(ss.sos) + " },");
-      out.push("      stadium: { name: " + S(st.name) + ", lat: " + st.lat + ", lng: " + st.lng + ", capacity: " + num(st.capacity) + ", // verify coords");
+      out.push("      stadium: { name: " + S(st.name) + ", city: " + S(st.city) + ", state: " + S(st.state) + ", lat: " + st.lat + ", lng: " + st.lng + ", capacity: " + num(st.capacity) + ", opened: " + num(st.opened) + ",");
       out.push("        blurb: " + S(st.blurb) + " },");
+      out.push("      seasonNote: " + (t.seasonNote == null ? "null" : S(t.seasonNote)) + ",");
       out.push("      players: [");
       for (const p of t.players) out.push("        { name: " + S(p.name) + ", pos: " + S(p.pos) + ", line: " + S(p.line) + " },");
       out.push("      ],");
@@ -162,4 +170,7 @@ async function main() {
   console.log("✓ records refreshed: " + changed + " changed, " + unresolved.length + " kept-as-is" +
     (unresolved.length ? " (" + unresolved.join(", ") + ")" : "") + ".");
 }
-main().catch((e) => { console.error("✗ refresh failed:", e.message); process.exit(1); });
+// Only run the network refresh when executed directly (e.g. `node refresh-stats.mjs`).
+// When imported (loadTournament/serialize reused by a merge script), main() does not run.
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) main().catch((e) => { console.error("✗ refresh failed:", e.message); process.exit(1); });

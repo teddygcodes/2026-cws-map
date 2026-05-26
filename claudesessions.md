@@ -21,6 +21,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 6 | ✅ Map UX (toggle + cleaner pins) | S | — |
 | 7 | Visual polish (team colors, a11y, image opt) | M | — |
 | 8 | Engagement (favorites, notifications, PWA) | M | 1 |
+| 9 | ✅ Stadium & team detail (history + 2026 season) | L | — |
 
 ---
 
@@ -176,6 +177,11 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 - Respect the no-spam principle: only notify on state transitions, not every poll.
 
 **Acceptance:** Favorites persist and reorder the board; a state change fires exactly one notification; the app installs and the shell loads offline.
+
+---
+
+## Session 9 — Stadium & team detail pages (history + 2026 season) ✅ SHIPPED
+> **Shipped:** commit `<pending>` · live + CI green. Fixed the stadium-page **Location bug** (it showed the *regional host* city — e.g. Arizona State read "Lincoln, NE" instead of Phoenix, AZ): added verified `city`/`state`/`opened` to every stadium and the page now reads those. **Removed** the Google Maps embed + "Open in Google Maps"/"Street View" buttons. Researched + **verified all 64 stadiums** (names, cities, coords, opened year, 2–3-sentence history) via 8 parallel agents — caught real corrections (Milwaukee now plays at **Franklin Field**, not Henry Aaron Field; Oklahoma→Kimrey Family Stadium; Cincinnati drops "Marge Schott"; Yale→Bush Field; WVU→Kendrick; Binghamton→Bearcats Baseball Complex; BC/Virginia/Miami/USC-Upstate name fixes). Added an honest **`seasonSummary()`** (built only from verified record/RPI/seed/conference/rate-stats — invents nothing) rendered as a "2026 Season" panel on the team page and an "About the team" panel on the stadium page, plus 21 source-verified `seasonNote`s (cross-checked W–L against `data.js`; rest honestly `null`). Schema (`stadium.city/state/opened`, `team.seasonNote`) is canonical via `refresh-stats.mjs` (now exports `serialize`/`loadTournament`); `validate.mjs` requires non-empty city/state; smoke asserts no map embed + "City, ST" Location + history/season sections. Honesty rule held throughout — every fact is sourced or left blank.
 
 ---
 

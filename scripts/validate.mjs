@@ -66,6 +66,9 @@ if (!T) {
     if (t.id !== id) fail(`team key/id mismatch: ${id} vs ${t.id}`);
     const st = t.stadium || {};
     if (typeof st.lat !== "number" || typeof st.lng !== "number") fail(`${id}: bad stadium coords`);
+    // verified city/state are required (the stadium page's Location reads these, not the regional city)
+    if (typeof st.city !== "string" || !st.city.trim()) fail(`${id}: missing stadium.city`);
+    if (typeof st.state !== "string" || !st.state.trim()) fail(`${id}: missing stadium.state`);
     // >=2 verified key players (some teams legitimately had only 2 sourced; we don't fabricate)
     if (!Array.isArray(t.players) || t.players.length < 2) fail(`${id}: expected >=2 players, got ${t.players ? t.players.length : 0}`);
   }

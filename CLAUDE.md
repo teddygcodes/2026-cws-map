@@ -18,7 +18,7 @@ This project's whole premise is honest data. **Do not invent stats, records, sco
 ## Architecture (where things live)
 
 - **`index.html`** — everything: markup for the views, the theme CSS, and the entire app inside one IIFE `<script>`. Key pieces, in order: `render()` (safe HTML insert), helpers (`esc`, `fmt`, `fmtRecord`, `seedChip`, `team`, `siteById`, `findSiteForTeam`), `showView()` + the `VIEWS` array, the per‑view renderers (`showMap`, `showRegional`, `showTeam`, `showStadium`, `showGame`, `showCompare`), `renderSchedule()`, the **LIVE** module (ESPN polling, scoreboard, demo), and the hash `router()`.
-- **`data.js`** — the static `TOURNAMENT` object: `sites` (16) and `teams` (64). The single source of truth for names/seeds/conference/record/rpi/stats/stadium/players.
+- **`data.js`** — the static `TOURNAMENT` object: `sites` (16) and `teams` (64). The single source of truth for names/seeds/conference/record/rpi/stats/players, plus `stadium {name, city, state, lat, lng, capacity, opened, blurb}` (blurb = verified history; `city/state` drive the stadium page's Location — NOT the regional host city) and `seasonNote` (a verified 2026 note, or `null`). The team/stadium pages also derive an honest season summary (`seasonSummary()` in `index.html`) purely from the verified stats — it invents nothing.
 - **`photos.js`** — `STADIUM_PHOTOS[teamId]` → `{ file, by, license, licenseUrl, source }`. Attribution is required by the CC licenses; keep it when rendering a photo.
 - **`schedule.js`** — `SCHEDULES[siteId]` → the two real Friday games `{ g, time, tv, a:[teamId,seed], b:[teamId,seed] }`. Games 3–7 are generated structurally in `index.html` (`LATER_GAMES`).
 - **`images/`** — downloaded stadium photos (so the app works offline).

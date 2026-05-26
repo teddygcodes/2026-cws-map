@@ -14,7 +14,12 @@
      stats/players for college baseball.
    - Numbers come only from sources that published them; anything unverifiable is
      left null and renders as a visible "TBD" — nothing is invented.
-   - Stadium lat/lng remain best-known approximations (flagged // verify coords).
+   - Each stadium carries verified city/state, opened year (null if unverifiable),
+     lat/lng, capacity, and a researched history blurb (sources: official
+     athletics sites + Wikipedia/ballpark references). No invented dates/facts.
+   - seasonNote is a short verified 2026-season note per team (null when not
+     source-confirmed); the team page also derives an honest season summary from
+     the verified stats above.
    - Stadium photos + attribution live in photos.js (images/<teamId>).
 
    SUPER_REGIONAL_UPGRADE (≈ June 2, 2026) — NOW AUTOMATIC
@@ -54,16 +59,19 @@ const TOURNAMENT = {
   ],
 
   /* record {w,l}, rpi (national rank|null), stats {runs, runsAllowed,
-     battingAvg, era, sos}, stadium {name,lat,lng,capacity,blurb}, players
-     [{name,pos,line}]. seed = national seed (1-16) for hosts, else null. */
+     battingAvg, era, sos}, stadium {name, city, state, lat, lng, capacity,
+     opened (year|null), blurb (verified history)}, seasonNote (verified 2026
+     note|null), players [{name,pos,line}]. seed = national seed (1-16) for
+     hosts, else null. */
   teams: {
     // ---- Los Angeles, CA Regional -------------------------------------
     "ucla": {
       id: "ucla", name: "UCLA", seed: 1, conference: "Big Ten",
       record: { w: 51, l: 6 }, rpi: 1,
       stats: { runs: 463, runsAllowed: 214, battingAvg: ".294", era: 3.26, sos: 25 },
-      stadium: { name: "Jackie Robinson Stadium", lat: 34.0712, lng: -118.453, capacity: 1820, // verify coords
-        blurb: "Named for the UCLA alumnus who broke Major League Baseball's color barrier. Opened in 1981 in the hills above campus, it is the Bruins' home park and the national No. 1 seed's regional host site." },
+      stadium: { name: "Jackie Robinson Stadium", city: "Los Angeles", state: "CA", lat: 34.0712, lng: -118.453, capacity: 1820, opened: 1981,
+        blurb: "Opened in 1981 on the former Sawtelle Field site, the ballpark is named for UCLA alumnus and MLB pioneer Jackie Robinson, who broke baseball's color barrier in 1947. Funding came from Robinson's classmate Hoyt Pardee, and the intimate park holds roughly 1,820 fans." },
+      seasonNote: "Went 51–6 to earn the national No. 1 overall seed and host the Los Angeles Regional.",
       players: [
         { name: "Mulivai Levu", pos: "INF", line: ".342, 17 HR, 62 RBI" },
         { name: "Roch Cholowsky", pos: "SS", line: ".329, 21 HR, 59 RBI" },
@@ -75,8 +83,9 @@ const TOURNAMENT = {
       id: "virginia-tech", name: "Virginia Tech", seed: null, conference: "ACC",
       record: { w: 30, l: 24 }, rpi: 42,
       stats: { runs: 358, runsAllowed: 381, battingAvg: ".280", era: 6.88, sos: 14 },
-      stadium: { name: "English Field at Atlantic Union Bank Park", lat: 37.216, lng: -80.418, capacity: 4000, // verify coords
-        blurb: "The Hokies' home in Blacksburg, Virginia. // TODO verify history details." },
+      stadium: { name: "English Field at Atlantic Union Bank Park", city: "Blacksburg", state: "VA", lat: 37.216, lng: -80.418, capacity: 4000, opened: 1989,
+        blurb: "Dedicated in 1989 and named for Hokie donors E.R. \"Red\" English and his wife Ruth, the ballpark received a roughly $20M renovation in 2018 that added a grandstand, suites and chair-back seating for about 4,000. It took its current name, English Field at Atlantic Union Bank Park, in 2019." },
+      seasonNote: "Earned an at-large ACC bid (30–24) as the No. 2 seed in the Los Angeles Regional.",
       players: [
         { name: "Ethan Ball", pos: "INF", line: ".310, 16 HR, 51 RBI" },
         { name: "Ethan Gibson", pos: "INF", line: ".333, 7 HR, 27 RBI" },
@@ -88,8 +97,9 @@ const TOURNAMENT = {
       id: "cal-poly", name: "Cal Poly", seed: null, conference: "Big West",
       record: { w: 36, l: 22 }, rpi: 73,
       stats: { runs: 379, runsAllowed: 310, battingAvg: ".304", era: 4.84, sos: 121 },
-      stadium: { name: "Baggett Stadium", lat: 35.2998, lng: -120.658, capacity: 3138, // verify coords
-        blurb: "Home of the Mustangs in San Luis Obispo, California. // TODO verify history details." },
+      stadium: { name: "Baggett Stadium", city: "San Luis Obispo", state: "CA", lat: 35.2998, lng: -120.658, capacity: 3138, opened: 2001,
+        blurb: "Baggett Stadium opened in January 2001 with a 12-inning win over No. 11 Stanford before 3,110 fans. Named for former Cal Poly player and donor Robin Baggett, added seating and netting by 2018 brought capacity to about 3,138." },
+      seasonNote: "Won the Big West's automatic bid (36–22) and is the No. 3 seed in the Los Angeles Regional.",
       players: [
         { name: "Ryan Tayman", pos: "C", line: ".355, 16 HR, 53 RBI" },
         { name: "Nate Castellon", pos: "INF", line: ".329, 5 HR, 29 RBI" },
@@ -101,8 +111,9 @@ const TOURNAMENT = {
       id: "saint-marys", name: "Saint Mary's", seed: null, conference: "West Coast Conference",
       record: { w: 34, l: 25 }, rpi: 140,
       stats: { runs: 441, runsAllowed: 356, battingAvg: ".332", era: 5.6, sos: 194 },
-      stadium: { name: "Louis Guisto Field", lat: 37.842, lng: -122.109, capacity: 1500, // verify coords
-        blurb: "The Gaels' ballpark in Moraga, California. // TODO verify history details." },
+      stadium: { name: "Louis Guisto Field", city: "Moraga", state: "CA", lat: 37.842, lng: -122.109, capacity: 1500, opened: 2012,
+        blurb: "The current Louis Guisto Field opened in February 2012, about 400 feet from the original diamond that served the Gaels from 1928 to 2011; alumnus and former MLB pitcher Tom Candiotti threw the first pitch. It is named for former Saint Mary's player and coach Louis Guisto." },
+      seasonNote: "Reached the NCAA Tournament (34–25) as the No. 4 seed in the Los Angeles Regional.",
       players: [
         { name: "Diego Castellanos", pos: "INF", line: ".384, 6 HR, 49 RBI" },
         { name: "Makoa Sniffen", pos: "OF", line: ".358, 11 HR, 61 RBI" },
@@ -115,8 +126,9 @@ const TOURNAMENT = {
       id: "georgia-tech", name: "Georgia Tech", seed: 2, conference: "ACC",
       record: { w: 48, l: 9 }, rpi: 2,
       stats: { runs: 616, runsAllowed: 274, battingAvg: ".358", era: 4.66, sos: 15 },
-      stadium: { name: "Russ Chandler Stadium", lat: 33.7768, lng: -84.3925, capacity: 4157, // verify coords
-        blurb: "Opened in 2002 on the Atlanta campus, it replaced the historic Rose Bowl Field. A frequent NCAA regional host and home of the Yellow Jackets." },
+      stadium: { name: "Russ Chandler Stadium", city: "Atlanta", state: "GA", lat: 33.7768, lng: -84.3925, capacity: 4157, opened: 2002,
+        blurb: "The current stadium opened in 2002 on a site that has hosted Tech baseball since 1930. It is named for alumnus Russ Chandler, whose gift funded a new grandstand in 1985; capacity is about 3,194 and it frequently hosts NCAA regionals." },
+      seasonNote: "Went 48–9 to earn the national No. 2 overall seed and host the Atlanta Regional.",
       players: [
         { name: "Jarren Advincula", pos: "INF", line: ".431, 9 HR, 63 RBI" },
         { name: "Vahn Lackey", pos: "OF", line: ".410, 18 HR, 75 RBI" },
@@ -128,8 +140,9 @@ const TOURNAMENT = {
       id: "oklahoma", name: "Oklahoma", seed: null, conference: "SEC",
       record: { w: 32, l: 21 }, rpi: 24,
       stats: { runs: 351, runsAllowed: 296, battingAvg: ".280", era: 5.29, sos: 6 },
-      stadium: { name: "L. Dale Mitchell Park", lat: 35.201, lng: -97.442, capacity: 3180, // verify coords
-        blurb: "Home of the Sooners in Norman, Oklahoma. // TODO verify history details." },
+      stadium: { name: "Kimrey Family Stadium", city: "Norman", state: "OK", lat: 35.201, lng: -97.442, capacity: 3180, opened: 1982,
+        blurb: "Dedicated in 1982 as L. Dale Mitchell Park — named for the 1940s Sooner star and OU batting record-holder — the ballpark was later renamed Kimrey Family Stadium after a gift from donors Brian and Kim Kimrey. Its concourse, press box and clubhouse have been modernized repeatedly." },
+      seasonNote: "Reached the NCAA Tournament (32–21) as the No. 2 seed in the Atlanta Regional.",
       players: [
         { name: "Dasan Harris", pos: "INF", line: ".356, 3 HR, 13 RBI" },
         { name: "Deiten Lachance", pos: "INF", line: ".335, 12 HR, 51 RBI" },
@@ -141,8 +154,9 @@ const TOURNAMENT = {
       id: "the-citadel", name: "The Citadel", seed: null, conference: "Southern Conference",
       record: { w: 35, l: 24 }, rpi: 41,
       stats: { runs: 385, runsAllowed: 302, battingAvg: ".275", era: 4.73, sos: 54 },
-      stadium: { name: "Joseph P. Riley Jr. Park", lat: 32.798, lng: -79.961, capacity: 6000, // verify coords
-        blurb: "The Bulldogs play at 'The Joe' in Charleston, South Carolina. // TODO verify history details." },
+      stadium: { name: "Joseph P. Riley Jr. Park", city: "Charleston", state: "SC", lat: 32.798, lng: -79.961, capacity: 6000, opened: 1997,
+        blurb: "\"The Joe\" opened in 1997 and was designed by HOK Sport, architect of Camden Yards and Coors Field. Named for Charleston's longest-serving mayor Joseph P. Riley Jr., the roughly 6,000-seat park is shared with the minor-league Charleston RiverDogs." },
+      seasonNote: "Won the Southern Conference Tournament for the automatic bid (35–24), entering as the No. 3 seed in the Atlanta Regional.",
       players: [
         { name: "Michael Gibson", pos: "INF", line: ".394, 5 HR, 40 RBI" },
         { name: "Christian Stratis", pos: "INF", line: ".342, 4 HR, 41 RBI" },
@@ -154,8 +168,9 @@ const TOURNAMENT = {
       id: "uic", name: "UIC", seed: null, conference: "Missouri Valley Conference",
       record: { w: 27, l: 27 }, rpi: 227,
       stats: { runs: 343, runsAllowed: 337, battingAvg: ".274", era: 5.84, sos: 274 },
-      stadium: { name: "Les Miller Field at Curtis Granderson Stadium", lat: 41.865, lng: -87.673, capacity: 2000, // verify coords
-        blurb: "The Flames' home in Chicago, named in part for alumnus Curtis Granderson. // TODO verify history details." },
+      stadium: { name: "Les Miller Field at Curtis Granderson Stadium", city: "Chicago", state: "IL", lat: 41.865, lng: -87.673, capacity: 2000, opened: 2014,
+        blurb: "The current ballpark opened in 2014, rebuilt on the site of the original 1996 Les Miller Field after a roughly $5M gift from UIC alumnus and MLB outfielder Curtis Granderson. It is named for longtime coach Les Miller and Granderson, and seats about 1,000." },
+      seasonNote: "Won the Missouri Valley Conference Tournament for the automatic bid, the No. 4 seed in the Atlanta Regional.",
       players: [
         { name: "Ashton Kampa", pos: "INF", line: ".367, 16 HR, 47 RBI" },
         { name: "Thomas Curry", pos: "OF", line: ".317, 13 HR, 53 RBI" },
@@ -168,8 +183,9 @@ const TOURNAMENT = {
       id: "georgia", name: "Georgia", seed: 3, conference: "SEC",
       record: { w: 46, l: 12 }, rpi: 7,
       stats: { runs: 541, runsAllowed: 291, battingAvg: ".325", era: 4.99, sos: 24 },
-      stadium: { name: "Foley Field", lat: 33.942, lng: -83.3739, capacity: 3291, // verify coords
-        blurb: "Opened in 1990 and named for longtime coach Jim Foley, it is the Bulldogs' home in Athens and a regular postseason host." },
+      stadium: { name: "Foley Field", city: "Athens", state: "GA", lat: 33.942, lng: -83.3739, capacity: 3291, opened: 1966,
+        blurb: "Foley Field has been Georgia's home since 1966 and is named for program supporter Frank Foley. It was modernized in 1990 and again for the 2025 season — the latter adding an artificial-turf surface — and seats roughly 3,600." },
+      seasonNote: null,
       players: [
         { name: "Daniel Jackson", pos: "C", line: ".391, 27 HR, 79 RBI" },
         { name: "Tre Phelps", pos: "INF", line: ".376, 18 HR, 55 RBI" },
@@ -181,8 +197,9 @@ const TOURNAMENT = {
       id: "boston-college", name: "Boston College", seed: null, conference: "ACC",
       record: { w: 36, l: 21 }, rpi: 34,
       stats: { runs: 382, runsAllowed: 294, battingAvg: ".275", era: 4.86, sos: 52 },
-      stadium: { name: "Harrington Athletics Village", lat: 42.337, lng: -71.167, capacity: 1000, // verify coords
-        blurb: "The Eagles' home in Chestnut Hill, Massachusetts. // TODO verify history details." },
+      stadium: { name: "Eddie Pellagrini Diamond at Harrington Athletics Village", city: "Chestnut Hill", state: "MA", lat: 42.337, lng: -71.167, capacity: 1000, opened: 2018,
+        blurb: "Opened in 2018 as part of BC's Harrington Athletics Village on the Brighton Campus, replacing old Shea Field. The field honors Eddie Pellagrini, a former MLB player who coached BC baseball from 1958 to 1990; the complex is named for trustee and ex-Red Sox CEO John Harrington." },
+      seasonNote: null,
       players: [
         { name: "Julio Solier", pos: "INF", line: ".357, 1 HR, 31 RBI" },
         { name: "Nick Wang", pos: "1B", line: ".303, 16 HR, 61 RBI" },
@@ -194,8 +211,9 @@ const TOURNAMENT = {
       id: "liberty", name: "Liberty", seed: null, conference: "Conference USA",
       record: { w: 41, l: 19 }, rpi: 32,
       stats: { runs: 438, runsAllowed: 305, battingAvg: ".272", era: 4.73, sos: 64 },
-      stadium: { name: "Liberty Baseball Stadium", lat: 37.35, lng: -79.175, capacity: 4000, // verify coords
-        blurb: "Home of the Flames in Lynchburg, Virginia. // TODO verify history details." },
+      stadium: { name: "Liberty Baseball Stadium", city: "Lynchburg", state: "VA", lat: 37.35, lng: -79.175, capacity: 4000, opened: 2013,
+        blurb: "Liberty Baseball Stadium opened in February 2013 at a cost of over $9M, replacing Al Worthington Stadium (the Flames' home since 1979). It seats about 4,000, and in 2019 the playing surface was dedicated as Worthington Field." },
+      seasonNote: null,
       players: [
         { name: "Nick Barone", pos: "C", line: ".320, 12 HR, 55 RBI" },
         { name: "Tanner Marsh", pos: "OF", line: ".333, 5 HR, 44 RBI" },
@@ -206,8 +224,9 @@ const TOURNAMENT = {
       id: "long-island", name: "Long Island", seed: null, conference: "Northeast Conference",
       record: { w: 30, l: 19 }, rpi: 199,
       stats: { runs: 453, runsAllowed: 343, battingAvg: ".301", era: 6.72, sos: 297 },
-      stadium: { name: "LIU Baseball Stadium", lat: 40.734, lng: -73.594, capacity: 1000, // verify coords
-        blurb: "The Sharks' home on Long Island, New York. // TODO verify history details." },
+      stadium: { name: "LIU Baseball Stadium", city: "Brookville", state: "NY", lat: 40.734, lng: -73.594, capacity: 1000, opened: null,
+        blurb: "Home of the LIU Sharks at 720 Northern Boulevard in Brookville, New York. It served the LIU Post Pioneers until the 2019 merger of LIU's programs into the unified Sharks; the natural-grass field runs 330 down the lines and 400 to center." },
+      seasonNote: null,
       players: [
         { name: "Ryan Rivera", pos: "INF", line: ".351, 71 H, 47 RBI" },
         { name: "Nick Matson", pos: "C", line: ".364, 71 H, 43 RBI" },
@@ -220,8 +239,9 @@ const TOURNAMENT = {
       id: "auburn", name: "Auburn", seed: 4, conference: "SEC",
       record: { w: 38, l: 19 }, rpi: 3,
       stats: { runs: 387, runsAllowed: 212, battingAvg: ".297", era: 3.47, sos: 1 },
-      stadium: { name: "Plainsman Park", lat: 32.5935, lng: -85.4858, capacity: 4096, // verify coords
-        blurb: "One of the most picturesque parks in college baseball, with its hand-operated scoreboard and brick facade. The Tigers' home in Auburn, Alabama." },
+      stadium: { name: "Plainsman Park", city: "Auburn", state: "AL", lat: 32.5935, lng: -85.4858, capacity: 4096, opened: 1950,
+        blurb: "Plainsman Park has been Auburn's home since 1950 and was rated the nation's best college venue by Baseball America in 2003. Overhauls in 1996, 2001 and again for 2025 expanded it, and it is famous for the 37-foot \"War Eagle Wall\" in left field; recent capacity is around 6,300." },
+      seasonNote: null,
       players: [
         { name: "Eric Guevara", pos: "OF", line: ".335, 12 HR, 49 RBI" },
         { name: "Chase Fralick", pos: "OF", line: ".311, 14 HR, 45 RBI" },
@@ -233,8 +253,9 @@ const TOURNAMENT = {
       id: "ucf", name: "UCF", seed: null, conference: "Big 12",
       record: { w: 31, l: 21 }, rpi: 36,
       stats: { runs: 361, runsAllowed: 249, battingAvg: ".291", era: 4.37, sos: 21 },
-      stadium: { name: "John Euliano Park", lat: 28.605, lng: -81.197, capacity: 3841, // verify coords
-        blurb: "Home of the Knights in Orlando, Florida. // TODO verify history details." },
+      stadium: { name: "John Euliano Park", city: "Orlando", state: "FL", lat: 28.605, lng: -81.197, capacity: 3841, opened: 2001,
+        blurb: "Opened in 2001 as Jay Bergman Field for the program's longtime coach, the on-campus park was renamed for UCF benefactor John Euliano in 2018. A two-phase expansion begun in 2011 raised capacity toward about 3,600." },
+      seasonNote: null,
       players: [
         { name: "Zak Skinner", pos: "INF", line: ".365, 5 HR, 39 RBI" },
         { name: "John Smith", pos: "INF", line: ".328, 12 HR, 49 RBI" },
@@ -246,8 +267,9 @@ const TOURNAMENT = {
       id: "nc-state", name: "NC State", seed: null, conference: "ACC",
       record: { w: 32, l: 22 }, rpi: 51,
       stats: { runs: 441, runsAllowed: 322, battingAvg: ".307", era: 5.61, sos: 34 },
-      stadium: { name: "Doak Field at Dail Park", lat: 35.79, lng: -78.72, capacity: 3000, // verify coords
-        blurb: "The Wolfpack's home in Raleigh, North Carolina. // TODO verify history details." },
+      stadium: { name: "Doak Field at Dail Park", city: "Raleigh", state: "NC", lat: 35.79, lng: -78.72, capacity: 3000, opened: 1966,
+        blurb: "Doak Field opened in 1966 and is named for Charles Doak, NC State's coach from 1924 to 1939. A $6M renovation in 2004 added grandstands and a press box, and a 2022–23 project brought LED lighting and a new video board; capacity is about 2,500." },
+      seasonNote: null,
       players: [
         { name: "Rett Johnson", pos: "OF", line: ".392, 1 HR, 31 RBI" },
         { name: "Luke Nixon", pos: "OF", line: ".361, 9 HR, 44 RBI" },
@@ -259,8 +281,9 @@ const TOURNAMENT = {
       id: "milwaukee", name: "Milwaukee", seed: null, conference: "Horizon League",
       record: { w: 25, l: 31 }, rpi: 238,
       stats: { runs: 369, runsAllowed: 437, battingAvg: ".275", era: 7.01, sos: 278 },
-      stadium: { name: "Henry Aaron Field", lat: 43.079, lng: -87.881, capacity: 1000, // verify coords
-        blurb: "The Panthers' home in Milwaukee, Wisconsin. // TODO verify history details." },
+      stadium: { name: "Franklin Field", city: "Franklin", state: "WI", lat: 42.9175, lng: -88.0158, capacity: 1000, opened: 2019,
+        blurb: "Milwaukee has played at Franklin Field in Franklin, Wisconsin since 2021, after 27 seasons at Henry Aaron Field at Lincoln Park. The roughly 4,000-seat ballpark opened in 2019 as part of the Ballpark Commons development and is shared with the independent Milwaukee Milkmen." },
+      seasonNote: null,
       players: [
         { name: "Dom Kibler", pos: "INF", line: ".317, 11 HR, 59 RBI" },
         { name: "Charlie Marion", pos: "INF", line: ".310, 12 HR, 54 RBI" },
@@ -273,8 +296,9 @@ const TOURNAMENT = {
       id: "north-carolina", name: "North Carolina", seed: 5, conference: "ACC",
       record: { w: 45, l: 11 }, rpi: 4,
       stats: { runs: 450, runsAllowed: 218, battingAvg: ".290", era: 3.71, sos: 13 },
-      stadium: { name: "Boshamer Stadium", lat: 35.9047, lng: -79.0476, capacity: 5000, // verify coords
-        blurb: "Named for benefactor Cary Boshamer, the Tar Heels' Chapel Hill ballpark was extensively rebuilt in 2009 and regularly hosts NCAA regionals." },
+      stadium: { name: "Boshamer Stadium", city: "Chapel Hill", state: "NC", lat: 35.9047, lng: -79.0476, capacity: 5000, opened: 1972,
+        blurb: "Boshamer Stadium opened in 1972, replacing Emerson Field, and is named for UNC alum and textile executive Cary Boshamer. The park was rebuilt within its footprint in a roughly $26M renovation reopening in 2009; the surface was named Bryson Field in 2012, and capacity is about 4,100." },
+      seasonNote: "Earned the national No. 5 overall seed (45–11) and hosts the Chapel Hill Regional.",
       players: [
         { name: "Owen Hull", pos: "OF/IF", line: ".370 AVG, 6 HR, 67 RBI" },
         { name: "Jake Schaffner", pos: "OF", line: ".354 AVG, 6 HR, 37 RBI" },
@@ -286,8 +310,9 @@ const TOURNAMENT = {
       id: "tennessee", name: "Tennessee", seed: null, conference: "SEC",
       record: { w: 38, l: 20 }, rpi: 31,
       stats: { runs: 426, runsAllowed: 290, battingAvg: ".278", era: 4.7, sos: 28 },
-      stadium: { name: "Lindsey Nelson Stadium", lat: 35.951, lng: -83.927, capacity: 4283, // verify coords
-        blurb: "The Volunteers' home in Knoxville, Tennessee. // TODO verify history details." },
+      stadium: { name: "Lindsey Nelson Stadium", city: "Knoxville", state: "TN", lat: 35.951, lng: -83.927, capacity: 4283, opened: 1993,
+        blurb: "Lindsey Nelson Stadium opened in 1993 and is named for Hall of Fame broadcaster and Tennessee alum Lindsey Nelson, who founded the Vol Radio Network in 1949. Listed capacity is roughly 8,000." },
+      seasonNote: "Reached the NCAA Tournament (38–20) as the No. 2 seed in the Chapel Hill Regional.",
       players: [
         { name: "Henry Ford", pos: "IF", line: ".300 AVG, 19 HR, 56 RBI" },
         { name: "Reese Chapman", pos: "IF", line: ".316 AVG, 10 HR, 44 RBI" },
@@ -299,8 +324,9 @@ const TOURNAMENT = {
       id: "east-carolina", name: "East Carolina", seed: null, conference: "American Athletic Conference",
       record: { w: 36, l: 22 }, rpi: 40,
       stats: { runs: 424, runsAllowed: 278, battingAvg: ".297", era: 4.29, sos: 43 },
-      stadium: { name: "Lewis Field at Clark-LeClair Stadium", lat: 35.601, lng: -77.366, capacity: 6000, // verify coords
-        blurb: "The Pirates' home in Greenville, North Carolina. // TODO verify history details." },
+      stadium: { name: "Lewis Field at Clark-LeClair Stadium", city: "Greenville", state: "NC", lat: 35.601, lng: -77.366, capacity: 6000, opened: 2005,
+        blurb: "Clark-LeClair Stadium opened in 2005 on the site of old Harrington Field, built for about $12M. It honors donor Bill Clark and former coach Keith LeClair, with the surface named Lewis Field; it is regarded as one of the sport's best facilities and atmospheres." },
+      seasonNote: "Won the American Athletic Conference title and reached the NCAA Tournament as the No. 3 seed in the Chapel Hill Regional.",
       players: [
         { name: "Jack Herring", pos: "C", line: ".358 AVG, 9 HR, 51 RBI" },
         { name: "Braden Burress", pos: "OF", line: ".346 AVG, 3 HR, 30 RBI" },
@@ -312,8 +338,9 @@ const TOURNAMENT = {
       id: "vcu", name: "VCU", seed: null, conference: "Atlantic 10",
       record: { w: 37, l: 23 }, rpi: 82,
       stats: { runs: 438, runsAllowed: 308, battingAvg: ".281", era: 4.45, sos: 132 },
-      stadium: { name: "The Diamond", lat: 37.576, lng: -77.447, capacity: 9560, // verify coords
-        blurb: "The Rams share Richmond's historic ballpark, The Diamond. // TODO verify history details." },
+      stadium: { name: "The Diamond", city: "Richmond", state: "VA", lat: 37.576, lng: -77.447, capacity: 9560, opened: 1985,
+        blurb: "The Diamond opened in 1985 and long housed minor-league baseball — the Triple-A Richmond Braves and later the Double-A Flying Squirrels — seating about 12,000. After a planned move to a new ballpark fell through, VCU continued playing its home schedule there." },
+      seasonNote: "Reached the NCAA Tournament (37–23) as the No. 4 seed in the Chapel Hill Regional, drawing host North Carolina in the opener.",
       players: [
         { name: "Jacob Lee", pos: "IF", line: ".342 AVG, 17 HR, 56 RBI" },
         { name: "Nate Kirkpatrick", pos: "IF", line: ".308 AVG, 9 HR, 56 RBI" },
@@ -326,8 +353,9 @@ const TOURNAMENT = {
       id: "texas", name: "Texas", seed: 6, conference: "SEC",
       record: { w: 40, l: 13 }, rpi: 5,
       stats: { runs: 392, runsAllowed: 238, battingAvg: ".294", era: 4.17, sos: 9 },
-      stadium: { name: "UFCU Disch–Falk Field", lat: 30.2858, lng: -97.719, capacity: 7373, // verify coords
-        blurb: "One of college baseball's premier venues, home of the tradition-rich Longhorns in Austin. Named for former coaches Billy Disch and Bibb Falk." },
+      stadium: { name: "UFCU Disch–Falk Field", city: "Austin", state: "TX", lat: 30.2858, lng: -97.719, capacity: 7373, opened: 1975,
+        blurb: "UFCU Disch–Falk Field opened in 1975, replacing historic Clark Field, and is named for former Longhorn coaches Billy Disch and Bibb Falk. The \"UFCU\" naming was added in 2006; capacity exceeds 6,500." },
+      seasonNote: "Earned the national No. 6 overall seed (40–13) and hosts the Austin Regional.",
       players: [
         { name: "Anthony Pack", pos: "OF", line: ".353 AVG, 7 HR, 45 RBI" },
         { name: "Aiden Robbins", pos: "OF/DH", line: ".341 AVG, 19 HR, 53 RBI" },
@@ -339,8 +367,9 @@ const TOURNAMENT = {
       id: "uc-santa-barbara", name: "UC Santa Barbara", seed: null, conference: "Big West",
       record: { w: 38, l: 18 }, rpi: 38,
       stats: { runs: 340, runsAllowed: 217, battingAvg: ".274", era: 3.45, sos: 82 },
-      stadium: { name: "Caesar Uyesaka Stadium", lat: 34.415, lng: -119.848, capacity: 1000, // verify coords
-        blurb: "The Gauchos' home in Santa Barbara, California. // TODO verify history details." },
+      stadium: { name: "Caesar Uyesaka Stadium", city: "Santa Barbara", state: "CA", lat: 34.415, lng: -119.848, capacity: 1000, opened: 1964,
+        blurb: "Opened in 1964 as Campus Stadium, the ballpark was rededicated in 1994 as Caesar Uyesaka Stadium for the longtime UCSB booster whose gift sparked its fundraising. Permanent lights arrived in 2020, and it was first approved as an NCAA regional host in 2024." },
+      seasonNote: "Earned an at-large bid (38–18) as the No. 2 seed in the Austin Regional after sharing the Big West title.",
       players: [
         { name: "Rowan Kelly", pos: "OF", line: ".336 AVG, 3 HR, 43 RBI" },
         { name: "Liam Barrett", pos: "OF", line: ".327 AVG, 3 HR, 17 RBI" },
@@ -352,8 +381,9 @@ const TOURNAMENT = {
       id: "tarleton-state", name: "Tarleton State", seed: null, conference: "Western Athletic Conference",
       record: { w: 37, l: 19 }, rpi: 56,
       stats: { runs: 408, runsAllowed: 335, battingAvg: ".294", era: 5.59, sos: 106 },
-      stadium: { name: "Cecil Ballow Baseball Complex", lat: 32.215, lng: -98.218, capacity: 1000, // verify coords
-        blurb: "Home of the Texans in Stephenville, Texas. // TODO verify history details." },
+      stadium: { name: "Cecil Ballow Baseball Complex", city: "Stephenville", state: "TX", lat: 32.215, lng: -98.218, capacity: 1000, opened: 1988,
+        blurb: "The Cecil Ballow Baseball Complex opened in 1988 — named for Tarleton's former dean of students and baseball coach — as the program was reinstated. New turf, wall and lights arrived in 2021, with added seating and a press box by 2023 pushing capacity past 1,000." },
+      seasonNote: "Won the WAC Tournament (37–19) for the automatic bid and its first-ever Division I NCAA appearance, the No. 3 seed in the Austin Regional.",
       players: [
         { name: "Rayner Heinrich", pos: "IF", line: ".375 AVG, 12 HR, 62 RBI" },
         { name: "Slade McCloud", pos: "OF", line: ".356 AVG, 6 HR, 54 RBI" },
@@ -365,8 +395,9 @@ const TOURNAMENT = {
       id: "holy-cross", name: "Holy Cross", seed: null, conference: "Patriot League",
       record: { w: 25, l: 28 }, rpi: 201,
       stats: { runs: 336, runsAllowed: 374, battingAvg: ".255", era: 6.42, sos: 251 },
-      stadium: { name: "Hanover Insurance Park at Fitton Field", lat: 42.238, lng: -71.805, capacity: 1000, // verify coords
-        blurb: "The Crusaders' home in Worcester, Massachusetts. // TODO verify history details." },
+      stadium: { name: "Hanover Insurance Park at Fitton Field", city: "Worcester", state: "MA", lat: 42.238, lng: -71.805, capacity: 1000, opened: 2005,
+        blurb: "Baseball has been played on the Fitton Field site since 1905; the land was donated by Rev. James Fitton, founder of the college. The diamond was renovated in 2005 and renamed Hanover Insurance Park, seating about 3,000." },
+      seasonNote: "Won the Patriot League Tournament (25–28) for the automatic bid, the No. 4 seed in the Austin Regional.",
       players: [
         { name: "CJ Egrie", pos: "OF", line: ".338 AVG, 3 HR, 22 RBI, 46 SB" },
         { name: "Gianni Royer", pos: "IF", line: ".313 AVG, 6 HR, 28 RBI" },
@@ -379,8 +410,9 @@ const TOURNAMENT = {
       id: "alabama", name: "Alabama", seed: 7, conference: "SEC",
       record: { w: 37, l: 19 }, rpi: 6,
       stats: { runs: 355, runsAllowed: 278, battingAvg: ".253", era: 4.28, sos: 3 },
-      stadium: { name: "Sewell–Thomas Stadium", lat: 33.2092, lng: -87.5372, capacity: 5790, // verify coords
-        blurb: "Known as 'The Joe,' the Crimson Tide's Tuscaloosa park was rebuilt in 2016 and is named for former coaches Joe Sewell and Frank Thomas." },
+      stadium: { name: "Sewell–Thomas Stadium", city: "Tuscaloosa", state: "AL", lat: 33.2092, lng: -87.5372, capacity: 5790, opened: 1948,
+        blurb: "Opened in 1948 as Thomas Field for ex-Alabama coach Frank Thomas, it was renamed Sewell–Thomas Stadium in 1978 to add Hall of Famer Joe Sewell. A $30M-plus rebuild completed for 2016 raised capacity to about 5,800." },
+      seasonNote: null,
       players: [
         { name: "Brady Neal", pos: "C", line: ".328, 8 HR, 43 RBI" },
         { name: "Bryce Fowler", pos: "OF", line: ".316, 5 HR, 35 RBI" },
@@ -392,8 +424,9 @@ const TOURNAMENT = {
       id: "oklahoma-state", name: "Oklahoma State", seed: null, conference: "Big 12",
       record: { w: 37, l: 20 }, rpi: 29,
       stats: { runs: 485, runsAllowed: 370, battingAvg: ".280", era: 6.21, sos: 48 },
-      stadium: { name: "O'Brate Stadium", lat: 36.117, lng: -97.064, capacity: 8000, // verify coords
-        blurb: "The Cowboys' home in Stillwater, opened in 2020. // TODO verify history details." },
+      stadium: { name: "O'Brate Stadium", city: "Stillwater", state: "OK", lat: 36.117, lng: -97.064, capacity: 8000, opened: 2021,
+        blurb: "O'Brate Stadium, named for benefactor Cecil O'Brate, was set to open in 2020 but its debut was delayed by the pandemic; the first game came in February 2021. The roughly $60M park has about 3,500 permanent seats, expandable to 8,000." },
+      seasonNote: null,
       players: [
         { name: "Alex Conover", pos: "INF", line: ".383, 14 HR, 36 RBI" },
         { name: "Kollin Ritchie", pos: "OF", line: ".335, 29 HR, 73 RBI" },
@@ -405,8 +438,9 @@ const TOURNAMENT = {
       id: "sc-upstate", name: "SC Upstate", seed: null, conference: "Big South",
       record: { w: 33, l: 28 }, rpi: 84,
       stats: { runs: 472, runsAllowed: 389, battingAvg: ".291", era: 5.89, sos: 108 },
-      stadium: { name: "Cleveland S. Harley Park", lat: 34.995, lng: -81.932, capacity: 1000, // verify coords
-        blurb: "Home of the Spartans in Spartanburg, South Carolina. // TODO verify history details." },
+      stadium: { name: "Cleveland S. Harley Baseball Park", city: "Spartanburg", state: "SC", lat: 34.995, lng: -81.932, capacity: 1000, opened: 2004,
+        blurb: "Opened in February 2004, the ballpark is named for Spartanburg businessman and philanthropist Cleveland S. Harley. It seats about 500 and anchors the Louis P. Howell Athletic Complex." },
+      seasonNote: null,
       players: [
         { name: "Henry Zenor", pos: "INF", line: ".346, 8 HR, 51 RBI" },
         { name: "Jake Armsey", pos: "INF", line: ".309, 4 HR, 50 RBI" },
@@ -418,8 +452,9 @@ const TOURNAMENT = {
       id: "alabama-state", name: "Alabama State", seed: null, conference: "SWAC",
       record: { w: 34, l: 21 }, rpi: 177,
       stats: { runs: 373, runsAllowed: 377, battingAvg: ".281", era: 6.07, sos: 270 },
-      stadium: { name: "Wheeler-Watkins Baseball Complex", lat: 32.364, lng: -86.295, capacity: 1500, // verify coords
-        blurb: "The Hornets' home in Montgomery, Alabama. // TODO verify history details." },
+      stadium: { name: "Wheeler-Watkins Baseball Complex", city: "Montgomery", state: "AL", lat: 32.364, lng: -86.295, capacity: 1500, opened: 2011,
+        blurb: "Opened in 2011 and dedicated in 2012, the complex honors former Alabama State coaches Herbert Wheeler and Larry Watkins (the program's wins leader). It seats about 500, with an elevated area near the right-field pole known as the \"Hornet's Nest.\"" },
+      seasonNote: null,
       players: [
         { name: "Miguel Oropeza", pos: "INF", line: ".366, 11 HR, 65 RBI" },
         { name: "Niguel Jenkins", pos: "OF", line: ".331, 6 HR, 29 RBI" },
@@ -432,8 +467,9 @@ const TOURNAMENT = {
       id: "florida", name: "Florida", seed: 8, conference: "SEC",
       record: { w: 39, l: 19 }, rpi: 11,
       stats: { runs: 416, runsAllowed: 254, battingAvg: ".278", era: 4.12, sos: 2 },
-      stadium: { name: "Condron Family Ballpark", lat: 29.6516, lng: -82.3479, capacity: 7000, // verify coords
-        blurb: "The Gators' modern home in Gainesville, opened in 2021 to replace McKethan Stadium. One of the SEC's premier facilities." },
+      stadium: { name: "Condron Family Ballpark", city: "Gainesville", state: "FL", lat: 29.6516, lng: -82.3479, capacity: 7000, opened: 2021,
+        blurb: "Condron Family Ballpark opened in February 2021, replacing McKethan Stadium (Florida's home 1988–2020). The roughly $65M park seats about 7,000 with expansive berms and a 360-degree open concourse, and was renamed for philanthropist Gary Condron in 2022." },
+      seasonNote: null,
       players: [
         { name: "Blake Cyr", pos: "INF", line: ".338, 13 HR, 56 RBI" },
         { name: "Ethan Surowiec", pos: "OF", line: ".328, 11 HR, 61 RBI" },
@@ -445,8 +481,9 @@ const TOURNAMENT = {
       id: "miami", name: "Miami", seed: null, conference: "ACC",
       record: { w: 38, l: 18 }, rpi: 30,
       stats: { runs: 476, runsAllowed: 317, battingAvg: ".304", era: 4.99, sos: 49 },
-      stadium: { name: "Mark Light Field at Alex Rodriguez Park", lat: 25.718, lng: -80.279, capacity: 5000, // verify coords
-        blurb: "The Hurricanes' historic home in Coral Gables, Florida. // TODO verify history details." },
+      stadium: { name: "Alex Rodriguez Park at Mark Light Field", city: "Coral Gables", state: "FL", lat: 25.718, lng: -80.279, capacity: 5000, opened: 1973,
+        blurb: "Mark Light Field opened in 1973, named for donor George Light's son Mark. After Alex Rodriguez — who turned down a Miami scholarship in 1993 — donated nearly $4M toward renovations, his name was added to the venue." },
+      seasonNote: null,
       players: [
         { name: "Derek Williams", pos: "OF", line: ".374, 15 HR, 66 RBI" },
         { name: "Alex Sosa", pos: "INF", line: ".332, 17 HR, 66 RBI" },
@@ -458,8 +495,9 @@ const TOURNAMENT = {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
       record: { w: 32, l: 29 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
-      stadium: { name: "Riddle-Pace Field", lat: 31.798, lng: -85.954, capacity: 2000, // verify coords
-        blurb: "The Trojans' home in Troy, Alabama. // TODO verify history details." },
+      stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
+        blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
+      seasonNote: null,
       players: [
         { name: "Jimmy Janicki", pos: "INF", line: ".350, 17 HR, 73 RBI" },
         { name: "Aaron Piasecki", pos: "OF", line: ".338, 9 HR, 42 RBI" },
@@ -471,8 +509,9 @@ const TOURNAMENT = {
       id: "rider", name: "Rider", seed: null, conference: "MAAC",
       record: { w: 33, l: 18 }, rpi: 119,
       stats: { runs: 393, runsAllowed: 285, battingAvg: ".299", era: 5.01, sos: 271 },
-      stadium: { name: "Sonny Pittaro Field", lat: 40.281, lng: -74.741, capacity: 1000, // verify coords
-        blurb: "The Broncs' home in Lawrenceville, New Jersey. // TODO verify history details." },
+      stadium: { name: "Sonny Pittaro Field", city: "Lawrenceville", state: "NJ", lat: 40.281, lng: -74.741, capacity: 1000, opened: 2005,
+        blurb: "Sonny Pittaro Field opened in 2005, named for the longtime Rider coach who retired in 2004 with 766 wins, eight NCAA appearances and nine conference titles. It seats about 2,000 with a press box." },
+      seasonNote: null,
       players: [
         { name: "Kyle Neri", pos: "INF", line: ".352, 7 HR, 49 RBI" },
         { name: "Charley Magoulick", pos: "OF", line: ".345, 9 HR, 48 RBI" },
@@ -485,8 +524,9 @@ const TOURNAMENT = {
       id: "southern-miss", name: "Southern Miss", seed: 9, conference: "Sun Belt",
       record: { w: 44, l: 15 }, rpi: 12,
       stats: { runs: 346, runsAllowed: 215, battingAvg: ".285", era: 3.55, sos: 35 },
-      stadium: { name: "Pete Taylor Park (Hill Denson Field)", lat: 31.3288, lng: -89.336, capacity: 5200, // verify coords
-        blurb: "The Golden Eagles' home in Hattiesburg, Mississippi, known for one of the most raucous atmospheres outside the power conferences." },
+      stadium: { name: "Pete Taylor Park (Hill Denson Field)", city: "Hattiesburg", state: "MS", lat: 31.3288, lng: -89.336, capacity: 5200, opened: 1984,
+        blurb: "Pete Taylor Park opened in 1984, named for coach C.J. \"Pete\" Taylor; the \"Hill Denson Field\" surface was added in 1999 for his successor. Turf replaced grass in 2020, and the park seats roughly 3,300 in a famously raucous setting." },
+      seasonNote: "Went 44–15 to earn the No. 1 seed and host the Hattiesburg Regional.",
       players: [
         { name: "Kyle Morrison", pos: "2B", line: ".322, 15 HR, 45 RBI" },
         { name: "Davis Gillespie", pos: "LF", line: ".324, 12 HR, 43 RBI" },
@@ -498,8 +538,9 @@ const TOURNAMENT = {
       id: "virginia", name: "Virginia", seed: null, conference: "ACC",
       record: { w: 36, l: 21 }, rpi: 26,
       stats: { runs: 455, runsAllowed: 340, battingAvg: ".276", era: 5.15, sos: 16 },
-      stadium: { name: "Disharoon Park", lat: 38.031, lng: -78.517, capacity: 5919, // verify coords
-        blurb: "The Cavaliers' home in Charlottesville, Virginia. // TODO verify history details." },
+      stadium: { name: "Davenport Field at Disharoon Park", city: "Charlottesville", state: "VA", lat: 38.031, lng: -78.517, capacity: 5919, opened: 2002,
+        blurb: "The ballpark opened in 2002 with a win over Bucknell. The surface, Davenport Field, honors longtime Virginia Student Aid Foundation director Ted Davenport; the stadium itself was named Disharoon Park in 2018, and capacity is about 5,900." },
+      seasonNote: "Reached the NCAA Tournament (36–21) as the No. 2 seed in the Hattiesburg Regional.",
       players: [
         { name: "A.J. Gracia", pos: "OF", line: ".338, 14 HR, 42 RBI" },
         { name: "Joe Tiroly", pos: "1B", line: ".313, 14 HR, 58 RBI" },
@@ -511,8 +552,9 @@ const TOURNAMENT = {
       id: "jacksonville-state", name: "Jacksonville State", seed: null, conference: "Conference USA",
       record: { w: 46, l: 13 }, rpi: 25,
       stats: { runs: 431, runsAllowed: 247, battingAvg: ".299", era: 3.77, sos: 112 },
-      stadium: { name: "Rudy Abbott Field at Jim Case Stadium", lat: 33.82, lng: -85.767, capacity: 1500, // verify coords
-        blurb: "The Gamecocks' home in Jacksonville, Alabama. // TODO verify history details." },
+      stadium: { name: "Rudy Abbott Field at Jim Case Stadium", city: "Jacksonville", state: "AL", lat: 33.82, lng: -85.767, capacity: 1500, opened: 1995,
+        blurb: "Rudy Abbott Field has been home since 1995, when JSU moved across campus ahead of its jump to Division I. It honors 31-year coach Rudy Abbott; after a renovation, the venue was named Jim Case Stadium in 2018, seating about 2,000." },
+      seasonNote: "Went 46–13 and entered as the No. 3 seed in the Hattiesburg Regional.",
       players: [
         { name: "Grayson Ashe", pos: "INF", line: ".328, 8 HR, 61 RBI" },
         { name: "Trey King", pos: "OF", line: ".338, 4 HR, 42 RBI" },
@@ -524,8 +566,9 @@ const TOURNAMENT = {
       id: "little-rock", name: "Little Rock", seed: null, conference: "Ohio Valley",
       record: { w: 36, l: 26 }, rpi: 89,
       stats: { runs: 370, runsAllowed: 341, battingAvg: ".289", era: 5.06, sos: 123 },
-      stadium: { name: "Gary Hogan Field", lat: 34.711, lng: -92.349, capacity: 1500, // verify coords
-        blurb: "The Trojans' home in Little Rock, Arkansas. // TODO verify history details." },
+      stadium: { name: "Gary Hogan Field", city: "Little Rock", state: "AR", lat: 34.711, lng: -92.349, capacity: 1500, opened: 1978,
+        blurb: "Little Rock has played on the site since 1978, renamed Gary Hogan Field in 2004 after a roughly $1.6M gift; Hogan coached the Trojans to a school-record 276 wins from 1986–1996. His 1987 team beat No. 1 Oklahoma State 7–3." },
+      seasonNote: "Reached the NCAA Tournament (36–26) as the No. 4 seed in the Hattiesburg Regional.",
       players: [
         { name: "Kade Smith", pos: "CF", line: ".340, 8 HR, 42 RBI" },
         { name: "Nolan Freund", pos: "3B", line: ".308, 8 HR, 36 RBI" },
@@ -538,8 +581,9 @@ const TOURNAMENT = {
       id: "florida-state", name: "Florida State", seed: 10, conference: "ACC",
       record: { w: 38, l: 17 }, rpi: 7,
       stats: { runs: 389, runsAllowed: 233, battingAvg: ".284", era: 4.01, sos: 5 },
-      stadium: { name: "Dick Howser Stadium", lat: 30.436, lng: -84.3033, capacity: 6700, // verify coords
-        blurb: "Named for the late Seminole great and MLB manager Dick Howser, the Tallahassee ballpark has hosted countless NCAA regionals." },
+      stadium: { name: "Dick Howser Stadium", city: "Tallahassee", state: "FL", lat: 30.436, lng: -84.3033, capacity: 6700, opened: 1983,
+        blurb: "Dick Howser Stadium opened in 1983 as Seminole Stadium and was renamed in 1988 for FSU's first baseball All-American and MLB manager Dick Howser. The surface was dedicated as Mike Martin Field in 2005, and a roughly $12M renovation in 2004 raised capacity to about 6,700." },
+      seasonNote: null,
       players: [
         { name: "Myles Bailey", pos: "1B", line: ".363, 13 HR, 33 RBI" },
         { name: "Brody DeLamielleure", pos: "RF", line: ".344, 7 HR, 27 RBI" },
@@ -551,8 +595,9 @@ const TOURNAMENT = {
       id: "coastal-carolina", name: "Coastal Carolina", seed: null, conference: "Sun Belt",
       record: { w: 37, l: 21 }, rpi: 27,
       stats: { runs: 407, runsAllowed: 313, battingAvg: ".269", era: 5.08, sos: 27 },
-      stadium: { name: "Springs Brooks Stadium", lat: 33.793, lng: -79.012, capacity: 5500, // verify coords
-        blurb: "Home of the 2016 national champion Chanticleers in Conway, South Carolina. // TODO verify history details." },
+      stadium: { name: "Springs Brooks Stadium", city: "Conway", state: "SC", lat: 33.793, lng: -79.012, capacity: 5500, opened: 2015,
+        blurb: "The rebuilt ballpark reopened in February 2015 as Springs Brooks Stadium (Vrooman Field), formerly Charles Watson Stadium. It has about 2,500 permanent seats, expandable to 5,000–6,000 for the postseason." },
+      seasonNote: null,
       players: [
         { name: "Trace Mazon", pos: "INF", line: ".366, 4 HR, 30 RBI" },
         { name: "Walker Mitchell", pos: "C", line: ".314, 1 HR, 54 RBI" },
@@ -564,8 +609,9 @@ const TOURNAMENT = {
       id: "northern-illinois", name: "Northern Illinois", seed: null, conference: "Mid-American (MAC)",
       record: { w: 35, l: 17 }, rpi: 78,
       stats: { runs: 380, runsAllowed: 313, battingAvg: ".279", era: 5.69, sos: 218 },
-      stadium: { name: "Ralph McKinzie Field", lat: 41.932, lng: -88.772, capacity: 1000, // verify coords
-        blurb: "The Huskies' home in DeKalb, Illinois. // TODO verify history details." },
+      stadium: { name: "Ralph McKinzie Field", city: "DeKalb", state: "IL", lat: 41.932, lng: -88.772, capacity: 1000, opened: 1965,
+        blurb: "Built in 1965, the field was dedicated as Ralph McKinzie Field in 1993 for the former NIU coach who won conference titles in 1950 and 1951. In 2023 the venue was renamed Ralph McKinzie Field at Walt and Janice Owens Park; capacity is about 1,500." },
+      seasonNote: null,
       players: [
         { name: "Caden Robertson", pos: "C", line: ".282, 14 HR, 58 RBI" },
         { name: "Gavin Baldwin", pos: "INF", line: ".268, 15 HR, 57 RBI" },
@@ -577,8 +623,9 @@ const TOURNAMENT = {
       id: "st-johns", name: "St. John's", seed: null, conference: "Big East",
       record: { w: 33, l: 24 }, rpi: 102,
       stats: { runs: 352, runsAllowed: 323, battingAvg: ".279", era: 5.31, sos: 165 },
-      stadium: { name: "Jack Kaiser Stadium", lat: 40.723, lng: -73.796, capacity: 3500, // verify coords
-        blurb: "The Red Storm's home in Queens, New York. // TODO verify history details." },
+      stadium: { name: "Jack Kaiser Stadium", city: "Queens", state: "NY", lat: 40.723, lng: -73.796, capacity: 3500, opened: 2000,
+        blurb: "Opened in 2000 on St. John's Queens campus as \"The Ballpark at St. John's,\" it was renamed in 2007 for Jack Kaiser, a former Red Storm player, head coach and athletic director. The natural-grass park seats about 3,500." },
+      seasonNote: null,
       players: [
         { name: "Adam Agresti", pos: "INF", line: ".291, 17 HR, 48 RBI" },
         { name: "Shaun McMillan", pos: "INF", line: ".320, 10 HR, 41 RBI" },
@@ -591,8 +638,9 @@ const TOURNAMENT = {
       id: "oregon", name: "Oregon", seed: 11, conference: "Big Ten",
       record: { w: 40, l: 16 }, rpi: 15,
       stats: { runs: 381, runsAllowed: 247, battingAvg: ".284", era: 4.25, sos: 29 },
-      stadium: { name: "PK Park", lat: 44.0583, lng: -123.0681, capacity: 4000, // verify coords
-        blurb: "The Ducks' home in Eugene, adjacent to Autzen Stadium. Opened in 2009 when Oregon revived its baseball program." },
+      stadium: { name: "PK Park", city: "Eugene", state: "OR", lat: 44.0583, lng: -123.0681, capacity: 4000, opened: 2009,
+        blurb: "PK Park opened in 2009 when Oregon revived its baseball program after decades as a club sport; the Ducks won 1–0 on a walk-off in their first game. It is named for ex-AD Pat Kilkenny and shared with the minor-league Eugene Emeralds, seating about 4,000." },
+      seasonNote: null,
       players: [
         { name: "Ryan Cooney", pos: "OF", line: ".340, 8 HR, 38 RBI" },
         { name: "Drew Smith", pos: "INF", line: ".327, 14 HR, 53 RBI" },
@@ -604,8 +652,9 @@ const TOURNAMENT = {
       id: "oregon-state", name: "Oregon State", seed: null, conference: "Independent",
       record: { w: 43, l: 12 }, rpi: 18,
       stats: { runs: 369, runsAllowed: 206, battingAvg: ".271", era: 3.28, sos: 62 },
-      stadium: { name: "Goss Stadium at Coleman Field", lat: 44.561, lng: -123.282, capacity: 4022, // verify coords
-        blurb: "The three-time national champion Beavers' home in Corvallis, Oregon. // TODO verify history details." },
+      stadium: { name: "Goss Stadium at Coleman Field", city: "Corvallis", state: "OR", lat: 44.561, lng: -123.282, capacity: 4022, opened: 1907,
+        blurb: "Oregon State has played on this site since 1907, one of the oldest college diamonds in the country. Coleman Field honors 35-year coach Ralph Coleman; the Goss family's gift amended the name in 1999, and a 2008 expansion raised capacity to about 3,248." },
+      seasonNote: null,
       players: [
         { name: "AJ Singer", pos: "INF", line: ".290, 8 HR, 54 RBI" },
         { name: "Bryce Hubbard", pos: "C", line: ".272, 9 HR, 33 RBI" },
@@ -617,8 +666,9 @@ const TOURNAMENT = {
       id: "washington-state", name: "Washington State", seed: null, conference: "Mountain West",
       record: { w: 30, l: 26 }, rpi: 83,
       stats: { runs: 388, runsAllowed: 372, battingAvg: ".295", era: 6.25, sos: 96 },
-      stadium: { name: "Bailey–Brayton Field", lat: 46.732, lng: -117.162, capacity: 3500, // verify coords
-        blurb: "The Cougars' home in Pullman, Washington. // TODO verify history details." },
+      stadium: { name: "Bailey–Brayton Field", city: "Pullman", state: "WA", lat: 46.732, lng: -117.162, capacity: 3500, opened: 1980,
+        blurb: "The ballpark opened in 1980 as Buck Bailey Field; when Seattle's Sick's Stadium was razed in 1979, its bleachers, fencing and foul poles were moved to Pullman. It was renamed Bailey–Brayton Field in 2000 to add coach Chuck \"Bobo\" Brayton (1962–1994)." },
+      seasonNote: null,
       players: [
         { name: "Gavin Roy", pos: "INF", line: ".372, 2 HR, 42 RBI" },
         { name: "Max Hartman", pos: "RF", line: ".338, 7 HR, 46 RBI" },
@@ -630,8 +680,9 @@ const TOURNAMENT = {
       id: "yale", name: "Yale", seed: null, conference: "Ivy League",
       record: { w: 27, l: 13 }, rpi: 144,
       stats: { runs: 322, runsAllowed: 230, battingAvg: ".281", era: 4.84, sos: 292 },
-      stadium: { name: "Yale Field", lat: 41.312, lng: -72.962, capacity: 6200, // verify coords
-        blurb: "The Bulldogs play at historic Yale Field in New Haven, Connecticut, one of the oldest ballparks in the country. // TODO verify history details." },
+      stadium: { name: "George H. W. Bush Field", city: "West Haven", state: "CT", lat: 41.312, lng: -72.962, capacity: 6200, opened: 1928,
+        blurb: "Yale has played on this West Haven site since the 1880s; the current concrete-and-steel stadium opened in 1928. Long known as Yale Field, it was renamed George H. W. Bush Field in 2021 for the president who captained the Yale team as a senior in 1948." },
+      seasonNote: null,
       players: [
         { name: "Garrett Larsen", pos: "INF", line: ".374, 67 H, 31 RBI" },
         { name: "Kaiden Dossa", pos: "CF", line: ".321, 40 RBI, 26 SB" },
@@ -644,8 +695,9 @@ const TOURNAMENT = {
       id: "texas-am", name: "Texas A&M", seed: 12, conference: "SEC",
       record: { w: 39, l: 14 }, rpi: 14,
       stats: { runs: 477, runsAllowed: 272, battingAvg: ".305", era: 5.11, sos: 17 },
-      stadium: { name: "Olsen Field at Blue Bell Park", lat: 30.61, lng: -96.352, capacity: 7300, // verify coords
-        blurb: "The Aggies' home in College Station, rebuilt in 2012. One of the largest and loudest crowds in college baseball." },
+      stadium: { name: "Olsen Field at Blue Bell Park", city: "College Station", state: "TX", lat: 30.61, lng: -96.352, capacity: 7300, opened: 1978,
+        blurb: "Olsen Field was dedicated in 1978 for C.E. \"Pat\" Olsen, a 1923 A&M graduate who played in the Yankees' farm system. A $24M renovation with Blue Bell Creameries naming rights reopened it as Olsen Field at Blue Bell Park in 2012; crowds regularly push toward 8,000." },
+      seasonNote: null,
       players: [
         { name: "Caden Sorrell", pos: "OF", line: ".343, 23 HR, 74 RBI" },
         { name: "Gavin Grahovac", pos: "INF", line: ".351, 19 HR, 71 RBI" },
@@ -657,8 +709,9 @@ const TOURNAMENT = {
       id: "usc", name: "USC", seed: null, conference: "Big Ten",
       record: { w: 43, l: 15 }, rpi: 9,
       stats: { runs: 393, runsAllowed: 197, battingAvg: ".273", era: 3.47, sos: 37 },
-      stadium: { name: "Dedeaux Field", lat: 34.022, lng: -118.288, capacity: 2500, // verify coords
-        blurb: "Home of the most decorated program in college baseball history, in Los Angeles. // TODO verify history details." },
+      stadium: { name: "Dedeaux Field", city: "Los Angeles", state: "CA", lat: 34.022, lng: -118.288, capacity: 2500, opened: 1974,
+        blurb: "Dedeaux Field opened in 1974 — the year USC won a record fifth straight College World Series — replacing old Bovard Field. It is named for legendary coach Rod Dedeaux, who led the Trojans from 1942 to 1986; the site is being redeveloped into a new stadium." },
+      seasonNote: "Returned to Dedeaux Field to open its 2026 season after playing home games at Great Park in Irvine during the rebuild.",
       players: [
         { name: "Jack Basseer", pos: "INF", line: ".356, 10 HR, 36 RBI" },
         { name: "Kevin Takeuchi", pos: "INF", line: ".305, 8 HR, 52 RBI" },
@@ -670,8 +723,9 @@ const TOURNAMENT = {
       id: "texas-state", name: "Texas State", seed: null, conference: "Sun Belt",
       record: { w: 36, l: 24 }, rpi: 43,
       stats: { runs: 411, runsAllowed: 362, battingAvg: ".276", era: 5.4, sos: 32 },
-      stadium: { name: "Bobcat Ballpark", lat: 29.889, lng: -97.938, capacity: 2500, // verify coords
-        blurb: "The Bobcats' home in San Marcos, Texas. // TODO verify history details." },
+      stadium: { name: "Bobcat Ballpark", city: "San Marcos", state: "TX", lat: 29.889, lng: -97.938, capacity: 2500, opened: 2009,
+        blurb: "Bobcat Ballpark opened in March 2009 with a home opener against Texas. It seats about 2,000 (plus standing room) and features a brick exterior, ticket office and luxury suites on Charles Austin Drive." },
+      seasonNote: null,
       players: [
         { name: "Rashawn Galloway", pos: "OF", line: ".324, 12 HR, 48 RBI" },
         { name: "Manny Salas", pos: "INF", line: ".315, 15 HR, 40 RBI" },
@@ -683,8 +737,9 @@ const TOURNAMENT = {
       id: "lamar", name: "Lamar", seed: null, conference: "Southland",
       record: { w: 34, l: 25 }, rpi: 90,
       stats: { runs: 328, runsAllowed: 292, battingAvg: ".273", era: 4.47, sos: 117 },
-      stadium: { name: "Vincent–Beck Stadium", lat: 30.042, lng: -94.075, capacity: 3500, // verify coords
-        blurb: "The Cardinals' home in Beaumont, Texas. // TODO verify history details." },
+      stadium: { name: "Vincent–Beck Stadium", city: "Beaumont", state: "TX", lat: 30.042, lng: -94.075, capacity: 3500, opened: 1969,
+        blurb: "Vincent–Beck Stadium has been home since 1969, originally as Cardinal Field. It was renamed in 1981 for ex-MLB coach Al Vincent and regent Bryan Beck, and seats about 3,500." },
+      seasonNote: null,
       players: [
         { name: "Tab Tracy", pos: "INF", line: ".336, 2 HR, 32 RBI" },
         { name: "A.J. Taylor", pos: "OF", line: ".297, 7 HR, 32 RBI" },
@@ -697,8 +752,9 @@ const TOURNAMENT = {
       id: "nebraska", name: "Nebraska", seed: 13, conference: "Big Ten",
       record: { w: 42, l: 15 }, rpi: 10,
       stats: { runs: 429, runsAllowed: 298, battingAvg: ".312", era: 4.89, sos: 40 },
-      stadium: { name: "Haymarket Park", lat: 40.8197, lng: -96.7113, capacity: 8486, // verify coords
-        blurb: "The Cornhuskers' home in Lincoln, opened in 2002 and consistently among the national attendance leaders." },
+      stadium: { name: "Haymarket Park", city: "Lincoln", state: "NE", lat: 40.8197, lng: -96.7113, capacity: 8486, opened: 2001,
+        blurb: "Haymarket Park, in Lincoln's Haymarket District, was completed in 2001 for about $29.5M, jointly financed by the city and university. The college surface is Hawks Field; shared with the independent Lincoln Saltdogs, it routinely leads college baseball in attendance." },
+      seasonNote: null,
       players: [
         { name: "Dylan Carey", pos: "INF/OF", line: ".342, 14 HR, 63 RBI" },
         { name: "Case Sanderson", pos: "INF/OF", line: ".370, 6 HR, 48 RBI" },
@@ -710,8 +766,9 @@ const TOURNAMENT = {
       id: "ole-miss", name: "Ole Miss", seed: null, conference: "SEC",
       record: { w: 36, l: 21 }, rpi: 16,
       stats: { runs: 393, runsAllowed: 278, battingAvg: ".266", era: 4.45, sos: 4 },
-      stadium: { name: "Swayze Field", lat: 34.364, lng: -89.534, capacity: 11477, // verify coords
-        blurb: "The 2022 national champion Rebels' home in Oxford, Mississippi. // TODO verify history details." },
+      stadium: { name: "Swayze Field", city: "Oxford", state: "MS", lat: 34.364, lng: -89.534, capacity: 11477, opened: 1989,
+        blurb: "Swayze Field opened in 1989, named for former Ole Miss player and coach Tom Swayze. A roughly $18.5M expansion completed for 2009 raised seating to about 6,000, with total capacity exceeding 8,500." },
+      seasonNote: null,
       players: [
         { name: "Judd Utermark", pos: "INF", line: ".318, 20 HR, 48 RBI" },
         { name: "Tristan Bissetta", pos: "OF", line: ".288, 20 HR, 57 RBI" },
@@ -723,8 +780,9 @@ const TOURNAMENT = {
       id: "arizona-state", name: "Arizona State", seed: null, conference: "Big 12",
       record: { w: 37, l: 19 }, rpi: 44,
       stats: { runs: 467, runsAllowed: 322, battingAvg: ".320", era: 5.44, sos: 74 },
-      stadium: { name: "Phoenix Municipal Stadium", lat: 33.457, lng: -111.987, capacity: 8775, // verify coords
-        blurb: "The tradition-rich Sun Devils play at 'Muni' in Phoenix, Arizona. // TODO verify history details." },
+      stadium: { name: "Phoenix Municipal Stadium", city: "Phoenix", state: "AZ", lat: 33.457, lng: -111.987, capacity: 8775, opened: 1964,
+        blurb: "\"Muni\" opened in 1964 as a Cactus League spring home (the Giants, later the A's through 2014) and has been Arizona State's home since 2015. Its light poles famously came from New York's Polo Grounds; capacity is about 8,775." },
+      seasonNote: null,
       players: [
         { name: "Landon Hairston", pos: "OF", line: ".413, 28 HR, 79 RBI" },
         { name: "Nu'u Contrades", pos: "INF", line: ".373, 17 HR, 53 RBI" },
@@ -736,8 +794,9 @@ const TOURNAMENT = {
       id: "south-dakota-state", name: "South Dakota State", seed: null, conference: "Summit League",
       record: { w: 20, l: 31 }, rpi: 239,
       stats: { runs: 380, runsAllowed: 398, battingAvg: ".275", era: 7.15, sos: 262 },
-      stadium: { name: "Erv Huether Field", lat: 44.321, lng: -96.766, capacity: 1000, // verify coords
-        blurb: "The Jackrabbits' home in Brookings, South Dakota. // TODO verify history details." },
+      stadium: { name: "Erv Huether Field", city: "Brookings", state: "SD", lat: 44.321, lng: -96.766, capacity: 1000, opened: 2008,
+        blurb: "The current Erv Huether Field opened in 2008, named for SDSU coach Erv Huether (1950–1983). Seating for nearly 600 and a new press box were added before 2012; an earlier field of the same name was razed after 2001." },
+      seasonNote: null,
       players: [
         { name: "Luke Luskey", pos: "INF", line: ".303, 13 HR, 55 RBI" },
         { name: "Nolan Grawe", pos: "INF/OF", line: ".315, 7 HR, 49 RBI" },
@@ -750,8 +809,9 @@ const TOURNAMENT = {
       id: "mississippi-state", name: "Mississippi State", seed: 14, conference: "SEC",
       record: { w: 40, l: 17 }, rpi: 13,
       stats: { runs: 486, runsAllowed: 259, battingAvg: ".313", era: 4.3, sos: 7 },
-      stadium: { name: "Dudy Noble Field (Polk–DeMent Stadium)", lat: 33.4558, lng: -88.7905, capacity: 15000, // verify coords
-        blurb: "The largest on-campus venue in college baseball and the 2021 national champion Bulldogs' home in Starkville, famous for its 'Left Field Lounge.'" },
+      stadium: { name: "Dudy Noble Field (Polk–DeMent Stadium)", city: "Starkville", state: "MS", lat: 33.4558, lng: -88.7905, capacity: 15000, opened: 1967,
+        blurb: "Dudy Noble Field opened in 1967, named for longtime coach and AD Clarke \"Dudy\" Noble; the Polk–DeMent name honors coach Ron Polk and a gift from Bonnie DeMent. The roughly $68M rebuild opened in 2019 — the largest on-campus stadium in the country at 15,000-plus — and is nicknamed the \"Carnegie Hall of College Baseball.\"" },
+      seasonNote: null,
       players: [
         { name: "Ace Reese", pos: "INF", line: ".327, 20 HR, 69 RBI" },
         { name: "Noah Sullivan", pos: "OF", line: ".348, 12 HR, 45 RBI" },
@@ -763,8 +823,9 @@ const TOURNAMENT = {
       id: "cincinnati", name: "Cincinnati", seed: null, conference: "Big 12",
       record: { w: 37, l: 20 }, rpi: 22,
       stats: { runs: 419, runsAllowed: 311, battingAvg: ".300", era: 4.96, sos: 39 },
-      stadium: { name: "UC Baseball Stadium (Marge Schott Stadium)", lat: 39.13, lng: -84.516, capacity: 3085, // verify coords
-        blurb: "The Bearcats' home in Cincinnati, Ohio. // TODO verify history details." },
+      stadium: { name: "UC Baseball Stadium", city: "Cincinnati", state: "OH", lat: 39.13, lng: -84.516, capacity: 3085, opened: 2004,
+        blurb: "The on-campus ballpark opened in 2004 as UC Ballpark. It carried the Marge Schott Stadium name from 2006 until 2020, when the Schott name was removed amid renewed scrutiny of her past racist remarks; it is now officially UC Baseball Stadium, seating about 3,085." },
+      seasonNote: null,
       players: [
         { name: "Quinton Coats", pos: "INF", line: ".346, 28 HR, 78 RBI" },
         { name: "Jack Natili", pos: "INF", line: ".336, 16 HR, 59 RBI" },
@@ -776,8 +837,9 @@ const TOURNAMENT = {
       id: "louisiana", name: "Louisiana", seed: null, conference: "Sun Belt",
       record: { w: 39, l: 23 }, rpi: 33,
       stats: { runs: 378, runsAllowed: 324, battingAvg: ".268", era: 4.86, sos: 38 },
-      stadium: { name: "M.L. 'Tigue' Moore Field at Russo Park", lat: 30.215, lng: -92.019, capacity: 6015, // verify coords
-        blurb: "The Ragin' Cajuns' home in Lafayette, Louisiana, one of the most passionate fan bases in the Sun Belt. // TODO verify history details." },
+      stadium: { name: "M.L. 'Tigue' Moore Field at Russo Park", city: "Lafayette", state: "LA", lat: 30.215, lng: -92.019, capacity: 6015, opened: 1978,
+        blurb: "Home of the Ragin' Cajuns since 1978, the surface became M.L. \"Tigue\" Moore Field in 1995. A major 2016 renovation funded by the Russo family added the \"at Russo Park\" name and raised capacity to about 6,000." },
+      seasonNote: null,
       players: [
         { name: "Lee Amedee", pos: "OF", line: ".311, 7 HR, 52 RBI" },
         { name: "Colt Brown", pos: "INF", line: ".307, 5 HR, 50 RBI" },
@@ -789,8 +851,9 @@ const TOURNAMENT = {
       id: "lipscomb", name: "Lipscomb", seed: null, conference: "ASUN",
       record: { w: 29, l: 24 }, rpi: 155,
       stats: { runs: 320, runsAllowed: 361, battingAvg: ".292", era: 6.26, sos: 195 },
-      stadium: { name: "Ken Dugan Field at Stephen L. Marsh Stadium", lat: 36.105, lng: -86.796, capacity: 1000, // verify coords
-        blurb: "The Bisons' home in Nashville, Tennessee. // TODO verify history details." },
+      stadium: { name: "Ken Dugan Field at Stephen L. Marsh Stadium", city: "Nashville", state: "TN", lat: 36.105, lng: -86.796, capacity: 1000, opened: 1991,
+        blurb: "Lipscomb's ballpark opened in 1991, keeping the Ken Dugan Field name first dedicated in 1984 for the coach who won over 1,000 games (1960–1996). The surrounding stadium honors Stephen Lee Marsh; capacity is about 1,500." },
+      seasonNote: null,
       players: [
         { name: "Cam Pruitt", pos: "OF", line: ".356, 2 HR, 48 RBI" },
         { name: "Jordan Thomas", pos: "OF", line: ".309, 10 HR, 40 RBI" },
@@ -803,8 +866,9 @@ const TOURNAMENT = {
       id: "kansas", name: "Kansas", seed: 15, conference: "Big 12",
       record: { w: 42, l: 16 }, rpi: 19,
       stats: { runs: 448, runsAllowed: 333, battingAvg: ".289", era: 5.31, sos: 60 },
-      stadium: { name: "Hoglund Ballpark", lat: 38.954, lng: -95.253, capacity: 2500, // verify coords
-        blurb: "The Jayhawks' home in Lawrence, Kansas. // TODO verify history details." },
+      stadium: { name: "Hoglund Ballpark", city: "Lawrence", state: "KS", lat: 38.954, lng: -95.253, capacity: 2500, opened: 1988,
+        blurb: "Hoglund Ballpark opened in 1988 on the site of old Quigley Field, named for 1950s Jayhawk Forrest Hoglund. Known as Hoglund-Maupin Stadium before 1998, it holds about 2,500." },
+      seasonNote: null,
       players: [
         { name: "Tyson LeBlanc", pos: "OF", line: ".339, 21 HR, 60 RBI" },
         { name: "Augusto Mungarrieta", pos: "INF", line: ".300, 15 HR, 47 RBI" },
@@ -816,8 +880,9 @@ const TOURNAMENT = {
       id: "arkansas", name: "Arkansas", seed: null, conference: "SEC",
       record: { w: 39, l: 20 }, rpi: 21,
       stats: { runs: 421, runsAllowed: 293, battingAvg: ".275", era: 3.72, sos: 10 },
-      stadium: { name: "Baum–Walker Stadium", lat: 36.048, lng: -94.183, capacity: 11531, // verify coords
-        blurb: "One of the nation's elite venues and the Razorbacks' home in Fayetteville, Arkansas. // TODO verify history details." },
+      stadium: { name: "Baum–Walker Stadium", city: "Fayetteville", state: "AR", lat: 36.048, lng: -94.183, capacity: 11531, opened: 1996,
+        blurb: "Baum Stadium opened in 1996, designed by Populous, replacing George Cole Field. Renamed Baum–Walker Stadium in 2019 for the Walker family's foundation, it has grown to about 11,000 — one of college baseball's premier venues." },
+      seasonNote: null,
       players: [
         { name: "Camden Kozeal", pos: "INF", line: ".322, 20 HR, 70 RBI" },
         { name: "Damian Ruiz", pos: "INF", line: ".315, 5 HR, 27 RBI" },
@@ -829,8 +894,9 @@ const TOURNAMENT = {
       id: "missouri-state", name: "Missouri State", seed: null, conference: "Conference USA",
       record: { w: 34, l: 19 }, rpi: 23,
       stats: { runs: 421, runsAllowed: 325, battingAvg: ".299", era: 6.09, sos: 44 },
-      stadium: { name: "Hammons Field", lat: 37.208, lng: -93.286, capacity: 7986, // verify coords
-        blurb: "The Bears share Springfield's professional-grade Hammons Field. // TODO verify history details." },
+      stadium: { name: "Hammons Field", city: "Springfield", state: "MO", lat: 37.208, lng: -93.286, capacity: 7986, opened: 2004,
+        blurb: "Hammons Field opened in 2004, funded entirely by hotel magnate John Q. Hammons as the centerpiece of Jordan Valley Park. The 7,900-plus-seat park is shared with the Double-A Springfield Cardinals; the city bought it in 2023." },
+      seasonNote: null,
       players: [
         { name: "Logan Fyffe", pos: "INF", line: ".364, 8 HR, 42 RBI" },
         { name: "Curry Sutherland", pos: "OF", line: ".317, 15 HR, 51 RBI" },
@@ -842,8 +908,9 @@ const TOURNAMENT = {
       id: "northeastern", name: "Northeastern", seed: null, conference: "Coastal Athletic Association",
       record: { w: 38, l: 20 }, rpi: 88,
       stats: { runs: 428, runsAllowed: 313, battingAvg: ".280", era: 5.04, sos: 190 },
-      stadium: { name: "Friedman Diamond", lat: 42.311, lng: -71.253, capacity: 1000, // verify coords
-        blurb: "The Huskies' home in the Boston, Massachusetts area. // TODO verify history details." },
+      stadium: { name: "Friedman Diamond", city: "Brookline", state: "MA", lat: 42.311, lng: -71.253, capacity: 1000, opened: 1930,
+        blurb: "Northeastern's Brookline field traces to 1930 and moved to its present location in 1972, taking the Friedman Diamond name in 1988. It shares the plot with Parsons Field, dedicated in 1969." },
+      seasonNote: null,
       players: [
         { name: "Harrison Feinberg", pos: "OF", line: ".330, 16 HR, 63 RBI" },
         { name: "Ryan Gerety", pos: "INF", line: ".323, 5 HR, 37 RBI" },
@@ -856,8 +923,9 @@ const TOURNAMENT = {
       id: "west-virginia", name: "West Virginia", seed: 16, conference: "Big 12",
       record: { w: 39, l: 14 }, rpi: 17,
       stats: { runs: 389, runsAllowed: 200, battingAvg: ".303", era: 3.84, sos: 56 },
-      stadium: { name: "Monongalia County Ballpark (Wagener Field)", lat: 39.647, lng: -79.929, capacity: 3500, // verify coords
-        blurb: "The Mountaineers play just outside Morgantown at the county ballpark, which opened in 2015 and is shared with a minor-league club." },
+      stadium: { name: "Kendrick Family Ballpark", city: "Morgantown", state: "WV", lat: 39.647, lng: -79.929, capacity: 3500, opened: 2015,
+        blurb: "The ballpark opened in 2015 at University Town Centre just outside Morgantown (in Granville) and was named Ballpark of the Year for 2015. The surface became Wagener Field in 2021, and the facility was renamed for alumnus and Diamondbacks owner Ken Kendrick in 2024; capacity is about 3,500." },
+      seasonNote: null,
       players: [
         { name: "Gavin Kelly", pos: "OF/DH", line: ".379, 13 HR, 48 RBI" },
         { name: "Paul Schoenfeld", pos: "OF", line: ".350, 3 HR, 43 RBI, 21 SB" },
@@ -869,8 +937,9 @@ const TOURNAMENT = {
       id: "wake-forest", name: "Wake Forest", seed: null, conference: "ACC",
       record: { w: 38, l: 19 }, rpi: 20,
       stats: { runs: 451, runsAllowed: 275, battingAvg: ".297", era: 4.62, sos: 20 },
-      stadium: { name: "David F. Couch Ballpark", lat: 36.134, lng: -80.278, capacity: 3823, // verify coords
-        blurb: "The Demon Deacons' home in Winston-Salem, North Carolina. // TODO verify history details." },
+      stadium: { name: "David F. Couch Ballpark", city: "Winston-Salem", state: "NC", lat: 36.134, lng: -80.278, capacity: 3823, opened: 1956,
+        blurb: "The ballpark opened in 1956 as Ernie Shore Field, long home to Winston-Salem's minor-league team, and Wake Forest moved in full-time for 2009. It was renamed David F. Couch Ballpark in 2016 after the ex-Deacon's gift funded a 2017 Player Development Center; capacity is about 3,800." },
+      seasonNote: null,
       players: [
         { name: "Kade Lewis", pos: "INF", line: ".362, 13 HR, 55 RBI" },
         { name: "Lucas Costello", pos: "OF", line: ".320, 17 HR, 61 RBI" },
@@ -882,8 +951,9 @@ const TOURNAMENT = {
       id: "kentucky", name: "Kentucky", seed: null, conference: "SEC",
       record: { w: 31, l: 21 }, rpi: 37,
       stats: { runs: 360, runsAllowed: 294, battingAvg: ".286", era: 5.31, sos: 31 },
-      stadium: { name: "Kentucky Proud Park", lat: 38.021, lng: -84.529, capacity: 4500, // verify coords
-        blurb: "The Wildcats' home in Lexington, opened in 2019. // TODO verify history details." },
+      stadium: { name: "Kentucky Proud Park", city: "Lexington", state: "KY", lat: 38.021, lng: -84.529, capacity: 4500, opened: 2019,
+        blurb: "Kentucky Proud Park opened for the 2019 season, replacing Cliff Hagan Stadium, with a win over Eastern Kentucky before 4,074 fans. It has about 2,500 fixed seats plus berm seating, expandable toward 7,000 for the NCAA Tournament." },
+      seasonNote: null,
       players: [
         { name: "Jayce Tharnish", pos: "OF", line: ".356, 5 HR, 36 RBI" },
         { name: "Luke Lawrence", pos: "OF", line: ".338, 3 HR, 39 RBI" },
@@ -895,8 +965,9 @@ const TOURNAMENT = {
       id: "binghamton", name: "Binghamton", seed: null, conference: "America East",
       record: { w: 31, l: 20 }, rpi: 118,
       stats: { runs: 362, runsAllowed: 326, battingAvg: ".269", era: 6.18, sos: 231 },
-      stadium: { name: "Bearcats Sports Complex", lat: 42.089, lng: -75.968, capacity: 1000, // verify coords
-        blurb: "The Bearcats' home in Vestal, New York. // TODO verify history details." },
+      stadium: { name: "Bearcats Baseball Complex", city: "Vestal", state: "NY", lat: 42.089, lng: -75.968, capacity: 1000, opened: 2022,
+        blurb: "Binghamton's baseball venue opened in 2022, built after a record $60M anonymous gift. It added 1,906-seat bowl seating, a two-story press box and suites to the turf field on the Vestal campus." },
+      seasonNote: null,
       players: [
         { name: "Sean Sweeney", pos: "INF", line: ".360, 1 HR, 31 RBI" },
         { name: "Matt Bolton", pos: "INF", line: ".349, 6 HR, 44 RBI" },

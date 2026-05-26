@@ -37,7 +37,8 @@ That's it. Everything is plain HTML/CSS/JS.
 - **🏆 Regional view** — the 4 teams with regional seed (1–4), conference and record, plus the full **double‑elimination schedule** (Friday's real matchups/times/TV, then the Sat–Mon winners/losers bracket).
 - **⚔️ Matchup comparison** — click a pregame matchup to get a head‑to‑head: record, RPI, runs, ERA, batting average, strength of schedule and key players, with the statistical edge highlighted for each line.
 - **👤 Team view** — full stat card (record, RPI, runs, runs allowed, team AVG/ERA, SOS) and key‑player stat lines.
-- **🏟️ Stadium / About view** — the team's home ballpark with a real photo (Wikimedia Commons, attributed), capacity, a short history blurb, a keyless Google Maps embed, and Street View / Maps links.
+- **🏟️ Stadium / About view** — the team's home ballpark with a real photo (Wikimedia Commons, attributed), capacity, verified **city/state** and year opened, a researched **history** blurb, and an **About the team** panel (an honest 2026-season summary built from the verified stats, plus key players).
+- **🧾 2026 Season** — each team page opens with a season write-up generated from the verified data (record, RPI, seed, conference, runs/ERA/AVG/SOS), with a sourced season note where one could be verified.
 - **📦 Box score** — click a live or final game for an inning‑by‑inning linescore with R/H/E, pulled from ESPN.
 - **Design** — ESPN‑style dark broadcast theme (charcoal + broadcast red), Anton/Oswald/Barlow display type, smooth view transitions, hash‑based routing with working back/forward, and a mobile‑friendly responsive layout.
 

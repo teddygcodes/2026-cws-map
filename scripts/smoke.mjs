@@ -64,15 +64,24 @@ try {
   if (rows < 7) throw new Error(`expected >=7 schedule rows, got ${rows}`);
   ok(`regional renders ${cards} teams + ${rows} schedule rows`);
 
-  // team → stat grid
+  // team → stat grid + 2026 Season narrative
   await go("#/t/georgia");
   await page.waitForSelector("#view-team .stat-grid", { timeout: 10000 });
-  ok("team view renders stat grid");
+  const teamSeason = await page.locator("#view-team .panel-title", { hasText: "2026 Season" }).count();
+  if (teamSeason < 1) throw new Error("team view missing 2026 Season section");
+  ok("team view renders stat grid + 2026 Season");
 
-  // stadium → photo
-  await go("#/s/georgia");
+  // stadium → photo, City/State location, history/about, and NO google map
+  await go("#/s/arizona-state");
   await page.waitForSelector("#view-stadium .stadium-photo img", { timeout: 10000 });
-  ok("stadium view renders photo");
+  if (await page.locator("#view-stadium .map-embed, #view-stadium iframe").count() !== 0)
+    throw new Error("stadium view still has a map embed");
+  const locText = (await page.locator("#view-stadium .stadium-facts li").filter({ hasText: "Location" }).innerText()).trim();
+  if (!/,\s*[A-Z]{2}\b/.test(locText)) throw new Error(`stadium Location not 'City, ST': ${locText}`);
+  if (/Lincoln/.test(locText)) throw new Error("stadium Location wrongly shows the regional host city");
+  const hist = await page.locator("#view-stadium .panel-title", { hasText: "History" }).count();
+  if (hist < 1) throw new Error("stadium view missing History section");
+  ok("stadium view renders photo + City/State + history (no map)");
 
   // comparison → table
   await go("#/vs/boston-college/liberty");
