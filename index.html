@@ -1223,7 +1223,7 @@
     var LIVE = { list: [], byPair: {}, bySite: {}, activeDate: null, updated: null, loading: false, demo: null, demoTimer: null, simSite: null, simTimer: null };
     // Private-league backend (Session 14). Empty string = feature OFF (the app is
     // fully static without it). Set to the deployed Cloudflare Worker URL to enable.
-    var LEAGUE_API = "";
+    var LEAGUE_API = "https://cws-map-leagues.tyler-696.workers.dev";
     function leaguesEnabled() { return !!LEAGUE_API; }
 
     function normName(s) { return String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]/g, ""); }

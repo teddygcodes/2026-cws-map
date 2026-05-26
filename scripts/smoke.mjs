@@ -139,8 +139,9 @@ try {
   await page.waitForSelector("#view-picks .h2h-table", { timeout: 10000 });
   ok("shared link restores picks + head-to-head renders");
 
-  // Private leagues — disabled state (committed LEAGUE_API="") must degrade gracefully
+  // Private leagues — disabled state must degrade gracefully (force-disable for this check)
   const errsBefore = pageErrors.length;
+  await page.evaluate(() => window.__leagues.setApi(""));
   await go("#/league");
   await page.waitForSelector("#view-league.active .lg-unavailable", { timeout: 10000 });
   if (pageErrors.length !== errsBefore) throw new Error("league disabled state produced page errors: " + pageErrors.slice(errsBefore).join("; "));

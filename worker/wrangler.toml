@@ -11,7 +11,7 @@ compatibility_date = "2026-05-01"
 # then paste the returned id below (replace REPLACE_WITH_KV_NAMESPACE_ID).
 [[kv_namespaces]]
 binding = "LEAGUES"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "ad8c095a7ce247aea826d17d741b3fe2"
 
 # First-pitch lock (epoch ms). Default below = 2026-05-29T16:00:00Z.
 # After this instant the Worker rejects new/edited bracket entries (409 locked).
