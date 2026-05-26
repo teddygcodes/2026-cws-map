@@ -532,8 +532,10 @@
       // SUPER_REGIONAL_UPGRADE: best-of-3 layout once the round has flipped.
       if (T.round === "super-regional") return renderSuperSchedule(s);
 
-      var d1by = {};
-      ((window.SCHEDULES || {})[s.id] || []).forEach(function (gm) { d1by[gm.g] = gm; });
+      // Match the published Friday game to a matchup by TEAMS, not by game
+      // number — schedule.js numbers by time slot, the bracket by seed (G1=#1v#4).
+      var d1byPair = {};
+      ((window.SCHEDULES || {})[s.id] || []).forEach(function (gm) { d1byPair[pairKey(gm.a[0], gm.b[0])] = gm; });
       var br = window.resolveBracket ? window.resolveBracket(s.teams, bracketGames(s)) : { slots: [], champion: null };
       var simming = !!(LIVE.simSite && LIVE.simSite.siteId === s.id);
       var g6 = br.slots[5], g6Final = !!(g6 && g6.event && g6.event.state === "post");
@@ -581,9 +583,11 @@
               : esc(ev.detail || "Final") + " ") +
             '<span class="score">' + (sa == null ? "-" : sa) + "&ndash;" + (sb == null ? "-" : sb) + "</span>";
           html += gameRow(label, when, "", matchup, { live: true, eventId: ev.id });
-        } else if (g <= 2 && d1by[g]) {
-          // Friday pregame: scheduled time/TV + head-to-head Compare link
-          html += gameRow(label, esc(d1by[g].time) + " ET", d1by[g].tv, matchup, { live: true, compare: [d1by[g].a[0], d1by[g].b[0]] });
+        } else if (g <= 2 && slot.teams) {
+          // Friday pregame: published time/TV for THIS matchup + Compare link.
+          var sg = d1byPair[pairKey(slot.teams[0], slot.teams[1])];
+          html += gameRow(label, sg ? esc(sg.time) + " ET" : "Time TBD", sg ? sg.tv : "", matchup,
+            { live: true, compare: [slot.teams[0], slot.teams[1]] });
         } else if (slot.teams) {
           // matchup known but not yet played
           html += gameRow(label, ev && ev.detail ? esc(ev.detail) : "Time TBD", "", matchup, { tbd: !ev });
