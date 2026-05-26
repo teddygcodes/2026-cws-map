@@ -292,6 +292,37 @@
     .h2h-table .h2h-a { text-align:right; } .h2h-table .h2h-b { text-align:left; }
     .h2h-table .win { color:#28d07a; font-weight:700; }
 
+    /* ---------- Private leagues ---------- */
+    .lg-cols { display:grid; gap:14px; grid-template-columns:1fr; margin:14px 0; }
+    @media (min-width:680px){ .lg-cols { grid-template-columns:1fr 1fr; } }
+    .lg-card { border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--panel); }
+    .lg-form { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+    .lg-form input { background:#0e0e10; border:1px solid var(--line); border-radius:8px; color:var(--text);
+      font-family:"Oswald",sans-serif; font-size:14px; padding:9px 11px; }
+    .lg-form input:focus { outline:none; border-color:var(--accent); }
+    .lg-form .lg-codein { letter-spacing:.2em; text-transform:uppercase; font-family:"Anton",sans-serif; }
+    .lg-list { display:grid; gap:8px; margin-bottom:16px; }
+    .lg-list-row { display:flex; align-items:center; gap:12px; cursor:pointer; width:100%; text-align:left;
+      background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:11px 14px; transition:.15s; }
+    .lg-list-row:hover { border-color:var(--accent); }
+    .lg-list-row .lg-code { font-family:"Anton",sans-serif; font-size:16px; letter-spacing:.12em; }
+    .lg-list-row .lg-as { color:var(--muted); font-size:13px; flex:1; }
+    .lg-list-row .go { color:var(--accent); font-family:"Oswald",sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+    .lg-empty { color:var(--muted); font-size:14px; padding:10px 2px; }
+    .lg-loading { color:var(--muted); font-family:"Oswald",sans-serif; letter-spacing:.06em; padding:20px 2px; }
+    .lg-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:12px 0 14px; }
+    .lg-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .lg-actions .btn { padding:8px 13px; font-size:12px; }
+    .lg-lock { font-family:"Oswald",sans-serif; font-size:12px; letter-spacing:.06em; text-transform:uppercase;
+      color:#28d07a; border:1px solid rgba(40,208,122,.5); background:rgba(40,208,122,.08); border-radius:999px; padding:5px 12px; }
+    .lg-lock.locked { color:var(--accent); border-color:rgba(232,32,42,.5); background:rgba(232,32,42,.08); }
+    .lg-standings .lg-rank { font-family:"Anton",sans-serif; color:var(--muted); width:34px; }
+    .lg-standings tbody tr:first-child .lg-rank { color:var(--gold); }
+    .lg-note { color:var(--muted); font-size:12px; margin-top:10px; letter-spacing:.02em; }
+    .lg-unavailable { border:1px dashed var(--line); border-radius:12px; padding:22px; text-align:center; margin-top:14px; }
+    .lg-unavailable .ttl { font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
+    .lg-unavailable p { color:var(--muted); line-height:1.6; max-width:48ch; margin:0 auto; }
+
     .sched-day { font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.14em; font-size:12px; color:var(--text);
       margin:18px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
     .sched-day:first-of-type { margin-top:0; }
@@ -538,6 +569,9 @@
 
     <!-- BRACKET CHALLENGE pick'em (predict the whole field; client-side only) -->
     <section id="view-picks" class="view"></section>
+
+    <!-- PRIVATE LEAGUES (optional Cloudflare-backed leaderboard) -->
+    <section id="view-league" class="view"></section>
   </main>
 
   <footer>
@@ -598,7 +632,7 @@
     }
 
     // ---- view switching ---------------------------------------------------
-    var VIEWS = ["map", "regional", "team", "stadium", "game", "compare", "bracket", "picks"];
+    var VIEWS = ["map", "regional", "team", "stadium", "game", "compare", "bracket", "picks", "league"];
     var currentView = null;
     var regionalMode = "list"; // "list" | "bracket" — persists across live re-renders
     var mapMode = "map"; // "map" | "list" — host-sites display mode (Map/List/Bracket toggle)
@@ -1187,6 +1221,10 @@
     var POLL_MS = 30000;
     var TOURNEY_DATES = ["20260529", "20260530", "20260531", "20260601"];
     var LIVE = { list: [], byPair: {}, bySite: {}, activeDate: null, updated: null, loading: false, demo: null, demoTimer: null, simSite: null, simTimer: null };
+    // Private-league backend (Session 14). Empty string = feature OFF (the app is
+    // fully static without it). Set to the deployed Cloudflare Worker URL to enable.
+    var LEAGUE_API = "";
+    function leaguesEnabled() { return !!LEAGUE_API; }
 
     function normName(s) { return String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]/g, ""); }
     var FIELD_NORM = (function () { var m = {}; Object.keys(T.teams).forEach(function (id) { m[id] = normName(T.teams[id].name); }); return m; })();
@@ -1748,6 +1786,8 @@
       window.__stopSim = stopRegionalSim;
       window.__simAll = simulateAllRegionals;
       window.__picks = { encode: encodePicks, decode: decodePicks, get: function () { return PICKS; }, set: function (p) { PICKS = p; savePicks(); } };
+      // Test hook only: LEAGUE_API is a closure-local var, so smoke flips it here.
+      window.__leagues = { setApi: function (u) { LEAGUE_API = u; }, get: function () { return LEAGUES; } };
     }
 
     function startPolling() {
@@ -1804,6 +1844,33 @@
       } catch (e) { /* private mode / corrupt — keep empty */ }
     }
     function savePicks() { try { localStorage.setItem(PICKS_KEY, JSON.stringify(PICKS)); } catch (e) { /* ignore */ } }
+
+    // ---- private leagues: persistence + API wrapper (Session 14) ----
+    var LEAGUES_KEY = "cws-leagues-v1";
+    var LEAGUES = { v: 1, joined: [] };           // [{ code, memberId, displayName }]
+    function loadLeagues() {
+      try { var raw = localStorage.getItem(LEAGUES_KEY); if (!raw) return; var l = JSON.parse(raw); if (l && l.v === 1 && Array.isArray(l.joined)) LEAGUES = l; } catch (e) { /* ignore */ }
+    }
+    function saveLeagues() { try { localStorage.setItem(LEAGUES_KEY, JSON.stringify(LEAGUES)); } catch (e) { /* ignore */ } }
+    function joinedLeague(code) { return LEAGUES.joined.filter(function (j) { return j.code === code; })[0] || null; }
+    function newMemberId() {
+      try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) { /* ignore */ }
+      return "m-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+    }
+    // Fetch wrapper mirroring the ESPN pattern; rejects {offline:true} when disabled,
+    // and {status,error} on HTTP errors. Callers always .catch() and degrade gracefully.
+    function leagueApi(method, path, body) {
+      if (!leaguesEnabled()) return Promise.reject({ offline: true });
+      return fetch(LEAGUE_API + path, {
+        method: method, cache: "no-store",
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          return r.ok ? j : Promise.reject(Object.assign({ status: r.status }, j));
+        });
+      });
+    }
 
     // ---- stable, versioned URL encoding (v1, 26 chars, digits only) ----
     // Order: "1" + 16 regional digits (seed 1..16; team index 0-3, 4=none)
@@ -1892,12 +1959,20 @@
       if (predictedChampTeam()) n++;
       return n;
     }
-    function scoreStrip() {
+    // Score any bracket code against actual results (used by the picks strip AND
+    // league standings). Champion stays pending (Omaha not modeled). null if code invalid.
+    function scoreBracketCode(code) {
+      var p = decodePicks(code);
+      if (!p) return null;
       var reg = 0, regD = 0, sup = 0, supD = 0, sd;
-      for (sd = 1; sd <= 16; sd++) { var s = PICK_BY_SEED[sd]; var a = actualRegChamp(s.id); if (a != null) { regD++; if (a === PICKS.reg[s.id]) reg++; } }
-      for (sd = 1; sd <= 8; sd++) { var aw = actualSuperWinner(sd); if (aw != null) { supD++; if (predictedSuperWinner(sd) === aw) sup++; } }
-      if (regD === 0 && supD === 0) return "";
-      return '<div class="pick-score">Your results &middot; Regionals <b>' + reg + "/" + regD + "</b> &middot; Super Regionals <b>" + sup + "/" + supD + "</b> &middot; Champion: pending</div>";
+      for (sd = 1; sd <= 16; sd++) { var s = PICK_BY_SEED[sd]; var a = actualRegChamp(s.id); if (a != null) { regD++; if (a === regOf(p, sd)) reg++; } }
+      for (sd = 1; sd <= 8; sd++) { var aw = actualSuperWinner(sd); if (aw != null) { supD++; if (supWinnerFor(p, sd) === aw) sup++; } }
+      return { reg: reg, regDecided: regD, sup: sup, supDecided: supD, correct: reg + sup, decided: regD + supD };
+    }
+    function scoreStrip() {
+      var sc = scoreBracketCode(encodePicks(PICKS));
+      if (!sc || (sc.regDecided === 0 && sc.supDecided === 0)) return "";
+      return '<div class="pick-score">Your results &middot; Regionals <b>' + sc.reg + "/" + sc.regDecided + "</b> &middot; Super Regionals <b>" + sc.sup + "/" + sc.supDecided + "</b> &middot; Champion: pending</div>";
     }
     function showPicks() {
       setCrumbs([{ text: "Map", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "My Picks" }], "#/bracket");
@@ -1917,6 +1992,7 @@
           '<div class="pick-actions">' +
             '<button class="btn primary" data-act="copy">&#128279; Copy share link</button>' +
             '<button class="btn" data-act="compare">&#9878; Compare a friend</button>' +
+            '<a class="btn" href="#/league">&#127942; Leagues</a>' +
             '<button class="btn" data-act="reset">&#8635; Reset</button>' +
           "</div></div>" +
         scoreStrip() +
@@ -2011,6 +2087,150 @@
       });
     }
 
+    // ===================================================================
+    // PRIVATE LEAGUES (Session 14) — UI over the Cloudflare Worker.
+    // Scoring is client-side (scoreBracketCode); the Worker is a dumb store.
+    // ===================================================================
+    function leagueBanner() { return '<div class="pick-banner">&#9888; Standings are unofficial predictions — not real results.</div>'; }
+    function lockState(lockTs) {
+      var ms = (lockTs || 0) - Date.now();
+      if (ms <= 0) return { locked: true, text: "Locked — brackets final" };
+      var d = Math.floor(ms / 86400000), h = Math.floor((ms % 86400000) / 3600000), m = Math.floor((ms % 3600000) / 60000);
+      return { locked: false, text: "Locks in " + (d > 0 ? d + "d " + h + "h" : (h > 0 ? h + "h " + m + "m" : m + "m")) };
+    }
+    function leagueErr(err) {
+      if (err && err.offline) return alert("Leagues aren't enabled yet.");
+      if (err && err.status === 409) return alert("Brackets are locked — the tournament has started.");
+      if (err && err.status === 429) return alert("Too many requests — please try again later.");
+      if (err && err.status === 404) return alert("That league code wasn't found.");
+      alert("Couldn't reach the league server. Try again.");
+    }
+    function showLeagueUnavailable() {
+      setCrumbs([{ text: "Map", href: "#/" }, { text: "Leagues" }], "#/");
+      render(document.getElementById("view-league"),
+        '<div class="section-head">Private Leagues</div>' +
+        '<div class="lg-unavailable"><div class="ttl">Leagues aren’t turned on yet</div>' +
+        '<p>League play uses an optional backend that hasn’t been enabled. Your ' +
+        '<a href="#/picks">Bracket Challenge</a> still works and is shareable by link.</p>' +
+        '<div class="map-actions"><a class="btn primary" href="#/picks">&#8592; Back to my picks</a></div></div>');
+      showView("league");
+    }
+    function showLeagueHub() {
+      setCrumbs([{ text: "Map", href: "#/" }, { text: "Leagues" }], "#/");
+      var joined = LEAGUES.joined.map(function (j) {
+        return '<button class="lg-list-row" data-code="' + esc(j.code) + '"><span class="lg-code">' + esc(j.code) +
+          '</span><span class="lg-as">as ' + esc(j.displayName) + '</span><span class="go">Standings &rarr;</span></button>';
+      }).join("") || '<div class="lg-empty">You haven’t joined a league yet.</div>';
+      render(document.getElementById("view-league"),
+        '<div class="section-head">Private Leagues</div>' +
+        '<div class="section-sub">Compete with friends on your bracket &middot; one code, everyone joins</div>' +
+        leagueBanner() +
+        '<div class="lg-cols">' +
+          '<div class="lg-card"><div class="bk-title">Create a league</div><div class="lg-form">' +
+            '<input id="lgNewName" type="text" maxlength="24" placeholder="Your display name" autocomplete="off">' +
+            '<input id="lgLeagueName" type="text" maxlength="24" placeholder="League name (optional)" autocomplete="off">' +
+            '<button class="btn primary" data-act="create">Create</button></div></div>' +
+          '<div class="lg-card"><div class="bk-title">Join a league</div><div class="lg-form">' +
+            '<input id="lgJoinCode" type="text" maxlength="6" placeholder="Code" autocomplete="off" class="lg-codein">' +
+            '<input id="lgJoinName" type="text" maxlength="24" placeholder="Your display name" autocomplete="off">' +
+            '<button class="btn" data-act="join">Join</button></div></div>' +
+        '</div>' +
+        '<div class="bk-title">Your leagues</div><div class="lg-list">' + joined + '</div>' +
+        '<div class="map-actions"><a class="btn" href="#/picks">&#8592; Back to my picks</a></div>');
+      showView("league");
+    }
+    function showLeagueStandings(code) {
+      code = (code || "").toUpperCase();
+      setCrumbs([{ text: "Map", href: "#/" }, { text: "Leagues", href: "#/league" }, { text: code }], "#/league");
+      var el = document.getElementById("view-league");
+      render(el, '<div class="section-head">League ' + esc(code) + "</div><div class=\"lg-loading\">Loading standings…</div>");
+      showView("league");
+      leagueApi("GET", "/league/" + encodeURIComponent(code)).then(function (data) {
+        var ls = lockState(data.lockTs), mine = joinedLeague(code);
+        var rows = (data.members || []).map(function (mm) { return { name: mm.displayName, sc: scoreBracketCode(mm.bracket) }; });
+        rows.sort(function (a, b) {
+          if (!a.sc && !b.sc) return 0; if (!a.sc) return 1; if (!b.sc) return -1;
+          if (b.sc.correct !== a.sc.correct) return b.sc.correct - a.sc.correct;
+          var aw = a.sc.decided ? a.sc.correct / a.sc.decided : 0, bw = b.sc.decided ? b.sc.correct / b.sc.decided : 0;
+          if (bw !== aw) return bw - aw;
+          return b.sc.sup - a.sc.sup;
+        });
+        var body = rows.length ? rows.map(function (r, i) {
+          var wp = (r.sc && r.sc.decided) ? Math.round(100 * r.sc.correct / r.sc.decided) + "%" : "&ndash;";
+          var corr = r.sc ? r.sc.correct : '<span class="todo">invalid</span>';
+          return "<tr><td class=\"lg-rank\">" + (i + 1) + "</td><td>" + esc(r.name) + "</td><td>" + corr + "</td><td>" + wp + "</td></tr>";
+        }).join("") : '<tr><td colspan="4" class="lg-empty">No entries yet — be the first to submit your bracket.</td></tr>';
+        var actions = (mine ? "" : '<button class="btn primary" data-act="joinhere" data-code="' + esc(code) + '">Join this league</button> ') +
+          (mine && !ls.locked ? '<button class="btn primary" data-act="submit" data-code="' + esc(code) + '">Submit my bracket</button> ' : (mine && ls.locked ? '<button class="btn" disabled>Locked</button> ' : "")) +
+          '<button class="btn" data-act="copycode" data-code="' + esc(code) + '">Copy invite</button>';
+        render(el,
+          '<div class="section-head">' + esc(data.name || ("League " + code)) + "</div>" +
+          '<div class="section-sub">Code <b>' + esc(code) + "</b> &middot; share it to invite friends</div>" +
+          leagueBanner() +
+          '<div class="lg-bar"><span class="lg-lock' + (ls.locked ? " locked" : "") + '">' + ls.text + "</span>" +
+            '<span class="lg-actions">' + actions + "</span></div>" +
+          '<table class="cmp-table lg-standings"><thead><tr><th>#</th><th>Player</th><th>Correct</th><th>Win%</th></tr></thead><tbody>' + body + "</tbody></table>" +
+          '<div class="lg-note">Correct = regional + super-regional picks decided so far. Champion is scored after Omaha.</div>' +
+          '<div class="map-actions"><a class="btn" href="#/picks">&#8592; My picks</a> <a class="btn" href="#/league">All leagues</a></div>');
+        showView("league");
+      }).catch(function (err) {
+        render(el, '<div class="section-head">League ' + esc(code) + "</div>" +
+          '<div class="lg-unavailable"><div class="ttl">' + (err && err.status === 404 ? "League not found" : "Couldn’t load standings") + "</div>" +
+          "<p>" + (err && err.offline ? "Leagues aren’t enabled yet." : "Check the code or try again.") + "</p>" +
+          '<div class="map-actions"><a class="btn" href="#/league">&#8592; Leagues</a> <a class="btn" href="#/league/' + esc(code) + '">Retry</a></div></div>');
+        showView("league");
+      });
+    }
+    function leagueCreate() {
+      var dn = ((document.getElementById("lgNewName") || {}).value || "").trim();
+      var ln = ((document.getElementById("lgLeagueName") || {}).value || "").trim();
+      if (!dn) return alert("Enter a display name.");
+      leagueApi("POST", "/league", { name: ln || "League" }).then(function (r) {
+        LEAGUES.joined.push({ code: r.code, memberId: newMemberId(), displayName: dn.slice(0, 24) }); saveLeagues();
+        location.hash = "#/league/" + r.code;
+      }).catch(leagueErr);
+    }
+    function leagueJoinForm() {
+      var code = ((document.getElementById("lgJoinCode") || {}).value || "").toUpperCase().trim();
+      var dn = ((document.getElementById("lgJoinName") || {}).value || "").trim();
+      if (!code || !dn) return alert("Enter a league code and display name.");
+      leagueJoin(code, dn);
+    }
+    function leagueJoin(code, dn) {
+      leagueApi("GET", "/league/" + encodeURIComponent(code)).then(function () {
+        if (!joinedLeague(code)) { LEAGUES.joined.push({ code: code, memberId: newMemberId(), displayName: (dn || "Player").slice(0, 24) }); saveLeagues(); }
+        location.hash = "#/league/" + code;
+      }).catch(leagueErr);
+    }
+    function leagueSubmit(code, btn) {
+      var mine = joinedLeague(code); if (!mine) return alert("Join the league first.");
+      var was = btn ? btn.innerHTML : ""; if (btn) { btn.disabled = true; btn.innerHTML = "Submitting…"; }
+      leagueApi("POST", "/league/" + encodeURIComponent(code) + "/member", { memberId: mine.memberId, displayName: mine.displayName, bracket: encodePicks(PICKS) })
+        .then(function () { showLeagueStandings(code); })
+        .catch(function (err) { if (btn) { btn.disabled = false; btn.innerHTML = was; } leagueErr(err); });
+    }
+    function leagueCopyInvite(code, btn) {
+      var url = location.origin + location.pathname + "#/league/" + code;
+      function done() { if (btn) { var o = btn.innerHTML; btn.innerHTML = "Copied!"; setTimeout(function () { btn.innerHTML = o; }, 1500); } }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url); done(); });
+      else { fallbackCopy(url); done(); }
+    }
+    function wireLeague() {
+      var el = document.getElementById("view-league");
+      if (!el || el.__wired) return; el.__wired = true;
+      el.addEventListener("click", function (e) {
+        var row = e.target.closest(".lg-list-row");
+        if (row) { location.hash = "#/league/" + row.getAttribute("data-code"); return; }
+        var b = e.target.closest("[data-act]"); if (!b) return;
+        var act = b.getAttribute("data-act"), code = b.getAttribute("data-code");
+        if (act === "create") return leagueCreate();
+        if (act === "join") return leagueJoinForm();
+        if (act === "joinhere") return leagueJoin(code, (joinedLeague(code) || {}).displayName);
+        if (act === "submit") return leagueSubmit(code, b);
+        if (act === "copycode") return leagueCopyInvite(code, b);
+      });
+    }
+
     function router() {
       var hash = location.hash || "#/";
       var parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
@@ -2022,6 +2242,11 @@
       else if (parts[0] === "bracket") showBracket();
       else if (parts[0] === "picks") { if (parts[1]) loadSharedPicks(decodeURIComponent(parts[1])); else showPicks(); }
       else if (parts[0] === "h2h") showH2H(decodeURIComponent(parts[1] || ""), decodeURIComponent(parts[2] || ""));
+      else if (parts[0] === "league") {
+        if (!leaguesEnabled()) showLeagueUnavailable();
+        else if (parts[1]) showLeagueStandings(decodeURIComponent(parts[1]));
+        else showLeagueHub();
+      }
       else showMap();
     }
 
@@ -2046,10 +2271,12 @@
     window.addEventListener("load", function () {
       snapshotPickSites();   // capture the original 16-site structure BEFORE any super-flip
       loadPicks();
+      loadLeagues();
       initMap();
       wireScoreboard();
       wireMapNav();
       wirePicks();
+      wireLeague();
       router();
       startPolling();
     });

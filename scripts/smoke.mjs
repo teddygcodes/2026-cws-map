@@ -15,6 +15,8 @@ const ok = (m) => steps.push("  ✓ " + m);
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
+const pageErrors = [];
+page.on("pageerror", (e) => pageErrors.push(String(e)));
 let failed = null;
 
 async function go(hash) {
@@ -136,6 +138,33 @@ try {
   await go("#/h2h/" + rt.code + "/" + rt.code);
   await page.waitForSelector("#view-picks .h2h-table", { timeout: 10000 });
   ok("shared link restores picks + head-to-head renders");
+
+  // Private leagues — disabled state (committed LEAGUE_API="") must degrade gracefully
+  const errsBefore = pageErrors.length;
+  await go("#/league");
+  await page.waitForSelector("#view-league.active .lg-unavailable", { timeout: 10000 });
+  if (pageErrors.length !== errsBefore) throw new Error("league disabled state produced page errors: " + pageErrors.slice(errsBefore).join("; "));
+  ok("private leagues: graceful 'unavailable' state when backend off");
+
+  // Private leagues — enabled flow against a mocked Worker (no real backend in CI)
+  const future = Date.now() + 3 * 86400000;
+  const aCode = "1" + "0".repeat(25), bCode = "1" + "1111111111111111000000007";
+  await page.route("**/league**", (route) => {
+    const r = route.request(), u = r.url().split("#")[0], m = r.method();
+    if (m === "POST" && /\/league$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ code: "ABC123", name: "Smoke League", lockTs: future }) });
+    if (m === "GET" && /\/league\/ABC123$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ name: "Smoke League", lockTs: future, members: [{ displayName: "Alice", bracket: aCode }, { displayName: "Bob", bracket: bCode }] }) });
+    if (m === "POST" && /\/member$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ displayName: "Me", bracket: aCode, updated: Date.now() }) });
+    return route.continue();
+  });
+  await page.evaluate(() => window.__leagues.setApi("https://mock.test"));
+  await go("#/league/ABC123");
+  await page.waitForSelector("#view-league .lg-standings tbody tr", { timeout: 10000 });
+  const lgRows = await page.locator("#view-league .lg-standings tbody tr").count();
+  if (lgRows !== 2) throw new Error(`expected 2 league standings rows, got ${lgRows}`);
+  if (await page.locator("#view-league .pick-banner").count() < 1) throw new Error("league standings missing unofficial banner");
+  await page.unroute("**/league**");
+  await page.evaluate(() => window.__leagues.setApi(""));
+  ok("private leagues: mocked standings render ranked rows");
 
   // rich game detail: SIM situation strip (count/outs/diamond) renders
   await go("#/");

@@ -1,0 +1,20 @@
+# Cloudflare Worker config for the CWS-MAP private-league backend.
+# See worker/README.md for the full one-time setup. The static app stays on
+# GitHub Pages; this Worker is deployed separately to your own Cloudflare account.
+
+name = "cws-map-leagues"
+main = "worker.js"
+compatibility_date = "2026-05-01"
+
+# KV namespace that stores leagues. Create it once with:
+#   wrangler kv namespace create LEAGUES
+# then paste the returned id below (replace REPLACE_WITH_KV_NAMESPACE_ID).
+[[kv_namespaces]]
+binding = "LEAGUES"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# First-pitch lock (epoch ms). Default below = 2026-05-29T16:00:00Z.
+# After this instant the Worker rejects new/edited bracket entries (409 locked).
+# Note: this is read at league-CREATE time; existing leagues keep their stored lockTs.
+[vars]
+LOCK_TS = "1780070400000"

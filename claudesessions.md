@@ -26,7 +26,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 11 | Pre-rendered per-view share cards | M | 1 |
 | 12 | Verified team history & program context | L | — |
 | 13 | ✅ Bracket Challenge — full chain, shareable (static) | L | 2 |
-| 14 | Pick'em backend + private leagues (Cloudflare Worker + KV) | M | 13 |
+| 14 | ✅ Pick'em backend + private leagues (Cloudflare Worker + KV) | M | 13 |
 | 15 | Daily per-game pick'em (W/L tally + standings) | M | 14 |
 
 ---
@@ -265,7 +265,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 14 — Pick'em backend + private leagues (Cloudflare Worker + KV)
+## Session 14 — Pick'em backend + private leagues (Cloudflare Worker + KV) ✅ SHIPPED
+> **Shipped:** commit `<pending>` · ships **dark** (`LEAGUE_API=""`) — CI/Pages green and unaffected until the owner deploys the Worker. New `worker/` (Worker + `wrangler.toml` + setup README): a **dumb KV store** of `league → members` with endpoints create / GET / submit-member, **server-side first-pitch lock** (409 after `LOCK_TS`), CORS allow-list, per-IP + per-league caps, and honor-system `memberId` edit tokens (not auth). **All scoring is client-side** — extracted `scoreBracketCode()` (re-used by the picks strip; behaviour-neutral) ranks each member's stored 26-char bracket via the existing resolver, so the Worker never touches ESPN. Client: `#/league` hub (create/join/list) + `#/league/<code>` standings (correct desc, win% tiebreak), lock countdown, submit/update, copy-invite; graceful `.lg-unavailable` when disabled; `cws-leagues-v1` persistence; `leagueApi()` wrapper; entry button on the picks bar. Member object reserves a `games:{}` field so **Session 15 drops into the same league** with no reshaping. Verified: worker handler e2e in Node (create/member/get/lock/CORS/404 all correct; memberId not exposed), `scripts/test-league.mjs` (16 validator assertions in `npm test`), smoke covers the disabled state (no page errors) + a mocked enabled standings flow. **Owner step:** create the Cloudflare account/KV, `wrangler deploy`, paste the URL into `LEAGUE_API` — ideally before 5/29 for the bracket-league to be usable.
+
 **Goal:** The shared-state foundation a static site can't provide — **private leagues** (one code) plus **first-pitch locking** — powering standings for *both* contests.
 
 **Why:** A real "winner" needs persistent multi-user standings and fair locking. Scoped to private leagues (smaller abuse surface than a global board); seasonal, low-commitment infra.
