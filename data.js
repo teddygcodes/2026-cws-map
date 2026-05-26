@@ -1,16 +1,19 @@
 /* =============================================================================
    2026 NCAA Baseball Tournament — static data
    -----------------------------------------------------------------------------
-   STATS NOTE (re-verified 2026-05-26)
+   STATS NOTE (re-verified 2026-05-26; records auto-refreshed nightly)
    - Team records, conferences, RPI, team rate stats (runs / runsAllowed /
      battingAvg / ERA), SOS, and 3-4 key players per team were researched AND
      re-verified against live 2026 sources (official athletics cumulative-stat
      pages, WarrenNolan for record/RPI/SOS, TheBaseballCube, D1Baseball),
      cross-checked across at least two sources. Final regular-season figures as
      of 2026-05-25 (the day the 64-team field was announced).
+   - TEAM RECORDS are refreshed nightly from ESPN by scripts/refresh-stats.mjs
+     (the only field that changes once the tournament is underway). Everything
+     else stays at the verified snapshot; ESPN does not expose RPI/SOS/rate
+     stats/players for college baseball.
    - Numbers come only from sources that published them; anything unverifiable is
-     left null and renders as a visible "TBD" — nothing is invented. (Only a
-     couple of opponent-run totals remain TBD.)
+     left null and renders as a visible "TBD" — nothing is invented.
    - Stadium lat/lng remain best-known approximations (flagged // verify coords).
    - Stadium photos + attribution live in photos.js (images/<teamId>).
 
@@ -268,7 +271,7 @@ const TOURNAMENT = {
     // ---- Chapel Hill, NC Regional -------------------------------------
     "north-carolina": {
       id: "north-carolina", name: "North Carolina", seed: 5, conference: "ACC",
-      record: { w: 43, l: 10 }, rpi: 4,
+      record: { w: 45, l: 11 }, rpi: 4,
       stats: { runs: 450, runsAllowed: 218, battingAvg: ".290", era: 3.71, sos: 13 },
       stadium: { name: "Boshamer Stadium", lat: 35.9047, lng: -79.0476, capacity: 5000, // verify coords
         blurb: "Named for benefactor Cary Boshamer, the Tar Heels' Chapel Hill ballpark was extensively rebuilt in 2009 and regularly hosts NCAA regionals." },
@@ -427,7 +430,7 @@ const TOURNAMENT = {
     // ---- Gainesville, FL Regional -------------------------------------
     "florida": {
       id: "florida", name: "Florida", seed: 8, conference: "SEC",
-      record: { w: 38, l: 19 }, rpi: 11,
+      record: { w: 39, l: 19 }, rpi: 11,
       stats: { runs: 416, runsAllowed: 254, battingAvg: ".278", era: 4.12, sos: 2 },
       stadium: { name: "Condron Family Ballpark", lat: 29.6516, lng: -82.3479, capacity: 7000, // verify coords
         blurb: "The Gators' modern home in Gainesville, opened in 2021 to replace McKethan Stadium. One of the SEC's premier facilities." },
@@ -480,7 +483,7 @@ const TOURNAMENT = {
     // ---- Hattiesburg, MS Regional -------------------------------------
     "southern-miss": {
       id: "southern-miss", name: "Southern Miss", seed: 9, conference: "Sun Belt",
-      record: { w: 40, l: 14 }, rpi: 12,
+      record: { w: 44, l: 15 }, rpi: 12,
       stats: { runs: 346, runsAllowed: 215, battingAvg: ".285", era: 3.55, sos: 35 },
       stadium: { name: "Pete Taylor Park (Hill Denson Field)", lat: 31.3288, lng: -89.336, capacity: 5200, // verify coords
         blurb: "The Golden Eagles' home in Hattiesburg, Mississippi, known for one of the most raucous atmospheres outside the power conferences." },
@@ -877,7 +880,7 @@ const TOURNAMENT = {
     },
     "kentucky": {
       id: "kentucky", name: "Kentucky", seed: null, conference: "SEC",
-      record: { w: 31, l: 20 }, rpi: 37,
+      record: { w: 31, l: 21 }, rpi: 37,
       stats: { runs: 360, runsAllowed: 294, battingAvg: ".286", era: 5.31, sos: 31 },
       stadium: { name: "Kentucky Proud Park", lat: 38.021, lng: -84.529, capacity: 4500, // verify coords
         blurb: "The Wildcats' home in Lexington, opened in 2019. // TODO verify history details." },

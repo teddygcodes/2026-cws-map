@@ -3,6 +3,7 @@
 ### ▶ Live site: **https://teddygcodes.github.io/2026-cws-map/**
 
 [![CI](https://github.com/teddygcodes/2026-cws-map/actions/workflows/ci.yml/badge.svg)](https://github.com/teddygcodes/2026-cws-map/actions/workflows/ci.yml)
+[![Refresh records](https://github.com/teddygcodes/2026-cws-map/actions/workflows/refresh.yml/badge.svg)](https://github.com/teddygcodes/2026-cws-map/actions/workflows/refresh.yml)
 
 An interactive, broadcast-styled map of the **2026 NCAA Division I Baseball Tournament** (Road to Omaha). Explore all 16 regional sites on a map, drill into each bracket, compare teams head-to-head, browse full team stats and home‑stadium pages, and watch **live scores update on their own** once games start.
 
@@ -56,6 +57,8 @@ This project deliberately **never fabricates a number and presents it as fact.**
 
 Any value that couldn't be verified from a source is rendered as a visible **`TBD`** badge (e.g. a few teams' opponent‑run totals), and stadium coordinates are best‑known approximations flagged in `data.js`. Later‑round bracket matchups stay `TBD` because they depend on results.
 
+**Records refresh themselves nightly.** Once games start, the one field that goes stale is each team's **W‑L record**. A scheduled GitHub Action (`scripts/refresh-stats.mjs`, see [`refresh.yml`](.github/workflows/refresh.yml)) pulls current records from ESPN each night, re‑serializes `data.js`, and — only if a record actually changed and the data still passes `validate` — commits to `main`, which redeploys. The honesty rule still holds: a team whose record can't be fetched **keeps its existing value** (never nulled), and an unreachable source fails the job rather than writing garbage. Everything else (RPI, SOS, rate stats, players) stays at the verified 5/25 snapshot — ESPN doesn't expose those for college baseball.
+
 This is an unofficial, non‑commercial fan/educational project — not affiliated with the NCAA, ESPN, or any school.
 
 ---
@@ -69,7 +72,10 @@ This is an unofficial, non‑commercial fan/educational project — not affiliat
 ├── data.js           # Static TOURNAMENT model — 16 sites, 64 teams, stats, stadiums
 ├── photos.js         # Stadium photo map + Wikimedia attribution (author/license/source)
 ├── schedule.js       # Real Friday matchups/times/TV per regional (double-elim structure)
+├── bracket.js        # Pure double-elimination resolver (regional -> super-regional)
 ├── images/           # Local stadium photos (so the app works offline)
+├── scripts/          # Dev/CI only: validate.mjs, test-bracket.mjs, smoke.mjs, refresh-stats.mjs
+├── .github/workflows/# CI (validate -> smoke -> deploy) + nightly record refresh
 ├── .claude/          # launch.json for the local preview server
 └── docs/screenshots/ # Images used in this README
 ```

@@ -32,6 +32,7 @@ jobs:
           node-version: 20
       - run: npm install --no-audit --no-fund
       - run: npm run validate
+      - run: npm run refresh:check   # data.js must be in canonical (auto-refresh) form
       - run: npm test
 
   smoke:

@@ -22,6 +22,9 @@ This project's whole premise is honest data. **Do not invent stats, records, sco
 - **`photos.js`** — `STADIUM_PHOTOS[teamId]` → `{ file, by, license, licenseUrl, source }`. Attribution is required by the CC licenses; keep it when rendering a photo.
 - **`schedule.js`** — `SCHEDULES[siteId]` → the two real Friday games `{ g, time, tv, a:[teamId,seed], b:[teamId,seed] }`. Games 3–7 are generated structurally in `index.html` (`LATER_GAMES`).
 - **`images/`** — downloaded stadium photos (so the app works offline).
+- **`bracket.js`** — pure `resolveBracket(teams, games)` double‑elimination resolver (regional → champion → super‑regional), unit‑tested by `scripts/test-bracket.mjs`.
+- **`scripts/`** — dev/CI only (the app ships zero runtime deps): `validate.mjs` (data integrity + JS parse), `test-bracket.mjs` (resolver fixtures), `smoke.mjs` (Playwright render check), `refresh-stats.mjs` (see below).
+- **`.github/workflows/`** — `ci.yml` (validate → smoke → deploy to Pages, gated) and `refresh.yml` (nightly ESPN record refresh → validate → commit to `main`).
 
 ## Conventions & gotchas
 
@@ -32,6 +35,7 @@ This project's whole premise is honest data. **Do not invent stats, records, sco
 - **Cache‑busting:** local scripts are included as `data.js?v=...`, `photos.js?v=...`, `schedule.js?v=...`. If you change those files and need a guaranteed reload during testing, bump the `?v=` token in `index.html` (or hard‑navigate with a `?cb=Date.now()` query).
 - **Routing** is hash‑based: `#/`, `#/r/:site`, `#/t/:team`, `#/s/:team`, `#/vs/:a/:b`, `#/g/:eventId`. The router runs on `hashchange` and on `load`.
 - **ESPN matching:** `matchTeamId()` maps ESPN team names to our `teamId`s by normalized substring. All 64 teams currently match; if you add/rename teams, re‑verify.
+- **`data.js` is canonical (machine‑maintained).** `scripts/refresh-stats.mjs` re‑serializes the whole file deterministically; `npm run refresh:check` asserts byte‑for‑byte canonical form and runs in CI. So **don't hand‑edit `data.js`'s formatting** — change values, then run `npm run refresh` (or, for a no‑network reformat, edit `serialize()`/values and run `node scripts/refresh-stats.mjs` against a local source). Only the `record` field is auto‑refreshed nightly from ESPN; everything else (rpi/sos/stats/players) is the verified snapshot and is preserved untouched. A team whose record can't be fetched **keeps its existing value** — never null it; never invent one.
 
 ## Running & verifying
 
@@ -44,6 +48,16 @@ When verifying changes, actually exercise the flow in a browser (the map renders
 ```bash
 node -e 'const fs=require("fs");const h=fs.readFileSync("index.html","utf8");const m=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)];fs.writeFileSync("/tmp/app.js",m[m.length-1][1])' && node --check /tmp/app.js
 node --check data.js && node --check photos.js && node --check schedule.js
+```
+
+Or use the CI scripts directly (what the GitHub Actions run):
+
+```bash
+npm run validate        # data integrity + JS parse (16 sites, 64 teams, seeds, refs, photos/schedule keys)
+npm run refresh:check   # assert data.js is in canonical (auto-refresh) form — fails if hand-edited
+npm test                # bracket resolver fixtures
+npm run smoke           # Playwright: core views render from static data (ESPN-independent)
+npm run refresh         # fetch live records from ESPN and rewrite data.js (network)
 ```
 
 ## Super‑regional upgrade (≈ June 2)

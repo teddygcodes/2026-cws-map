@@ -1,0 +1,48 @@
+name: Refresh records
+
+# Nightly job that pulls each team's current W-L record from ESPN, re-serializes
+# data.js deterministically, validates it, and — only if a record actually
+# changed and validation passes — commits to main. That push re-triggers ci.yml
+# (validate -> smoke -> deploy), so refreshed data redeploys automatically.
+#
+# Safety: only the `record` field is touched (RPI/SOS/rate-stats/players stay at
+# the verified snapshot). A team whose record can't be fetched keeps its existing
+# value; an unreachable source fails the job (no commit). No untrusted
+# github.event.* input is used in any run step (no workflow-injection surface),
+# and the commit message is static.
+
+on:
+  schedule:
+    - cron: "0 9 * * *"   # 09:00 UTC nightly (~04:00–05:00 US Eastern)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Refresh team records from ESPN
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run refresh        # fetch + rewrite data.js (hard-fails if source unreachable)
+      - run: npm run validate       # gate: never commit data that fails integrity
+      - name: Commit & push if records changed
+        run: |
+          if git diff --quiet -- data.js; then
+            echo "No record changes — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.js
+          git commit -m "chore(data): nightly record refresh from ESPN"
+          git push
