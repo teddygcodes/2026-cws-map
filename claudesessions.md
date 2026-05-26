@@ -16,7 +16,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 1 | ✅ Ship it live (GitHub Pages + social card) + CI | S | — |
 | 2 | ✅ Self-advancing bracket | M | — |
 | 3 | Visual bracket diagram | M | 2 (nice-to-have) |
-| 4 | Rich live game view | M | — |
+| 4 | ✅ Rich live game view | M | — |
 | 5 | Data freshness + CI | M | — |
 | 6 | Map UX (pin clustering) | S | — |
 | 7 | Visual polish (team colors, a11y, image opt) | M | — |
@@ -85,7 +85,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 4 — Rich live game view
+## Session 4 — Rich live game view ✅ SHIPPED
+> **Shipped:** commit `be8dc3b` · live + CI green. Game detail now renders, from ESPN's `summary`: a live **situation strip** (count/outs/base diamond/batter-vs-pitcher), a **scoring-plays feed**, and a **full per-player box score** (batting + pitching, collapsible per team) atop the linescore — all guarded so missing data degrades cleanly. Open real games **auto-refresh** on the 30s poll. SIM extended with a labeled live situation + scoring plays (smoke asserts it). Win probability omitted (ESPN doesn't expose it for college — no fabrication). Verified vs real completed game `401869739`.
+
 **Goal:** Turn the box score into a real live experience.
 
 **Why:** Right now `#/g/:id` is just R/H/E. ESPN's `summary` endpoint has much more.
