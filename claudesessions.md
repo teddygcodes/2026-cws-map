@@ -25,8 +25,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 10 | "Today" live hub (game-day home) | M | — |
 | 11 | Pre-rendered per-view share cards | M | 1 |
 | 12 | Verified team history & program context | L | — |
-| 13 | Bracket pick'em — full chain, shareable (static) | L | 2 |
-| 14 | Pick'em private-league leaderboard (Cloudflare Worker) | M | 13 |
+| 13 | Bracket Challenge — full chain, shareable (static) | L | 2 |
+| 14 | Pick'em backend + private leagues (Cloudflare Worker + KV) | M | 13 |
+| 15 | Daily per-game pick'em (W/L tally + standings) | M | 14 |
 
 ---
 
@@ -242,40 +243,62 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 13 — Bracket pick'em (full chain, shareable; static)
+> **Two pick'em contests, one league.** The app runs two complementary games: the **Bracket Challenge** (predict the whole field once, up front — foresight) and the **Daily Pick'em** (pick each game's winner as matchups unlock — a rolling W/L record). A friend joins **one private league code** and is ranked in **both** (two standings, one group). Sessions 13 → 14 → 15 build this in order: static bracket, then the shared backend, then per-game.
+
+## Session 13 — Bracket Challenge (full chain, shareable; static)
 **Goal:** Let anyone predict the whole Road to Omaha; the "save" is a shareable URL — no backend.
 
-**Why:** Turns spectators into participants — the biggest engagement lever — and its value peaks **before the 5/29 first pitch**.
+**Why:** Turns spectators into participants and its value peaks **before the 5/29 first pitch**, so it ships first and stand-alone.
 
 **Scope**
 - Pick mode built on the `#/bracket` view: pick all **16 regional champions** → app computes predicted **super-regional** matchups (reuse `superPairings`, #s vs #17-s) → pick **8 super winners** → pick the **CWS champion**.
 - Encode picks compactly into the hash (`#/picks/<code>`, versioned); persist in `localStorage`; "copy link" + reset.
-- **Score each round independently against actual results** as games finish (`siteChampion`/`LIVE.bySite`): a super pick only counts if that team actually got there and won. Show running score + busted picks, clearly labeled **prediction vs reality** (same honesty discipline as the SIM badge).
-- **Head-to-head:** paste a friend's link to compare two brackets side-by-side.
+- **Score each round independently against actual results** as games finish (`siteChampion`/`LIVE.bySite`): a super pick only counts if that team actually got there and won. Running score + busted picks, clearly labeled **prediction vs reality** (same honesty discipline as the SIM badge).
+- **Head-to-head:** paste a friend's link to compare two brackets side-by-side (works pre-backend).
 
 **Gotchas**
-- Cascading picks (super matchups depend on regional picks); stable/versioned encoding; predictions must be visually distinct from real results; honor-system (no lock enforcement on a static site) — snapshot/label accordingly.
+- Cascading picks (super matchups depend on regional picks); stable/versioned encoding; predictions must be visually distinct from real results; honor-system locking on a static site — snapshot/label accordingly (real locking arrives with the backend in Session 14).
 
 **Acceptance:** a full bracket fills out, the link round-trips the picks exactly, scoring matches actual results, head-to-head compares two links; smoke covers fill + encode/decode round-trip.
 
 ---
 
-## Session 14 — Pick'em private-league leaderboard (Cloudflare Worker + KV)
-**Goal:** Compete with friends via a shareable **league code** — the shared-state piece a static site can't do alone.
+## Session 14 — Pick'em backend + private leagues (Cloudflare Worker + KV)
+**Goal:** The shared-state foundation a static site can't provide — **private leagues** (one code) plus **first-pitch locking** — powering standings for *both* contests.
 
-**Why:** Adds the social/competitive payoff to Session 13. Scoped to **private leagues** (smaller abuse surface than a global board); seasonal, low-commitment infra.
+**Why:** A real "winner" needs persistent multi-user standings and fair locking. Scoped to private leagues (smaller abuse surface than a global board); seasonal, low-commitment infra.
 
 **Scope**
-- **Cloudflare Worker + KV** (owner sets up the account/namespace, provides the Worker URL; the code is written here): endpoints to create a league (returns code), submit/replace your bracket (chosen display name + pick code), and read standings for a code.
-- Client UI: create/join a league, submit the current bracket, league standings page scored vs actual results (reuse Session 13 scoring).
-- Guardrails: validate pick-code shape, rate-limit by IP, cap entries/league, display name only (no PII), optional Turnstile. CORS locked to the Pages origin.
-- **Isolation:** the app stays static on Pages; only this feature calls the Worker, and it must **degrade gracefully** if the endpoint is down. Tear down after Omaha.
+- **Cloudflare Worker + KV** (owner creates the account/namespace + provides the Worker URL; all code written here). Endpoints: create league (returns code) · join + submit/replace your **bracket** entry (display name + versioned pick code) · read **standings** for a code. Designed so per-game picks (Session 15) drop into the same league + KV with no reshaping.
+- **One league, two standings:** a single league code; the league page shows a **Bracket Challenge** leaderboard now (per-game board added in 15). Bracket scoring reuses Session 13.
+- **First-pitch locking, server-side:** the Worker rejects/ignores picks for games already started or final (uses the live feed / game start times) — the fairness piece a static honor-system can't enforce.
+- Guardrails: validate pick-code shape, rate-limit by IP, cap entries/league, display name only (no PII), optional Turnstile; CORS locked to the Pages origin.
+- **Isolation:** app stays static on Pages; only this feature calls the Worker and it must **degrade gracefully** if the endpoint is down. Tear down after Omaha.
 
 **Gotchas**
-- Public-endpoint abuse/spam; CORS + secrets/config; don't let a backend outage break the static app.
+- Public-endpoint abuse/spam; CORS + secrets/config; clock/locking correctness; don't let a backend outage break the static app.
 
-**Acceptance:** create a league → friends join + submit → standings update vs real results; abuse guards in place; the static app is unaffected if the Worker is unreachable.
+**Acceptance:** create a league → friends join + submit brackets → standings update vs real results; picks lock at first pitch; abuse guards in place; the static app is unaffected if the Worker is unreachable.
 **Depends on:** Session 13.
+
+---
+
+## Session 15 — Daily per-game pick'em (W/L tally + standings)
+**Goal:** Pick the winner of **every tournament game** as matchups unlock; build a **W/L record**; crown the league's per-game champion.
+
+**Why:** The engagement engine — a reason to come back daily for two weeks. Complements the one-shot Bracket Challenge.
+
+**Scope**
+- **Pick-as-you-go:** a game becomes pickable once both teams are determined (matchup known) and it's still **pre-game**; future games show feeder placeholders ("Loser G1 vs Loser G2"). Reuse `resolveBracket` + `LIVE.bySite` + the existing feeder logic — same machinery as the bracket diagram. Covers all rounds: regional Games 1–7, super-regional best-of-3, CWS.
+- **Submit picks to the Session 14 backend** (same league code, same KV); the Worker **locks each pick at that game's first pitch**. Score = **total correct picks** (a W/L record like 38–12); tie-break by win % then later-round accuracy.
+- **UI:** a "Pick'em" view listing open games (pickable now) + your pending/locked picks + your record; the league page gains a **second standings tab** (Daily Pick'em) beside the Bracket Challenge board. Clearly label predictions vs results.
+- Optional solo fallback: your own W/L tracked in `localStorage` if not in a league.
+
+**Gotchas**
+- Matchup availability cascades with live results (don't let a pick persist if its game's teams change); lock exactly at first pitch (server-authoritative); ~150 games over the event — keep the open-games list tight and the standings query cheap.
+
+**Acceptance:** open games are pickable and lock at first pitch; finals update each player's W/L; the per-game leaderboard ranks the league by total correct; smoke covers the open-games render + pick round-trip (static/ESPN-independent).
+**Depends on:** Session 14.
 
 ---
 
