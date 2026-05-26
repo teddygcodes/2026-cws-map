@@ -22,6 +22,11 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 7 | Visual polish (team colors, a11y, image opt) | M | — |
 | 8 | Engagement (favorites, notifications, PWA) | M | 1 |
 | 9 | ✅ Stadium & team detail (history + 2026 season) | L | — |
+| 10 | "Today" live hub (game-day home) | M | — |
+| 11 | Pre-rendered per-view share cards | M | 1 |
+| 12 | Verified team history & program context | L | — |
+| 13 | Bracket pick'em — full chain, shareable (static) | L | 2 |
+| 14 | Pick'em private-league leaderboard (Cloudflare Worker) | M | 13 |
 
 ---
 
@@ -182,6 +187,95 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ## Session 9 — Stadium & team detail pages (history + 2026 season) ✅ SHIPPED
 > **Shipped:** commit `ab7ea9e` · live + CI green. Fixed the stadium-page **Location bug** (it showed the *regional host* city — e.g. Arizona State read "Lincoln, NE" instead of Phoenix, AZ): added verified `city`/`state`/`opened` to every stadium and the page now reads those. **Removed** the Google Maps embed + "Open in Google Maps"/"Street View" buttons. Researched + **verified all 64 stadiums** (names, cities, coords, opened year, 2–3-sentence history) via 8 parallel agents — caught real corrections (Milwaukee now plays at **Franklin Field**, not Henry Aaron Field; Oklahoma→Kimrey Family Stadium; Cincinnati drops "Marge Schott"; Yale→Bush Field; WVU→Kendrick; Binghamton→Bearcats Baseball Complex; BC/Virginia/Miami/USC-Upstate name fixes). Added an honest **`seasonSummary()`** (built only from verified record/RPI/seed/conference/rate-stats — invents nothing) rendered as a "2026 Season" panel on the team page and an "About the team" panel on the stadium page, plus 21 source-verified `seasonNote`s (cross-checked W–L against `data.js`; rest honestly `null`). Schema (`stadium.city/state/opened`, `team.seasonNote`) is canonical via `refresh-stats.mjs` (now exports `serialize`/`loadTournament`); `validate.mjs` requires non-empty city/state; smoke asserts no map embed + "City, ST" Location + history/season sections. Honesty rule held throughout — every fact is sourced or left blank.
+
+---
+
+## Session 10 — "Today" live hub (game-day home)
+**Goal:** One focused, self-updating screen of every tournament game across all 16 sites.
+
+**Why:** The live scoreboard exists but is buried at the top of the map view. On game days people want a single hub — what's live now, what's next, what just finished — not to scroll the map.
+
+**Scope**
+- New `#/today` view: all games grouped **Live / Upcoming / Final**, with countdowns to first pitch and a "live now" count + last-updated stamp. Filters: live-only, by conference/region.
+- Reuse the existing engine — `LIVE.bySite`/`LIVE.list`, `parseEvent`, `sbCard`/`renderScoreboard`, the 30s poll, and `onLiveUpdate` routing. Deep-link each game to `#/g/:id` (pregame → `#/vs/:a/:b`).
+- Surface it in the top toggle (Today · Map · List · Bracket) and consider making it the default landing during the tournament window.
+
+**Gotchas**
+- Don't yank scroll on the 30s refresh (reuse the `showView` change-guard). 
+- Smoke must stay ESPN-independent: assert the hub renders structure from the static schedule, not live results.
+
+**Acceptance:** the hub lists all scheduled games, updates itself, filters work, deep links navigate; smoke covers the view.
+
+---
+
+## Session 11 — Pre-rendered per-view share cards
+**Goal:** Sharing a team or regional link unfurls with *that* entity's card, not the one generic card.
+
+**Why:** Rich social previews drive clicks; we already have the `og-card.html` + Playwright render pipeline and a GitHub Action — extend them.
+
+**Scope**
+- Parameterize `og-card.html` (`?team=<id>` / `?site=<id>`) to render per-entity cards; an Action step renders `docs/og/team-<id>.png` (64) + `docs/og/site-<id>.png` (16) on each data refresh.
+- **SPA caveat:** crawlers don't run our hash router, so per-page OG needs static stubs — generate `share/t/<id>.html` / `share/r/<id>.html` (and team/regional) carrying the right `og:image`/title/description + a redirect into the hash route. Link those as the canonical share URLs.
+- Regenerate cards in CI/`refresh.yml` when data changes; optimize PNG size.
+
+**Gotchas**
+- Hash-routed SPA → real per-entity OG requires the static stub pages above. Keep images cache-busted; don't bloat the repo.
+
+**Acceptance:** a team/regional share URL shows its own card in a link preview (validate with a debugger); cards regenerate in CI.
+
+---
+
+## Session 12 — Verified team history & program context
+**Goal:** Deepen team pages with verified program history (CWS appearances, last national title, all-time NCAA-tournament record).
+
+**Why:** Team pages now carry the current season; historical context reinforces the project's real-data identity and rewards drill-down.
+
+**Scope**
+- Add a verified `history` object per team (e.g. `{ cwsApps, titles, lastTitle, ncaaApps }`), `null` where unverifiable.
+- Research pass via parallel agents (like Session 9), strictly sourced; honest `TBD` for gaps. Update `serialize()` + `validate.mjs`; keep `data.js` canonical.
+- Render a "Program history" panel on the team page (and/or the stadium About panel).
+
+**Gotchas**
+- Honesty first — only sourced facts, never invented; research-heavy; re-verify canonical form (`refresh:check`).
+
+**Acceptance:** team pages show verified program history with visible `TBD` for gaps; canonical + CI green.
+
+---
+
+## Session 13 — Bracket pick'em (full chain, shareable; static)
+**Goal:** Let anyone predict the whole Road to Omaha; the "save" is a shareable URL — no backend.
+
+**Why:** Turns spectators into participants — the biggest engagement lever — and its value peaks **before the 5/29 first pitch**.
+
+**Scope**
+- Pick mode built on the `#/bracket` view: pick all **16 regional champions** → app computes predicted **super-regional** matchups (reuse `superPairings`, #s vs #17-s) → pick **8 super winners** → pick the **CWS champion**.
+- Encode picks compactly into the hash (`#/picks/<code>`, versioned); persist in `localStorage`; "copy link" + reset.
+- **Score each round independently against actual results** as games finish (`siteChampion`/`LIVE.bySite`): a super pick only counts if that team actually got there and won. Show running score + busted picks, clearly labeled **prediction vs reality** (same honesty discipline as the SIM badge).
+- **Head-to-head:** paste a friend's link to compare two brackets side-by-side.
+
+**Gotchas**
+- Cascading picks (super matchups depend on regional picks); stable/versioned encoding; predictions must be visually distinct from real results; honor-system (no lock enforcement on a static site) — snapshot/label accordingly.
+
+**Acceptance:** a full bracket fills out, the link round-trips the picks exactly, scoring matches actual results, head-to-head compares two links; smoke covers fill + encode/decode round-trip.
+
+---
+
+## Session 14 — Pick'em private-league leaderboard (Cloudflare Worker + KV)
+**Goal:** Compete with friends via a shareable **league code** — the shared-state piece a static site can't do alone.
+
+**Why:** Adds the social/competitive payoff to Session 13. Scoped to **private leagues** (smaller abuse surface than a global board); seasonal, low-commitment infra.
+
+**Scope**
+- **Cloudflare Worker + KV** (owner sets up the account/namespace, provides the Worker URL; the code is written here): endpoints to create a league (returns code), submit/replace your bracket (chosen display name + pick code), and read standings for a code.
+- Client UI: create/join a league, submit the current bracket, league standings page scored vs actual results (reuse Session 13 scoring).
+- Guardrails: validate pick-code shape, rate-limit by IP, cap entries/league, display name only (no PII), optional Turnstile. CORS locked to the Pages origin.
+- **Isolation:** the app stays static on Pages; only this feature calls the Worker, and it must **degrade gracefully** if the endpoint is down. Tear down after Omaha.
+
+**Gotchas**
+- Public-endpoint abuse/spam; CORS + secrets/config; don't let a backend outage break the static app.
+
+**Acceptance:** create a league → friends join + submit → standings update vs real results; abuse guards in place; the static app is unaffected if the Worker is unreachable.
+**Depends on:** Session 13.
 
 ---
 
