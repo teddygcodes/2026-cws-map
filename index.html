@@ -261,6 +261,37 @@
     .map-actions { margin-top:12px; }
     .map-actions .btn { display:inline-flex; }
     @media (max-width:700px) { .nb-cols { flex-direction:column; } .nb-col { min-width:0; } }
+
+    /* ---------- Bracket Challenge pick'em ---------- */
+    .pick-banner { font-family:"Oswald",sans-serif; font-size:12px; letter-spacing:.04em; color:var(--gold);
+      background:rgba(242,193,78,.10); border:1px dashed rgba(242,193,78,.5); border-radius:8px; padding:9px 13px; margin:12px 0; }
+    .pick-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+    .pick-progress { font-family:"Anton",sans-serif; font-size:20px; letter-spacing:.01em; }
+    .pick-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .pick-actions .btn { padding:8px 13px; font-size:12px; }
+    .pick-score { font-family:"Oswald",sans-serif; font-size:13px; letter-spacing:.04em; color:var(--muted); margin:-4px 0 14px; }
+    .pick-score b { color:var(--text); }
+    .pick-reg { border:1px solid var(--line); border-radius:10px; margin-bottom:12px; overflow:hidden; }
+    .pick-reg-h { display:flex; align-items:center; gap:8px; background:#141417; padding:8px 11px;
+      font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.06em; font-size:12px; }
+    .pick-reg-h .nseed { font-family:"Anton",sans-serif; color:var(--accent); font-size:14px; min-width:22px; }
+    .nb-node.pick { cursor:pointer; }
+    .nb-node.picked { background:rgba(232,32,42,.12); box-shadow: inset 3px 0 0 var(--gold); }
+    .nb-node.picked .nb-team .t { color:#fff; }
+    .nb-node.picked.champ { background:linear-gradient(90deg, rgba(242,193,78,.18), transparent); }
+    .nb-node.disabled { cursor:default; opacity:.55; }
+    .nb-node.disabled:hover { background:var(--panel); }
+    .pick-badge { display:inline-block; font-family:"Oswald",sans-serif; font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+      padding:1px 7px; border-radius:6px; border:1px solid var(--line); color:var(--muted); margin-top:3px; }
+    .pick-badge.ok { color:#28d07a; border-color:rgba(40,208,122,.5); background:rgba(40,208,122,.10); }
+    .pick-badge.no { color:var(--accent); border-color:rgba(232,32,42,.5); background:rgba(232,32,42,.10); }
+    .pick-badge.off { color:var(--gold); border-color:rgba(242,193,78,.5); }
+    .pick-badge.pending { color:var(--muted); }
+    .h2h-table td { font-family:"Oswald",sans-serif; font-size:13px; }
+    .h2h-table .h2h-slot { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; text-align:center; white-space:nowrap; }
+    .h2h-table .h2h-a { text-align:right; } .h2h-table .h2h-b { text-align:left; }
+    .h2h-table .win { color:#28d07a; font-weight:700; }
+
     .sched-day { font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.14em; font-size:12px; color:var(--text);
       margin:18px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
     .sched-day:first-of-type { margin-top:0; }
@@ -504,6 +535,9 @@
 
     <!-- NATIONAL BRACKET VIEW (Road to Omaha) -->
     <section id="view-bracket" class="view"></section>
+
+    <!-- BRACKET CHALLENGE pick'em (predict the whole field; client-side only) -->
+    <section id="view-picks" class="view"></section>
   </main>
 
   <footer>
@@ -564,7 +598,7 @@
     }
 
     // ---- view switching ---------------------------------------------------
-    var VIEWS = ["map", "regional", "team", "stadium", "game", "compare", "bracket"];
+    var VIEWS = ["map", "regional", "team", "stadium", "game", "compare", "bracket", "picks"];
     var currentView = null;
     var regionalMode = "list"; // "list" | "bracket" — persists across live re-renders
     var mapMode = "map"; // "map" | "list" — host-sites display mode (Map/List/Bracket toggle)
@@ -1601,7 +1635,8 @@
           '<button class="vt" data-mode="map">Map</button>' +
           '<button class="vt" data-mode="list">List</button>' +
           '<button class="vt on" data-mode="bracket">Bracket</button>' +
-        "</div>";
+        "</div>" +
+        '<div class="map-actions"><a class="btn primary" href="#/picks">&#128203; Make Your Picks &rarr;</a></div>';
 
       function regNode(site) {
         if (!site) return "";
@@ -1712,6 +1747,7 @@
       window.__simRegional = startRegionalSim;
       window.__stopSim = stopRegionalSim;
       window.__simAll = simulateAllRegionals;
+      window.__picks = { encode: encodePicks, decode: decodePicks, get: function () { return PICKS; }, set: function (p) { PICKS = p; savePicks(); } };
     }
 
     function startPolling() {
@@ -1739,6 +1775,242 @@
     }
 
     // ---- router -----------------------------------------------------------
+    // ===================================================================
+    // BRACKET CHALLENGE pick'em — fully client-side. Predictions only;
+    // scored against real results, never presented as official.
+    // ===================================================================
+    var REG_SEED = [1, 4, 2, 3];                 // regional seed by team-array index (data.js order)
+    var PICK_SITES = [], PICK_BY_SEED = {}, PICK_BY_ID = {};
+    // Snapshot the ORIGINAL 16-site/4-team structure at load, BEFORE
+    // maybeAdvanceToSuperRegionals() can replace T.sites with 8 supers.
+    function snapshotPickSites() {
+      PICK_SITES = T.sites.map(function (s) {
+        return { id: s.id, city: s.city, hostTeamId: s.hostTeamId, seed: team(s.hostTeamId).seed, teams: s.teams.slice() };
+      });
+      PICK_BY_SEED = {}; PICK_BY_ID = {};
+      PICK_SITES.forEach(function (s) { PICK_BY_ID[s.id] = s; if (s.seed != null) PICK_BY_SEED[s.seed] = s; });
+    }
+
+    // ---- model + persistence ----
+    var PICKS_KEY = "cws-picks-v1";
+    var PICKS = emptyPicks();
+    function emptyPicks() { return { v: 1, reg: {}, sup: {}, cwsChamp: null }; }
+    function loadPicks() {
+      try {
+        var raw = localStorage.getItem(PICKS_KEY);
+        if (!raw) return;
+        var p = JSON.parse(raw);
+        if (p && p.v === 1 && p.reg && p.sup) PICKS = { v: 1, reg: p.reg, sup: p.sup, cwsChamp: (p.cwsChamp == null ? null : p.cwsChamp) };
+      } catch (e) { /* private mode / corrupt — keep empty */ }
+    }
+    function savePicks() { try { localStorage.setItem(PICKS_KEY, JSON.stringify(PICKS)); } catch (e) { /* ignore */ } }
+
+    // ---- stable, versioned URL encoding (v1, 26 chars, digits only) ----
+    // Order: "1" + 16 regional digits (seed 1..16; team index 0-3, 4=none)
+    //        + 8 super digits (seed 1..8; 0|1, 2=none) + 1 champ digit (seed-1, 8=none).
+    function encodePicks(p) {
+      p = p || PICKS; var out = "1", sd, s2;
+      for (sd = 1; sd <= 16; sd++) { var st = PICK_BY_SEED[sd], pk = st ? p.reg[st.id] : null; var i = (st && pk != null) ? st.teams.indexOf(pk) : -1; out += (i >= 0 ? i : 4); }
+      for (s2 = 1; s2 <= 8; s2++) { var sv = p.sup[s2]; out += (sv === 0 || sv === 1) ? sv : 2; }
+      out += (p.cwsChamp >= 1 && p.cwsChamp <= 8) ? (p.cwsChamp - 1) : 8;
+      return out;
+    }
+    function decodePicks(code) {
+      if (typeof code !== "string" || code.length !== 26 || code.charAt(0) !== "1" || !/^[0-9]{26}$/.test(code)) return null;
+      var p = emptyPicks(), i;
+      for (i = 0; i < 16; i++) { var d = +code.charAt(1 + i); if (d > 4) return null; var st = PICK_BY_SEED[i + 1]; if (d < 4 && st && st.teams[d]) p.reg[st.id] = st.teams[d]; }
+      for (i = 0; i < 8; i++) { var sv = +code.charAt(17 + i); if (sv > 2) return null; if (sv < 2) p.sup[i + 1] = sv; }
+      var cd = +code.charAt(25); if (cd > 8) return null; if (cd < 8) p.cwsChamp = cd + 1;
+      return p;
+    }
+
+    // ---- resolution (generic over a picks object) ----
+    function regOf(p, sd) { var s = PICK_BY_SEED[sd]; return s ? (p.reg[s.id] || null) : null; }
+    function supersFor(p) { var out = []; for (var sd = 1; sd <= 8; sd++) out.push({ seed: sd, teams: [regOf(p, sd), regOf(p, 17 - sd)] }); return out; }
+    function supWinnerFor(p, sd) { var sv = p.sup[sd]; if (sv !== 0 && sv !== 1) return null; return supersFor(p)[sd - 1].teams[sv] || null; }
+    function champFor(p) { return p.cwsChamp == null ? null : supWinnerFor(p, p.cwsChamp); }
+    function predictedSupers() { return supersFor(PICKS); }
+    function predictedSuperWinner(sd) { return supWinnerFor(PICKS, sd); }
+    function predictedChampTeam() { return champFor(PICKS); }
+
+    // ---- actual results (honest scoring; robust across the super-flip) ----
+    function actualRegChamp(siteId) {
+      var s = PICK_BY_ID[siteId];
+      if (!s || !window.resolveBracket) return null;
+      return window.resolveBracket(s.teams, (LIVE.bySite && LIVE.bySite[siteId]) || []).champion || null;
+    }
+    function actualSuperWinner(sd) { var ss = siteById("super-" + sd); return ss ? siteChampion(ss) : null; }
+
+    function regBadge(siteId) {
+      var a = actualRegChamp(siteId); if (a == null) return '<span class="pick-badge pending">your pick</span>';
+      return a === PICKS.reg[siteId] ? '<span class="pick-badge ok">&#10003; correct</span>'
+        : '<span class="pick-badge no">&#10007; ' + esc(team(a).name) + " won</span>";
+    }
+    function supBadge(sd) {
+      var a = actualSuperWinner(sd), pk = predictedSuperWinner(sd);
+      if (a == null) return '<span class="pick-badge pending">your pick</span>';
+      if (pk === a) return '<span class="pick-badge ok">&#10003; to Omaha</span>';
+      var ss = siteById("super-" + sd);
+      if (ss && ss.teams.indexOf(pk) === -1) return '<span class="pick-badge off">off-bracket</span>';
+      return '<span class="pick-badge no">&#10007;</span>';
+    }
+    function champBadge() {
+      if (T.omahaChampion) return T.omahaChampion === predictedChampTeam()
+        ? '<span class="pick-badge ok">&#10003; champion</span>' : '<span class="pick-badge no">&#10007;</span>';
+      return '<span class="pick-badge pending">CWS not yet played</span>';
+    }
+
+    // ---- fill-out view ----
+    function pickRegNode(site, tid) {
+      var picked = PICKS.reg[site.id] === tid;
+      return '<div class="nb-node pick' + (picked ? " picked" : "") + '" data-site="' + esc(site.id) + '" data-team="' + esc(tid) + '">' +
+        '<span class="seed">' + REG_SEED[site.teams.indexOf(tid)] + "</span>" +
+        '<div class="nb-team"><div class="t">' + esc(team(tid).name) + "</div>" +
+        (picked ? '<div class="c">' + regBadge(site.id) + "</div>" : "") + "</div></div>";
+    }
+    function pickSupNode(sd, side, tid) {
+      if (!tid) return '<div class="nb-node disabled"><span class="seed">&middot;</span><div class="nb-team"><div class="t">Pick Regional ' + (side === 0 ? sd : 17 - sd) + " first</div></div></div>";
+      var picked = PICKS.sup[sd] === side;
+      return '<div class="nb-node pick' + (picked ? " picked" : "") + '" data-sup="' + sd + '" data-side="' + side + '">' +
+        '<span class="seed">' + (side === 0 ? sd : 17 - sd) + "</span>" +
+        '<div class="nb-team"><div class="t">' + esc(team(tid).name) + "</div>" +
+        (picked ? '<div class="c">' + supBadge(sd) + "</div>" : "") + "</div></div>";
+    }
+    function pickChampNode(sd) {
+      var w = predictedSuperWinner(sd);
+      if (!w) return '<div class="nb-node disabled"><span class="seed">' + sd + '</span><div class="nb-team"><div class="t">Pick Super ' + sd + " first</div></div></div>";
+      var picked = PICKS.cwsChamp === sd;
+      return '<div class="nb-node pick' + (picked ? " picked champ" : "") + '" data-champ="' + sd + '">' +
+        '<span class="seed">' + (picked ? "&#127942;" : sd) + "</span>" +
+        '<div class="nb-team"><div class="t">' + esc(team(w).name) + "</div>" +
+        (picked ? '<div class="c">' + champBadge() + "</div>" : "") + "</div></div>";
+    }
+    function pickProgress() {
+      var n = 0, sd;
+      for (sd = 1; sd <= 16; sd++) { var s = PICK_BY_SEED[sd]; if (s && PICKS.reg[s.id]) n++; }
+      for (sd = 1; sd <= 8; sd++) if (predictedSuperWinner(sd)) n++;
+      if (predictedChampTeam()) n++;
+      return n;
+    }
+    function scoreStrip() {
+      var reg = 0, regD = 0, sup = 0, supD = 0, sd;
+      for (sd = 1; sd <= 16; sd++) { var s = PICK_BY_SEED[sd]; var a = actualRegChamp(s.id); if (a != null) { regD++; if (a === PICKS.reg[s.id]) reg++; } }
+      for (sd = 1; sd <= 8; sd++) { var aw = actualSuperWinner(sd); if (aw != null) { supD++; if (predictedSuperWinner(sd) === aw) sup++; } }
+      if (regD === 0 && supD === 0) return "";
+      return '<div class="pick-score">Your results &middot; Regionals <b>' + reg + "/" + regD + "</b> &middot; Super Regionals <b>" + sup + "/" + supD + "</b> &middot; Champion: pending</div>";
+    }
+    function showPicks() {
+      setCrumbs([{ text: "Map", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "My Picks" }], "#/bracket");
+      var regCol = "", supCol = "", champCol = "", sd;
+      for (sd = 1; sd <= 16; sd++) {
+        var site = PICK_BY_SEED[sd]; if (!site) continue;
+        regCol += '<div class="pick-reg"><div class="pick-reg-h"><span class="nseed">' + sd + "</span>" + esc(site.city) + "</div>" +
+          site.teams.map(function (tid) { return pickRegNode(site, tid); }).join("") + "</div>";
+      }
+      predictedSupers().forEach(function (pr) { supCol += '<div class="nb-pair">' + pickSupNode(pr.seed, 0, pr.teams[0]) + pickSupNode(pr.seed, 1, pr.teams[1]) + "</div>"; });
+      for (sd = 1; sd <= 8; sd++) champCol += pickChampNode(sd);
+      var html =
+        '<div class="section-head">Bracket Challenge</div>' +
+        '<div class="section-sub">Predict the Road to Omaha &middot; your picks save to this page &amp; share link</div>' +
+        '<div class="pick-banner">&#9888; Predictions only — unofficial, not real results. Saved in your browser and in the share link.</div>' +
+        '<div class="pick-bar"><div class="pick-progress">' + pickProgress() + ' / 25 picks</div>' +
+          '<div class="pick-actions">' +
+            '<button class="btn primary" data-act="copy">&#128279; Copy share link</button>' +
+            '<button class="btn" data-act="compare">&#9878; Compare a friend</button>' +
+            '<button class="btn" data-act="reset">&#8635; Reset</button>' +
+          "</div></div>" +
+        scoreStrip() +
+        '<div class="nb-cols">' +
+          '<div class="nb-col"><div class="bk-title">Regionals — pick 16 champions</div>' + regCol + "</div>" +
+          '<div class="nb-col"><div class="bk-title">Super Regionals — pick 8 winners</div>' + supCol + "</div>" +
+          '<div class="nb-col"><div class="bk-title">CWS Champion</div><div class="nb-cws"><div class="ttl">Omaha</div><div class="sub">' +
+            (predictedChampTeam() ? "&#127942; " + esc(team(predictedChampTeam()).name) : "Pick your champion below") + "</div></div>" + champCol + "</div>" +
+        "</div>";
+      render(document.getElementById("view-picks"), html);
+      syncPickUrl();
+      showView("picks");
+    }
+    function cleanupPicks() {
+      for (var sd = 1; sd <= 8; sd++) { if (PICKS.sup[sd] != null && !predictedSupers()[sd - 1].teams[PICKS.sup[sd]]) delete PICKS.sup[sd]; }
+      if (PICKS.cwsChamp != null && !predictedSuperWinner(PICKS.cwsChamp)) PICKS.cwsChamp = null;
+    }
+    function syncPickUrl() { try { history.replaceState(null, "", "#/picks/" + encodePicks(PICKS)); } catch (e) { /* ignore */ } }
+    function fallbackCopy(text) { try { var ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); } catch (e) { /* ignore */ } }
+    function copyPickLink(btn) {
+      var url = location.origin + location.pathname + "#/picks/" + encodePicks(PICKS);
+      function done() { if (btn) { var o = btn.innerHTML; btn.innerHTML = "Copied!"; setTimeout(function () { btn.innerHTML = o; }, 1500); } }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url); done(); });
+      else { fallbackCopy(url); done(); }
+    }
+    function promptCompare() {
+      var v = prompt("Paste a friend's Bracket Challenge link (or 26-char code):");
+      if (!v) return;
+      var m = v.match(/picks\/(\d{26})/) || v.match(/(\d{26})/);
+      var code = m ? m[1] : null;
+      if (!code || !decodePicks(code)) { alert("That doesn't look like a valid bracket link."); return; }
+      location.hash = "#/h2h/" + encodePicks(PICKS) + "/" + code;
+    }
+
+    // ---- shared link + head-to-head ----
+    function picksError(msg) {
+      render(document.getElementById("view-picks"),
+        '<div class="section-head">Bracket Challenge</div><div class="pick-banner">' + esc(msg) + "</div>" +
+        '<div class="map-actions"><a class="btn primary" href="#/picks">Start your bracket &rarr;</a></div>');
+      setCrumbs([{ text: "Map", href: "#/" }, { text: "My Picks" }], "#/");
+      showView("picks");
+    }
+    function loadSharedPicks(code) {
+      var p = decodePicks(code);
+      if (!p) return picksError("That share link is invalid or from an older version.");
+      PICKS = p; savePicks();
+      try { history.replaceState(null, "", "#/picks"); } catch (e) { /* ignore */ }
+      showPicks();
+    }
+    function showH2H(a, b) {
+      var pa = decodePicks(a), pb = decodePicks(b);
+      if (!pa || !pb) return picksError("One of those bracket links is invalid.");
+      function nm(id) { return id ? esc(team(id).name) : "&mdash;"; }
+      function row(label, ta, tb, actual) {
+        var aw = actual && ta === actual, bw = actual && tb === actual;
+        return "<tr><td class='h2h-a" + (aw ? " win" : "") + "'>" + nm(ta) + (aw ? " &#10003;" : "") + "</td>" +
+          "<td class='h2h-slot'>" + esc(label) + "</td>" +
+          "<td class='h2h-b" + (bw ? " win" : "") + "'>" + nm(tb) + (bw ? " &#10003;" : "") + "</td></tr>";
+      }
+      var rows = "", sd;
+      for (sd = 1; sd <= 16; sd++) { var s = PICK_BY_SEED[sd]; if (!s) continue; rows += row(s.city.split(",")[0] + " Regional", regOf(pa, sd), regOf(pb, sd), actualRegChamp(s.id)); }
+      for (sd = 1; sd <= 8; sd++) rows += row("Super Regional " + sd, supWinnerFor(pa, sd), supWinnerFor(pb, sd), actualSuperWinner(sd));
+      rows += row("CWS Champion", champFor(pa), champFor(pb), T.omahaChampion || null);
+      render(document.getElementById("view-picks"),
+        '<div class="section-head">Head-to-Head</div>' +
+        '<div class="section-sub">Your bracket vs. a friend’s &middot; &#10003; marks the correct pick once a result is in</div>' +
+        '<div class="pick-banner">&#9888; Predictions only — unofficial, not real results.</div>' +
+        '<table class="cmp-table h2h-table"><thead><tr><th>You</th><th>Round</th><th>Friend</th></tr></thead><tbody>' + rows + "</tbody></table>" +
+        '<div class="map-actions"><a class="btn primary" href="#/picks">&#8592; Back to my picks</a></div>');
+      setCrumbs([{ text: "Map", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "Head-to-Head" }], "#/bracket");
+      showView("picks");
+    }
+
+    // Delegated click handler for the pick UI (wired once; survives re-renders).
+    function wirePicks() {
+      var el = document.getElementById("view-picks");
+      if (!el || el.__wired) return; el.__wired = true;
+      el.addEventListener("click", function (e) {
+        var act = e.target.closest("[data-act]");
+        if (act) {
+          var a = act.getAttribute("data-act");
+          if (a === "copy") return copyPickLink(act);
+          if (a === "compare") return promptCompare();
+          if (a === "reset") { if (confirm("Reset your whole bracket?")) { PICKS = emptyPicks(); savePicks(); showPicks(); } return; }
+        }
+        var node = e.target.closest(".nb-node.pick");
+        if (!node) return;
+        if (node.hasAttribute("data-team")) PICKS.reg[node.getAttribute("data-site")] = node.getAttribute("data-team");
+        else if (node.hasAttribute("data-sup")) PICKS.sup[+node.getAttribute("data-sup")] = +node.getAttribute("data-side");
+        else if (node.hasAttribute("data-champ")) PICKS.cwsChamp = +node.getAttribute("data-champ");
+        cleanupPicks(); savePicks(); showPicks();
+      });
+    }
+
     function router() {
       var hash = location.hash || "#/";
       var parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
@@ -1748,6 +2020,8 @@
       else if (parts[0] === "g") showGame(decodeURIComponent(parts[1] || ""));
       else if (parts[0] === "vs") showCompare(decodeURIComponent(parts[1] || ""), decodeURIComponent(parts[2] || ""));
       else if (parts[0] === "bracket") showBracket();
+      else if (parts[0] === "picks") { if (parts[1]) loadSharedPicks(decodeURIComponent(parts[1])); else showPicks(); }
+      else if (parts[0] === "h2h") showH2H(decodeURIComponent(parts[1] || ""), decodeURIComponent(parts[2] || ""));
       else showMap();
     }
 
@@ -1770,9 +2044,12 @@
 
     window.addEventListener("hashchange", router);
     window.addEventListener("load", function () {
+      snapshotPickSites();   // capture the original 16-site structure BEFORE any super-flip
+      loadPicks();
       initMap();
       wireScoreboard();
       wireMapNav();
+      wirePicks();
       router();
       startPolling();
     });

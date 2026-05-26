@@ -39,6 +39,7 @@ That's it. Everything is plain HTML/CSS/JS.
 - **👤 Team view** — full stat card (record, RPI, runs, runs allowed, team AVG/ERA, SOS) and key‑player stat lines.
 - **🏟️ Stadium / About view** — the team's home ballpark with a real photo (Wikimedia Commons, attributed), capacity, verified **city/state** and year opened, a researched **history** blurb, and an **About the team** panel (an honest 2026-season summary built from the verified stats, plus key players).
 - **🧾 2026 Season** — each team page opens with a season write-up generated from the verified data (record, RPI, seed, conference, runs/ERA/AVG/SOS), with a sourced season note where one could be verified.
+- **📋 Bracket Challenge** — predict the whole Road to Omaha (16 regional champions → 8 super-regional winners → CWS champion). Your bracket saves to the page and to a **shareable link** (no login, no backend — picks are encoded in the URL), with a **head-to-head** compare against a friend's link. As real games finish, picks are scored ✓/✗ against actual results, always clearly labeled as unofficial predictions.
 - **📦 Box score** — click a live or final game for an inning‑by‑inning linescore with R/H/E, pulled from ESPN.
 - **Design** — ESPN‑style dark broadcast theme (charcoal + broadcast red), Anton/Oswald/Barlow display type, smooth view transitions, hash‑based routing with working back/forward, and a mobile‑friendly responsive layout.
 

@@ -106,6 +106,37 @@ try {
   await page.waitForSelector('#view-bracket .map-toggle .vt.on[data-mode="bracket"]', { timeout: 5000 });
   ok("national bracket renders 3 columns + toggle (Bracket active)");
 
+  // Bracket Challenge pick'em (client-side; ESPN-independent)
+  await go("#/picks");
+  await page.waitForSelector("#view-picks.active .nb-cols", { timeout: 10000 });
+  const pCols = await page.locator("#view-picks .nb-col").count();
+  if (pCols !== 3) throw new Error(`expected 3 pick columns, got ${pCols}`);
+  const regCards = await page.locator("#view-picks .pick-reg").count();
+  if (regCards !== 16) throw new Error(`expected 16 regional pick cards, got ${regCards}`);
+  if (await page.locator("#view-picks .pick-banner").count() < 1) throw new Error("missing unofficial predictions banner");
+  // fill all 16 regional champions (re-query each time — view re-renders per pick)
+  for (let i = 0; i < 16; i++) {
+    await page.evaluate((idx) => document.querySelectorAll("#view-picks .pick-reg")[idx].querySelector(".nb-node.pick[data-team]").click(), i);
+  }
+  const pickedReg = await page.locator("#view-picks .pick-reg .nb-node.picked").count();
+  if (pickedReg !== 16) throw new Error(`expected 16 picked regionals, got ${pickedReg}`);
+  // encode -> decode round-trips exactly; garbage decodes to null
+  const rt = await page.evaluate(() => {
+    const g = window.__picks.get(), code = window.__picks.encode(g);
+    return { len: code.length, eq: JSON.stringify(window.__picks.decode(code)) === JSON.stringify(g), bad: window.__picks.decode("garbage"), code };
+  });
+  if (rt.len !== 26 || !rt.eq || rt.bad !== null) throw new Error(`pick encode/decode round-trip failed: ${JSON.stringify(rt)}`);
+  ok("bracket challenge: 3 columns, 16 picks, encode/decode round-trips");
+
+  // shared link loads the bracket; head-to-head renders
+  await go("#/picks/" + rt.code);
+  await page.waitForSelector("#view-picks.active .nb-cols", { timeout: 10000 });
+  const loadedPicks = await page.locator("#view-picks .pick-reg .nb-node.picked").count();
+  if (loadedPicks !== 16) throw new Error(`shared link did not restore picks, got ${loadedPicks}`);
+  await go("#/h2h/" + rt.code + "/" + rt.code);
+  await page.waitForSelector("#view-picks .h2h-table", { timeout: 10000 });
+  ok("shared link restores picks + head-to-head renders");
+
   // rich game detail: SIM situation strip (count/outs/diamond) renders
   await go("#/");
   await page.evaluate(() => { var b = document.querySelector('#scoreboard .sb-demo button'); if (b) b.click(); }); // start single-game sim

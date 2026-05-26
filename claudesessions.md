@@ -25,7 +25,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 10 | "Today" live hub (game-day home) | M | — |
 | 11 | Pre-rendered per-view share cards | M | 1 |
 | 12 | Verified team history & program context | L | — |
-| 13 | Bracket Challenge — full chain, shareable (static) | L | 2 |
+| 13 | ✅ Bracket Challenge — full chain, shareable (static) | L | 2 |
 | 14 | Pick'em backend + private leagues (Cloudflare Worker + KV) | M | 13 |
 | 15 | Daily per-game pick'em (W/L tally + standings) | M | 14 |
 
@@ -245,7 +245,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 > **Two pick'em contests, one league.** The app runs two complementary games: the **Bracket Challenge** (predict the whole field once, up front — foresight) and the **Daily Pick'em** (pick each game's winner as matchups unlock — a rolling W/L record). A friend joins **one private league code** and is ranked in **both** (two standings, one group). Sessions 13 → 14 → 15 build this in order: static bracket, then the shared backend, then per-game.
 
-## Session 13 — Bracket Challenge (full chain, shareable; static)
+## Session 13 — Bracket Challenge (full chain, shareable; static) ✅ SHIPPED
+> **Shipped:** commit `<pending>` · live + CI green. New `#/picks` view: predict all 16 regional champions → cascading predicted super-regional matchups (reusing the seed logic) → 8 super winners → CWS champion. Picks persist to `localStorage["cws-picks-v1"]` and encode into a stable, versioned **26-char URL** (`encodePicks`/`decodePicks`, exact round-trip, malformed→null); shared `#/picks/<code>` links load into the viewer's editable copy, and `#/h2h/<a>/<b>` compares two brackets. Scores ✓/✗ against real results — and critically **survives the destructive super-flip** by snapshotting the original 16 sites at load (`snapshotPickSites`) and scoring via `resolveBracket` on `LIVE.bySite` (verified: after `__simAll`, all 16 regional picks score, 6✓/10✗). The **CWS champion stays a labeled "pending" prediction** (Omaha isn't modeled — a one-line `T.omahaChampion` lights it up later). A persistent "unofficial predictions" banner enforces the honesty rule. Reused the `.nb-cols` bracket UI + delegated-handler pattern; **no `data.js` change** (refresh:check stays canonical). smoke adds: 3 columns + 16 pick cards + encode/decode round-trip + shared-link restore + head-to-head. `window.__picks` test hook added.
+
 **Goal:** Let anyone predict the whole Road to Omaha; the "save" is a shareable URL — no backend.
 
 **Why:** Turns spectators into participants and its value peaks **before the 5/29 first pitch**, so it ships first and stand-alone.
