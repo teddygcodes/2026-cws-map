@@ -117,19 +117,45 @@
     .leaflet-container { background: #0a0a0b; }
     .map-hint { font-family:"Oswald",sans-serif; color: var(--muted); font-size: 13px; letter-spacing:.06em; text-transform: uppercase; margin: 14px 2px 0; }
 
-    /* seed pin */
+    /* seed pin — small circular marker (centered on its coordinate) */
     .pin {
-      width: 34px; height: 34px; border-radius: 50% 50% 50% 0;
-      background: var(--accent); transform: rotate(-45deg);
-      border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.5);
+      position: relative;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); border: 2px solid #fff;
+      box-shadow: 0 2px 7px rgba(0,0,0,.55);
       display: grid; place-items: center;
+      transition: transform .12s ease;
     }
     .pin span {
-      transform: rotate(45deg); color: #fff; font-family:"Anton",sans-serif;
-      font-size: 14px; line-height: 1;
+      color: #fff; font-family:"Anton",sans-serif; font-size: 12px; line-height: 1;
     }
-    .leaflet-marker-icon .pin:hover { background: #fff; }
+    .leaflet-marker-icon:hover { z-index: 1000 !important; }
+    .leaflet-marker-icon .pin:hover { transform: scale(1.18); background: #fff; }
     .leaflet-marker-icon .pin:hover span { color: var(--accent); }
+    /* live site: pulsing dot on the pin's upper-right */
+    .pin.live::after {
+      content: ""; position: absolute; top: -3px; right: -3px;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #28d07a; border: 2px solid #0e0e10;
+      animation: pulse 1.3s infinite;
+    }
+
+    /* ---------- Map/Bracket top toggle + site list ---------- */
+    .map-toggle { margin: 2px 0 16px; }
+    .site-list { display: grid; gap: 8px; }
+    .site-row {
+      display: flex; align-items: center; gap: 14px; cursor: pointer;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      padding: 11px 14px; transition: .15s; text-align: left; width: 100%;
+    }
+    .site-row:hover { border-color: var(--accent); transform: translateX(2px); }
+    .site-row .sr-main { min-width: 0; flex: 1; }
+    .site-row .sr-city { font-family:"Oswald",sans-serif; font-weight:700; font-size:16px; line-height:1.1; }
+    .site-row .sr-host { color: var(--muted); font-size: 13px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .site-row .sr-rec { font-family:"Oswald",sans-serif; font-size:13px; letter-spacing:.04em; color: var(--text); white-space: nowrap; }
+    .site-row .sr-live { display:inline-flex; align-items:center; gap:6px; font-family:"Oswald",sans-serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#28d07a; }
+    .site-row .sr-live .dot { width:7px; height:7px; border-radius:50%; background:#28d07a; display:inline-block; animation:pulse 1.3s infinite; }
+    .site-row .sr-champ { color: var(--gold); font-size: 15px; }
 
     /* ---------- Cards / grids ---------- */
     .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
@@ -440,12 +466,19 @@
       <!-- SUPER_REGIONAL_UPGRADE: heading/subtitle copy becomes "Super Regional Host Sites" (8 pins). -->
       <div class="section-sub" id="mapSub">16 regionals &middot; double-elimination &middot; May 29 – June 1</div>
 
+      <!-- Map / List / Bracket switcher (active segment set in JS from mapMode) -->
+      <div class="view-toggle map-toggle" id="mapToggle">
+        <button class="vt on" data-mode="map">Map</button>
+        <button class="vt" data-mode="list">List</button>
+        <button class="vt" data-mode="bracket">Bracket</button>
+      </div>
+
       <!-- Live scoreboard ticker (auto-updates from the ESPN college-baseball feed) -->
       <div id="scoreboard" class="scoreboard"></div>
 
       <div id="map"></div>
       <div class="map-hint">Tap a host city to open its bracket.</div>
-      <div class="map-actions"><a class="btn" href="#/bracket">&#127942; View full bracket &rarr;</a></div>
+      <div id="siteList" class="site-list" hidden></div>
     </section>
 
     <!-- REGIONAL VIEW -->
@@ -528,6 +561,7 @@
     var VIEWS = ["map", "regional", "team", "stadium", "game", "compare", "bracket"];
     var currentView = null;
     var regionalMode = "list"; // "list" | "bracket" — persists across live re-renders
+    var mapMode = "map"; // "map" | "list" — host-sites display mode (Map/List/Bracket toggle)
     function showView(name) {
       VIEWS.forEach(function (v) {
         document.getElementById("view-" + v).classList.toggle("active", v === name);
@@ -580,18 +614,20 @@
         var st = host.stadium;
         var champId = siteChampion(s);
         var champTeam = champId ? team(champId) : null;
+        var live = siteIsLive(s);
         var icon = L.divIcon({
           className: "",
-          html: '<div class="pin' + (champId ? " champ" : "") + '"><span>' +
+          html: '<div class="pin' + (champId ? " champ" : "") + (live ? " live" : "") + '"><span>' +
             (champId ? "&#9733;" : (host.seed != null ? host.seed : "&middot;")) + "</span></div>",
-          iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -32]
+          iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -13]
         });
         var m = L.marker([st.lat, st.lng], { icon: icon, title: s.city + " " + roundLabel() });
         m.bindTooltip(
           "<strong>" + esc(s.city) + "</strong><br>" + esc(host.name) +
           " (" + (host.seed != null ? "No. " + host.seed : "host") + ")" +
-          (champTeam ? "<br>&#127942; " + esc(champTeam.name) : ""),
-          { direction: "top", offset: [0, -30] }
+          (champTeam ? "<br>&#127942; " + esc(champTeam.name) : "") +
+          (live ? '<br><span style="color:#28d07a">&#9679; Live now</span>' : ""),
+          { direction: "top", offset: [0, -12] }
         );
         m.on("click", function () { location.hash = "#/r/" + s.id; });
         m.addTo(markersLayer);
@@ -599,6 +635,35 @@
       });
       // Stored, not applied here — showView() fits once the container is visible.
       mapBounds = bounds;
+    }
+
+    // A site is "live" if any of its games is in progress (real feed or sim).
+    function siteIsLive(s) {
+      return bracketGames(s).some(function (g) { return g.state === "in"; });
+    }
+
+    // List mode: every host site as a clickable row (overlap-proof navigation).
+    // SUPER_REGIONAL_UPGRADE: count-agnostic — renders 8 rows just as well as 16.
+    function renderSiteList() {
+      var sites = T.sites.slice().sort(function (a, b) {
+        var sa = team(a.hostTeamId).seed == null ? 99 : team(a.hostTeamId).seed;
+        var sb = team(b.hostTeamId).seed == null ? 99 : team(b.hostTeamId).seed;
+        return sa !== sb ? sa - sb : a.city.localeCompare(b.city);
+      });
+      var html = sites.map(function (s) {
+        var host = team(s.hostTeamId);
+        var champId = siteChampion(s);
+        var live = siteIsLive(s);
+        return '<button class="site-row" data-site="' + esc(s.id) + '">' +
+          seedChip(host) +
+          '<div class="sr-main"><div class="sr-city">' + esc(s.city) +
+            (champId ? ' <span class="sr-champ" title="Regional champion">&#9733;</span>' : "") + "</div>" +
+            '<div class="sr-host">' + esc(host.name) + " &middot; " + esc(host.conference) + "</div></div>" +
+          (live ? '<span class="sr-live"><span class="dot"></span>Live</span>' : "") +
+          '<span class="sr-rec">' + fmtRecord(host.record) + "</span>" +
+        "</button>";
+      }).join("");
+      render(document.getElementById("siteList"), html);
     }
 
     // ---- REGIONAL schedule (double-elimination) ---------------------------
@@ -1150,7 +1215,7 @@
 
     function onLiveUpdate() {
       var hash = location.hash || "#/";
-      if (hash === "#/" || hash === "") { renderScoreboard(); if (map && markersLayer) renderMarkers(); }
+      if (hash === "#/" || hash === "") { renderScoreboard(); if (map && markersLayer) renderMarkers(); if (mapMode === "list") renderSiteList(); }
       else if (hash.indexOf("#/r/") === 0) { var s = siteById(hash.slice(4)); if (s) showRegional(s.id); }
       else if (hash.indexOf("#/g/") === 0) {
         var id = hash.slice(4);
@@ -1495,7 +1560,12 @@
       setCrumbs([{ text: "Map", href: "#/" }, { text: "Bracket" }], "#/");
       var html = '<div class="section-head">Road to Omaha</div>' +
         '<div class="section-sub">' + (T.round === "super-regional" ? "Super Regionals" : "16 regionals") +
-        " &rarr; 8 super regionals &rarr; College World Series</div>";
+        " &rarr; 8 super regionals &rarr; College World Series</div>" +
+        '<div class="view-toggle map-toggle">' +
+          '<button class="vt" data-mode="map">Map</button>' +
+          '<button class="vt" data-mode="list">List</button>' +
+          '<button class="vt on" data-mode="bracket">Bracket</button>' +
+        "</div>";
 
       function regNode(site) {
         if (!site) return "";
@@ -1619,6 +1689,15 @@
       setCrumbs([{ text: "Map" }], null);
       render(document.getElementById("mapSub"),
         T.sites.length + " " + roundLabel().toLowerCase() + "s &middot; double-elimination &middot; May 29 – June 1");
+      // Reflect mapMode on the Map/List/Bracket toggle and swap map <-> list.
+      var listMode = mapMode === "list";
+      document.querySelectorAll("#mapToggle .vt").forEach(function (b) {
+        b.classList.toggle("on", b.getAttribute("data-mode") === (listMode ? "list" : "map"));
+      });
+      document.getElementById("map").hidden = listMode;
+      document.querySelector("#view-map .map-hint").hidden = listMode;
+      document.getElementById("siteList").hidden = !listMode;
+      if (listMode) renderSiteList();
       showView("map");
       renderScoreboard();
     }
@@ -1636,10 +1715,28 @@
       else showMap();
     }
 
+    // Delegated handlers for the Map/List/Bracket toggle (present in both the map
+    // and bracket views) and the site-list rows — wired once, survive re-renders.
+    function wireMapNav() {
+      document.body.addEventListener("click", function (e) {
+        var vt = e.target.closest(".map-toggle .vt");
+        if (vt) {
+          var mode = vt.getAttribute("data-mode");
+          if (mode === "bracket") { location.hash = "#/bracket"; return; }
+          mapMode = mode; // "map" | "list"
+          if (currentView === "map") showMap(); else location.hash = "#/";
+          return;
+        }
+        var row = e.target.closest("#siteList .site-row");
+        if (row) { location.hash = "#/r/" + row.getAttribute("data-site"); }
+      });
+    }
+
     window.addEventListener("hashchange", router);
     window.addEventListener("load", function () {
       initMap();
       wireScoreboard();
+      wireMapNav();
       router();
       startPolling();
     });

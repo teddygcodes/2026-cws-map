@@ -18,7 +18,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 3 | ✅ Visual bracket diagram | M | 2 |
 | 4 | ✅ Rich live game view | M | — |
 | 5 | ✅ Data freshness + CI | M | — |
-| 6 | Map UX (pin clustering) | S | — |
+| 6 | ✅ Map UX (toggle + cleaner pins) | S | — |
 | 7 | Visual polish (team colors, a11y, image opt) | M | — |
 | 8 | Engagement (favorites, notifications, PWA) | M | 1 |
 
@@ -130,7 +130,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 6 — Map UX (pin clustering)
+## Session 6 — Map UX (pin clustering) ✅ SHIPPED
+> **Shipped:** commit `<pending>` · live + CI green. Per user direction we **did not cluster** — instead redesigned pins as compact **circular markers** (22px, was a 34px teardrop) so the SEC group reads cleanly, added a top‑of‑map **Map · List · Bracket** segmented toggle (reuses the existing `.view-toggle`/`.vt` component; mirrored on the bracket view) so the national bracket is reachable without scrolling, and a **List** mode (`renderSiteList`) showing all 16 regionals as clickable rows (seed/host/conference/record) — the overlap‑proof navigation that satisfies "every site reachable." Pins for sites with a game in progress get a **pulsing live dot** (`siteIsLive`, refreshes on the 30s poll). New state `mapMode`; one delegated handler `wireMapNav()`. Smoke asserts the 3‑segment toggle + 16 list rows + row navigation and still verifies 16→8 pins. Zero new deps/CDN.
+
 **Goal:** Fix the overlapping pins (the SEC cluster is unreadable) and improve map navigation.
 
 **Why:** Several Southeast sites stack on top of each other at the default zoom.

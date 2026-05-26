@@ -32,7 +32,7 @@ That's it. Everything is plain HTML/CSS/JS.
 
 ## Features
 
-- **🗺️ Map view** — a dark Leaflet/OpenStreetMap map with a pin at each of the 16 host cities, placed on the host school's home ballpark. Tap a pin to open that regional.
+- **🗺️ Map view** — a dark Leaflet/OpenStreetMap map with a compact circular pin at each of the 16 host cities, placed on the host school's home ballpark; pins for sites with a game in progress get a pulsing **live dot**. Tap a pin to open that regional. A top‑of‑map **Map · List · Bracket** toggle switches to a tidy list of all 16 regionals (overlap‑proof navigation) or jumps straight to the national bracket — no scrolling required.
 - **📊 Live scoreboard ticker** — polls ESPN's public college‑baseball feed every ~30s (no backend) and shows every tournament game flow **Upcoming → LIVE (inning + score) → Final**, all on its own. Includes a clearly‑labeled **"Simulate a live game"** button so you can preview the live experience before first pitch.
 - **🏆 Regional view** — the 4 teams with regional seed (1–4), conference and record, plus the full **double‑elimination schedule** (Friday's real matchups/times/TV, then the Sat–Mon winners/losers bracket).
 - **⚔️ Matchup comparison** — click a pregame matchup to get a head‑to‑head: record, RPI, runs, ERA, batting average, strength of schedule and key players, with the statistical edge highlighted for each line.

@@ -38,6 +38,23 @@ try {
   if (markers !== 16) throw new Error(`expected 16 map pins, got ${markers}`);
   ok("map renders 16 pins");
 
+  // Map · List · Bracket toggle: 3 segments, "Map" active by default
+  const segs = await page.locator("#mapToggle .vt").count();
+  if (segs !== 3) throw new Error(`expected 3 toggle segments, got ${segs}`);
+  // switch to List → 16 clickable site rows
+  await page.evaluate(() => { document.querySelector('#mapToggle .vt[data-mode="list"]').click(); });
+  await page.waitForSelector("#siteList .site-row", { timeout: 10000 });
+  const siteRows = await page.locator("#siteList .site-row").count();
+  if (siteRows !== 16) throw new Error(`expected 16 site rows in list mode, got ${siteRows}`);
+  // a row navigates to that regional
+  await page.evaluate(() => { document.querySelector("#siteList .site-row").click(); });
+  await page.waitForSelector("#view-regional.active .team-card", { timeout: 10000 });
+  // back to map mode → pins return
+  await go("#/");
+  await page.evaluate(() => { document.querySelector('#mapToggle .vt[data-mode="map"]').click(); });
+  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 16, { timeout: 10000 });
+  ok(`Map/List/Bracket toggle works (${segs} segments, ${siteRows} list rows)`);
+
   // regional → 4 team cards + schedule rows
   await go("#/r/athens");
   await page.waitForSelector("#view-regional .team-card", { timeout: 10000 });
@@ -77,7 +94,8 @@ try {
   await page.waitForSelector("#view-bracket .nb-cols", { timeout: 10000 });
   const cols = await page.locator("#view-bracket .nb-col").count();
   if (cols !== 3) throw new Error(`expected 3 national columns, got ${cols}`);
-  ok("national bracket renders 3 columns (regionals -> super -> CWS)");
+  await page.waitForSelector('#view-bracket .map-toggle .vt.on[data-mode="bracket"]', { timeout: 5000 });
+  ok("national bracket renders 3 columns + toggle (Bracket active)");
 
   // rich game detail: SIM situation strip (count/outs/diamond) renders
   await go("#/");
