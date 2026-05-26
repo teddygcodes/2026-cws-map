@@ -62,6 +62,16 @@ try {
   await page.waitForSelector("#view-compare .cmp-table", { timeout: 10000 });
   ok("matchup comparison renders table");
 
+  // rich game detail: SIM situation strip (count/outs/diamond) renders
+  await go("#/");
+  await page.evaluate(() => { var b = document.querySelector('#scoreboard .sb-demo button'); if (b) b.click(); }); // start single-game sim
+  await page.waitForTimeout(3500); // let one tick set the live situation
+  await go("#/g/demo");
+  await page.waitForSelector("#view-game .situation .diamond", { timeout: 8000 });
+  ok("live game view renders SIM situation strip");
+  await go("#/");
+  await page.evaluate(() => { var b = document.querySelector('#scoreboard .sb-demo button'); if (b && b.getAttribute('data-demo') === 'stop') b.click(); }); // stop sim
+
   // self-advancing bracket: simulate all 16 regionals -> auto-advance to 8 super-regionals
   await go("#/");
   await page.evaluate(() => window.__simAll());

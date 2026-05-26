@@ -294,6 +294,43 @@
     .linescore tr:last-child td { border-bottom:none; }
     .gd-note { color:var(--muted); font-size:13px; font-family:"Oswald",sans-serif; letter-spacing:.04em; }
 
+    /* live situation strip */
+    .situation { display:flex; align-items:center; gap:22px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--line);
+      border-left:3px solid var(--accent); border-radius:12px; padding:14px 18px; margin:14px 0; }
+    .situation .sit-col { text-align:center; }
+    .situation .sit-v { font-family:"Anton",sans-serif; font-size:22px; line-height:1; display:flex; gap:5px; justify-content:center; align-items:center; }
+    .situation .sit-l { font-family:"Oswald",sans-serif; text-transform:uppercase; letter-spacing:.1em; font-size:10px; color:var(--muted); margin-top:5px; }
+    .odot { width:12px; height:12px; border-radius:50%; border:2px solid var(--line); display:inline-block; }
+    .odot.on { background:var(--accent); border-color:var(--accent); }
+    .diamond { position:relative; width:54px; height:54px; }
+    .diamond .base { position:absolute; width:16px; height:16px; background:#0e0e10; border:2px solid var(--line); transform:rotate(45deg); }
+    .diamond .base.on { background:var(--gold); border-color:var(--gold); }
+    .diamond .second { top:0; left:19px; } .diamond .third { top:19px; left:0; } .diamond .first { top:19px; right:0; }
+    .situation .sit-bp { font-family:"Oswald",sans-serif; font-size:14px; line-height:1.5; }
+    .situation .sit-bp .sit-l { display:inline; margin-right:4px; }
+
+    /* scoring plays */
+    .plays { background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+    .play { display:flex; align-items:baseline; gap:12px; padding:10px 14px; border-bottom:1px solid var(--line); font-size:14px; }
+    .play:last-child { border-bottom:none; }
+    .play .pinn { font-family:"Oswald",sans-serif; font-weight:700; color:var(--accent); font-size:12px; min-width:30px; }
+    .play .ptext { flex:1; }
+    .play .pscore { font-family:"Anton",sans-serif; font-size:15px; white-space:nowrap; }
+    .plays-legend { font-family:"Oswald",sans-serif; color:var(--muted); font-size:11px; letter-spacing:.06em; margin:6px 2px 0; text-transform:uppercase; }
+
+    /* box score */
+    details.boxteam { background:var(--panel); border:1px solid var(--line); border-radius:12px; margin:10px 0; overflow:hidden; }
+    details.boxteam > summary { cursor:pointer; list-style:none; padding:12px 16px; font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.08em; font-size:14px; }
+    details.boxteam > summary::-webkit-details-marker { display:none; }
+    details.boxteam > summary::after { content:"▾"; float:right; color:var(--muted); }
+    details.boxteam[open] > summary::after { content:"▴"; }
+    .box-sub { font-family:"Oswald",sans-serif; text-transform:uppercase; letter-spacing:.1em; font-size:11px; color:var(--accent); padding:6px 16px 2px; }
+    table.box-table { width:100%; border-collapse:collapse; font-size:13px; }
+    table.box-table th, table.box-table td { padding:6px 10px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap; }
+    table.box-table th { font-family:"Oswald",sans-serif; text-transform:uppercase; font-size:10px; letter-spacing:.06em; color:var(--muted); }
+    table.box-table .pl { text-align:left; }
+    table.box-table tbody tr:last-child td { border-bottom:none; }
+
     /* ---------- Matchup comparison ---------- */
     .cmp-head { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; margin-bottom:18px; }
     .cmp-team { display:flex; align-items:center; gap:12px; min-width:0; }
@@ -987,7 +1024,11 @@
       var hash = location.hash || "#/";
       if (hash === "#/" || hash === "") { renderScoreboard(); if (map && markersLayer) renderMarkers(); }
       else if (hash.indexOf("#/r/") === 0) { var s = siteById(hash.slice(4)); if (s) showRegional(s.id); }
-      else if (hash.indexOf("#/g/") === 0) { var id = hash.slice(4); if (id === "demo" && LIVE.demo) renderGameDetail(document.getElementById("view-game"), demoSummary()); }
+      else if (hash.indexOf("#/g/") === 0) {
+        var id = hash.slice(4);
+        if (id === "demo") { if (LIVE.demo) renderGameDetail(document.getElementById("view-game"), demoSummary()); }
+        else refreshOpenGame(id); // live re-fetch of a real game on the 30s poll
+      }
     }
 
     // ---- scoreboard (home screen) ----------------------------------------
@@ -1049,8 +1090,47 @@
     }
 
     // ---- game detail view -------------------------------------------------
+    // curated columns kept from ESPN's box-score label sets (stable by name)
+    var BAT_COLS = ["AB", "R", "H", "RBI", "HR", "BB", "K", "AVG"];
+    var PIT_COLS = ["IP", "H", "R", "ER", "BB", "K", "ERA"];
+    function pickCols(labels, want) {
+      return want.map(function (w) { return { label: w, idx: (labels || []).indexOf(w) }; }).filter(function (c) { return c.idx >= 0; });
+    }
+    function parseBox(d) {
+      return (((d.boxscore || {}).players) || []).map(function (g) {
+        var out = { teamId: matchTeamId(g.team), name: (g.team && (g.team.displayName || g.team.location)) || "?", batting: null, pitching: null };
+        (g.statistics || []).forEach(function (st) {
+          var cols = pickCols(st.labels, st.type === "batting" ? BAT_COLS : PIT_COLS);
+          var rows = (st.athletes || []).map(function (a) {
+            return { name: (a.athlete && (a.athlete.shortName || a.athlete.displayName)) || "?", stats: cols.map(function (c) { return (a.stats || [])[c.idx]; }) };
+          }).filter(function (r) { return r.name !== "?"; });
+          if (st.type === "batting") out.batting = { cols: cols.map(function (c) { return c.label; }), rows: rows };
+          else if (st.type === "pitching") out.pitching = { cols: cols.map(function (c) { return c.label; }), rows: rows };
+        });
+        return out;
+      }).filter(function (b) { return b.batting || b.pitching; });
+    }
+    function parseScoringPlays(d) {
+      return (d.plays || []).filter(function (p) { return p.scoringPlay; }).map(function (p) {
+        var per = p.period || {};
+        return { inn: (per.type === "Top" ? "T" : "B") + (per.number || ""), text: p.text || "", away: p.awayScore, home: p.homeScore };
+      }).slice(-15);
+    }
+    function parseSituation(d, state) {
+      if (state !== "in") return null;
+      var comp = ((d.header || {}).competitions || [{}])[0];
+      var s = comp.situation || d.situation;
+      if (!s) {
+        var plays = d.plays || [], lp = plays[plays.length - 1];
+        if (!lp) return null;
+        s = { balls: (lp.resultCount || {}).balls, strikes: (lp.resultCount || {}).strikes, outs: lp.outs, onFirst: lp.onFirst, onSecond: lp.onSecond, onThird: lp.onThird };
+      }
+      var nm = function (x) { return x && x.athlete && (x.athlete.shortName || x.athlete.displayName) || null; };
+      return { balls: s.balls, strikes: s.strikes, outs: s.outs, first: !!s.onFirst, second: !!s.onSecond, third: !!s.onThird, batter: nm(s.batter), pitcher: nm(s.pitcher) };
+    }
     function parseSummary(d, eventId) {
       var comp = ((d.header || {}).competitions || [{}])[0], st = (comp.status && comp.status.type) || {};
+      var state = st.state || "pre";
       var teams = (comp.competitors || []).map(function (c) {
         return {
           id: matchTeamId(c.team), name: (c.team && (c.team.displayName || c.team.location)) || "?",
@@ -1059,7 +1139,29 @@
           hits: c.hits, errors: c.errors, home: c.homeAway === "home",
         };
       });
-      return { id: eventId, state: st.state || "pre", detail: st.shortDetail || st.detail || "", teams: teams, demo: false };
+      return {
+        id: eventId, state: state, detail: st.shortDetail || st.detail || "", teams: teams, demo: false,
+        situation: parseSituation(d, state), scoringPlays: parseScoringPlays(d), box: parseBox(d),
+      };
+    }
+
+    function outsDots(n) {
+      n = n || 0; var o = "";
+      for (var i = 0; i < 3; i++) o += '<span class="odot' + (i < n ? " on" : "") + '"></span>';
+      return o;
+    }
+    function baseDiamond(s) {
+      return '<div class="diamond">' +
+        '<span class="base second' + (s.second ? " on" : "") + '"></span>' +
+        '<span class="base third' + (s.third ? " on" : "") + '"></span>' +
+        '<span class="base first' + (s.first ? " on" : "") + '"></span></div>';
+    }
+    function boxStatTable(t) {
+      var head = '<tr><th class="pl">Player</th>' + t.cols.map(function (c) { return "<th>" + esc(c) + "</th>"; }).join("") + "</tr>";
+      var body = t.rows.map(function (r) {
+        return '<tr><td class="pl">' + esc(r.name) + "</td>" + r.stats.map(function (v) { return "<td>" + (v == null || v === "" ? "" : esc(String(v))) + "</td>"; }).join("") + "</tr>";
+      }).join("");
+      return '<table class="box-table"><thead>' + head + "</thead><tbody>" + body + "</tbody></table>";
     }
     function renderGameDetail(box, g) {
       if (!g || g.teams.length < 2) { render(box, '<div class="section-head">Game</div><div class="gd-note">No data for this game.</div>'); return; }
@@ -1086,17 +1188,53 @@
       if (hasInn) for (var i = 1; i <= nInn; i++) head += "<th>" + i + "</th>";
       head += "<th>R</th><th>H</th><th>E</th></tr>";
       var title = (a.id && team(a.id) ? team(a.id).name : a.name) + " vs " + (b.id && team(b.id) ? team(b.id).name : b.name);
-      render(box,
-        '<div class="gd-status">' + statusHtml + (g.demo ? ' <span class="todo">Simulated</span>' : "") + "</div>" +
-        '<div class="section-head">' + esc(title) + "</div>" +
-        '<table class="linescore"><thead>' + head + "</thead><tbody>" +
-          "<tr>" + nameCell(a) + inningCells(a) + rheCells(a) + "</tr>" +
-          "<tr>" + nameCell(b) + inningCells(b) + rheCells(b) + "</tr>" +
-        "</tbody></table>" +
-        '<div class="gd-note">' + (g.demo
-            ? "Simulated game for preview — not a real result."
-            : "Box score via ESPN · updates while you watch") + "</div>" +
-        '<div class="btn-row"><a class="btn" href="#/">&larr; Back to scores</a></div>');
+
+      var html = '<div class="gd-status">' + statusHtml + (g.demo ? ' <span class="todo">Simulated</span>' : "") + "</div>" +
+        '<div class="section-head">' + esc(title) + "</div>";
+
+      // live situation strip
+      var sit = g.situation;
+      if (sit && g.state === "in") {
+        html += '<div class="situation">' +
+          '<div class="sit-col"><div class="sit-v">' + (sit.balls == null ? "0" : sit.balls) + "&ndash;" + (sit.strikes == null ? "0" : sit.strikes) + '</div><div class="sit-l">Count</div></div>' +
+          '<div class="sit-col"><div class="sit-v">' + outsDots(sit.outs) + '</div><div class="sit-l">Outs</div></div>' +
+          baseDiamond(sit) +
+          '<div class="sit-bp">' + (sit.batter ? '<div><span class="sit-l">AB</span> ' + esc(sit.batter) + "</div>" : "") +
+            (sit.pitcher ? '<div><span class="sit-l">P</span> ' + esc(sit.pitcher) + "</div>" : "") + "</div>" +
+          "</div>";
+      }
+
+      html += '<table class="linescore"><thead>' + head + "</thead><tbody>" +
+        "<tr>" + nameCell(a) + inningCells(a) + rheCells(a) + "</tr>" +
+        "<tr>" + nameCell(b) + inningCells(b) + rheCells(b) + "</tr>" +
+        "</tbody></table>";
+
+      // scoring plays
+      if (g.scoringPlays && g.scoringPlays.length) {
+        html += '<div class="panel-title">Scoring Plays</div><div class="plays">' +
+          g.scoringPlays.map(function (p) {
+            return '<div class="play"><span class="pinn">' + esc(p.inn) + '</span><span class="ptext">' + esc(p.text) +
+              '</span><span class="pscore">' + (p.away == null ? "" : p.away) + "&ndash;" + (p.home == null ? "" : p.home) + "</span></div>";
+          }).join("") + '</div><div class="plays-legend">score shown away&ndash;home</div>';
+      }
+
+      // per-player box score (collapsible per team)
+      if (g.box && g.box.length) {
+        html += '<div class="panel-title">Box Score</div>';
+        g.box.forEach(function (bx) {
+          var nm = bx.teamId && team(bx.teamId) ? team(bx.teamId).name : bx.name;
+          html += '<details class="boxteam" open><summary>' + esc(nm) + "</summary>" +
+            (bx.batting ? '<div class="box-sub">Batting</div>' + boxStatTable(bx.batting) : "") +
+            (bx.pitching ? '<div class="box-sub">Pitching</div>' + boxStatTable(bx.pitching) : "") +
+            "</details>";
+        });
+      }
+
+      html += '<div class="gd-note">' + (g.demo
+          ? "Simulated game for preview — not a real result."
+          : "Live box score via ESPN · updates while you watch") + "</div>" +
+        '<div class="btn-row"><a class="btn" href="#/">&larr; Back to scores</a></div>';
+      render(box, html);
     }
     function showGame(eventId) {
       setCrumbs([{ text: "Map", href: "#/" }, { text: "Game" }], "#/");
@@ -1109,28 +1247,58 @@
         .then(function (d) { if ((location.hash || "") === "#/g/" + eventId) renderGameDetail(box, parseSummary(d, eventId)); })
         .catch(function () { render(box, '<div class="section-head">Game</div><div class="gd-note">Couldn’t load this game right now.</div><div class="btn-row"><a class="btn" href="#/">&larr; Back</a></div>'); });
     }
+    // Re-fetch the currently-open real game on the poll cadence (no Loading flash).
+    function refreshOpenGame(id) {
+      fetch(ESPN + "/summary?event=" + encodeURIComponent(id), { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if ((location.hash || "") === "#/g/" + id) renderGameDetail(document.getElementById("view-game"), parseSummary(d, id)); })
+        .catch(function () {});
+    }
 
     // ---- demo (clearly-labeled simulation so the live UI is visible today) -
     function ordinal(n) { var s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+    // pick a plausible batter/pitcher name from a team's real player list (SIM only)
+    function pickName(teamId, wantPitcher) {
+      var ps = (team(teamId) && team(teamId).players) || [];
+      var pool = ps.filter(function (p) { var isP = /HP$/.test(p.pos) || p.pos === "P"; return wantPitcher ? isP : !isP; });
+      if (!pool.length) pool = ps;
+      return pool.length ? pool[Math.floor(Math.random() * pool.length)].name : (wantPitcher ? "Pitcher" : "Batter");
+    }
+    function demoPlayText(batId, runs) {
+      var k = runs > 1
+        ? ["doubled, " + runs + " RBI", "homered (" + runs + "-run)", "cleared the bases, " + runs + " RBI"]
+        : ["singled, RBI", "doubled, RBI", "hit a sacrifice fly, RBI", "grounded out, RBI"];
+      return pickName(batId, false) + " " + k[Math.floor(Math.random() * k.length)];
+    }
     function demoSummary() {
       var d = LIVE.demo;
       return { id: "demo", state: d.state, detail: d.detail, demo: true, teams: [
         { id: d.comps[0].id, name: liveTeamName(d.comps[0]), score: d.comps[0].score, innings: d.aInn, hits: d.hits[0], errors: d.errors[0], home: false },
         { id: d.comps[1].id, name: liveTeamName(d.comps[1]), score: d.comps[1].score, innings: d.bInn, hits: d.hits[1], errors: d.errors[1], home: true },
-      ] };
+      ], situation: d.situation, scoringPlays: (d.plays || []).slice(-15), box: null };
     }
     function startDemo() {
       stopDemo();
       var inning = 1, half = "Top";
       LIVE.demo = { id: "demo", demo: true, state: "in", detail: "Top 1st",
         comps: [{ id: "milwaukee", score: 0 }, { id: "auburn", score: 0 }],
-        pair: pairKey("auburn", "milwaukee"), aInn: [], bInn: [], hits: [0, 0], errors: [0, 0] };
+        pair: pairKey("auburn", "milwaukee"), aInn: [], bInn: [], hits: [0, 0], errors: [0, 0],
+        plays: [], situation: null };
       LIVE.demoTimer = setInterval(function () {
         var d = LIVE.demo, runs = Math.random() < 0.35 ? (Math.random() < 0.6 ? 1 : 2) : 0;
-        if (half === "Top") { d.comps[0].score += runs; d.aInn.push(runs); d.hits[0] += runs + (Math.random() < 0.5 ? 1 : 0); half = "Bottom"; }
-        else { d.comps[1].score += runs; d.bInn.push(runs); d.hits[1] += runs + (Math.random() < 0.5 ? 1 : 0); half = "Top"; inning++; }
+        var batId = half === "Top" ? d.comps[0].id : d.comps[1].id;
+        var fldId = half === "Top" ? d.comps[1].id : d.comps[0].id;
+        if (half === "Top") { d.comps[0].score += runs; d.aInn.push(runs); d.hits[0] += runs + (Math.random() < 0.5 ? 1 : 0); }
+        else { d.comps[1].score += runs; d.bInn.push(runs); d.hits[1] += runs + (Math.random() < 0.5 ? 1 : 0); }
         if (Math.random() < 0.05) d.errors[Math.random() < 0.5 ? 0 : 1]++;
-        if (inning > 9) { d.state = "post"; d.detail = "Final"; clearInterval(LIVE.demoTimer); LIVE.demoTimer = null; }
+        if (runs > 0) d.plays.push({ inn: (half === "Top" ? "T" : "B") + inning, text: demoPlayText(batId, runs), away: d.comps[0].score, home: d.comps[1].score });
+        // current live situation (snapshot)
+        d.situation = { balls: Math.floor(Math.random() * 4), strikes: Math.floor(Math.random() * 3), outs: Math.floor(Math.random() * 3),
+          first: Math.random() < 0.4, second: Math.random() < 0.3, third: Math.random() < 0.2,
+          batter: pickName(batId, false), pitcher: pickName(fldId, true) };
+        // advance half / inning
+        if (half === "Top") half = "Bottom"; else { half = "Top"; inning++; }
+        if (inning > 9) { d.state = "post"; d.detail = "Final"; d.situation = null; clearInterval(LIVE.demoTimer); LIVE.demoTimer = null; }
         else d.detail = half + " " + ordinal(inning);
         onLiveUpdate();
       }, 3000);
