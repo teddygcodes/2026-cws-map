@@ -212,6 +212,9 @@
       background:transparent; color:var(--muted); border:none; padding:7px 14px; transition:.15s; }
     .view-toggle .vt.on { background:var(--accent); color:#fff; }
     .view-toggle .vt:not(.on):hover { color:var(--text); }
+    .view-toggle .vt { white-space:nowrap; }
+    /* the top nav bar carries 5 tabs — let it scroll instead of clipping on narrow screens */
+    .map-toggle { max-width:100%; overflow-x:auto; overflow-y:hidden; }
 
     /* double-elim bracket diagram */
     .bracket { display:flex; flex-direction:column; gap:8px; }
@@ -539,6 +542,8 @@
         <button class="vt on" data-mode="map">Map</button>
         <button class="vt" data-mode="list">List</button>
         <button class="vt" data-mode="bracket">Bracket</button>
+        <button class="vt" data-mode="picks">Picks</button>
+        <button class="vt" data-mode="league">Leagues</button>
       </div>
 
       <!-- Live scoreboard ticker (auto-updates from the ESPN college-baseball feed) -->
@@ -1664,16 +1669,20 @@
       }
       return pairs;
     }
+    // Top-level nav bar (Map · List · Bracket · Picks · Leagues). Shared by the
+    // map, bracket, picks and league views so every feature is one tap from home.
+    function navToggle(active) {
+      var tabs = [["map", "Map"], ["list", "List"], ["bracket", "Bracket"], ["picks", "Picks"], ["league", "Leagues"]];
+      return '<div class="view-toggle map-toggle">' + tabs.map(function (t) {
+        return '<button class="vt' + (t[0] === active ? " on" : "") + '" data-mode="' + t[0] + '">' + t[1] + "</button>";
+      }).join("") + "</div>";
+    }
     function showBracket() {
       setCrumbs([{ text: "Map", href: "#/" }, { text: "Bracket" }], "#/");
       var html = '<div class="section-head">Road to Omaha</div>' +
         '<div class="section-sub">' + (T.round === "super-regional" ? "Super Regionals" : "16 regionals") +
         " &rarr; 8 super regionals &rarr; College World Series</div>" +
-        '<div class="view-toggle map-toggle">' +
-          '<button class="vt" data-mode="map">Map</button>' +
-          '<button class="vt" data-mode="list">List</button>' +
-          '<button class="vt on" data-mode="bracket">Bracket</button>' +
-        "</div>" +
+        navToggle("bracket") +
         '<div class="map-actions"><a class="btn primary" href="#/picks">&#128203; Make Your Picks &rarr;</a></div>';
 
       function regNode(site) {
@@ -1987,6 +1996,7 @@
       var html =
         '<div class="section-head">Bracket Challenge</div>' +
         '<div class="section-sub">Predict the Road to Omaha &middot; your picks save to this page &amp; share link</div>' +
+        navToggle("picks") +
         '<div class="pick-banner">&#9888; Predictions only — unofficial, not real results. Saved in your browser and in the share link.</div>' +
         '<div class="pick-bar"><div class="pick-progress">' + pickProgress() + ' / 25 picks</div>' +
           '<div class="pick-actions">' +
@@ -2109,6 +2119,7 @@
       setCrumbs([{ text: "Map", href: "#/" }, { text: "Leagues" }], "#/");
       render(document.getElementById("view-league"),
         '<div class="section-head">Private Leagues</div>' +
+        navToggle("league") +
         '<div class="lg-unavailable"><div class="ttl">Leagues aren’t turned on yet</div>' +
         '<p>League play uses an optional backend that hasn’t been enabled. Your ' +
         '<a href="#/picks">Bracket Challenge</a> still works and is shareable by link.</p>' +
@@ -2124,6 +2135,7 @@
       render(document.getElementById("view-league"),
         '<div class="section-head">Private Leagues</div>' +
         '<div class="section-sub">Compete with friends on your bracket &middot; one code, everyone joins</div>' +
+        navToggle("league") +
         leagueBanner() +
         '<div class="lg-cols">' +
           '<div class="lg-card"><div class="bk-title">Create a league</div><div class="lg-form">' +
@@ -2166,6 +2178,7 @@
         render(el,
           '<div class="section-head">' + esc(data.name || ("League " + code)) + "</div>" +
           '<div class="section-sub">Code <b>' + esc(code) + "</b> &middot; share it to invite friends</div>" +
+          navToggle("league") +
           leagueBanner() +
           '<div class="lg-bar"><span class="lg-lock' + (ls.locked ? " locked" : "") + '">' + ls.text + "</span>" +
             '<span class="lg-actions">' + actions + "</span></div>" +
@@ -2250,14 +2263,16 @@
       else showMap();
     }
 
-    // Delegated handlers for the Map/List/Bracket toggle (present in both the map
-    // and bracket views) and the site-list rows — wired once, survive re-renders.
+    // Delegated handler for the top nav bar (Map · List · Bracket · Picks ·
+    // Leagues), present across views, plus the site-list rows — wired once.
     function wireMapNav() {
       document.body.addEventListener("click", function (e) {
         var vt = e.target.closest(".map-toggle .vt");
         if (vt) {
           var mode = vt.getAttribute("data-mode");
           if (mode === "bracket") { location.hash = "#/bracket"; return; }
+          if (mode === "picks") { location.hash = "#/picks"; return; }
+          if (mode === "league") { location.hash = "#/league"; return; }
           mapMode = mode; // "map" | "list"
           if (currentView === "map") showMap(); else location.hash = "#/";
           return;

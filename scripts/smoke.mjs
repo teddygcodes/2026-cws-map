@@ -40,9 +40,12 @@ try {
   if (markers !== 16) throw new Error(`expected 16 map pins, got ${markers}`);
   ok("map renders 16 pins");
 
-  // Map · List · Bracket toggle: 3 segments, "Map" active by default
+  // Top nav bar: Map · List · Bracket · Picks · Leagues (5 tabs)
   const segs = await page.locator("#mapToggle .vt").count();
-  if (segs !== 3) throw new Error(`expected 3 toggle segments, got ${segs}`);
+  if (segs !== 5) throw new Error(`expected 5 nav tabs, got ${segs}`);
+  for (const m of ["map", "list", "bracket", "picks", "league"]) {
+    if (await page.locator(`#mapToggle .vt[data-mode="${m}"]`).count() !== 1) throw new Error(`missing nav tab: ${m}`);
+  }
   // switch to List → 16 clickable site rows
   await page.evaluate(() => { document.querySelector('#mapToggle .vt[data-mode="list"]').click(); });
   await page.waitForSelector("#siteList .site-row", { timeout: 10000 });
@@ -51,11 +54,15 @@ try {
   // a row navigates to that regional
   await page.evaluate(() => { document.querySelector("#siteList .site-row").click(); });
   await page.waitForSelector("#view-regional.active .team-card", { timeout: 10000 });
+  // Picks tab navigates to the bracket challenge
+  await go("#/");
+  await page.evaluate(() => { document.querySelector('#mapToggle .vt[data-mode="picks"]').click(); });
+  await page.waitForSelector("#view-picks.active .nb-cols", { timeout: 10000 });
   // back to map mode → pins return
   await go("#/");
   await page.evaluate(() => { document.querySelector('#mapToggle .vt[data-mode="map"]').click(); });
   await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 16, { timeout: 10000 });
-  ok(`Map/List/Bracket toggle works (${segs} segments, ${siteRows} list rows)`);
+  ok(`top nav: ${segs} tabs (Map/List/Bracket/Picks/Leagues), List shows ${siteRows} rows, Picks tab navigates`);
 
   // regional → 4 team cards + schedule rows
   await go("#/r/athens");
