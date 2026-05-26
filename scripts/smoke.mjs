@@ -62,6 +62,23 @@ try {
   await page.waitForSelector("#view-compare .cmp-table", { timeout: 10000 });
   ok("matchup comparison renders table");
 
+  // regional bracket toggle renders the visual double-elim diagram
+  await go("#/r/athens");
+  await page.waitForSelector("#view-regional .view-toggle .vt", { timeout: 10000 });
+  await page.evaluate(() => { var b = [...document.querySelectorAll('#view-regional .view-toggle .vt')].find(x => x.getAttribute('data-mode') === 'bracket'); if (b) b.click(); });
+  await page.waitForSelector("#view-regional .bracket .bg-card", { timeout: 10000 });
+  const bgCards = await page.locator("#view-regional .bracket .bg-card").count();
+  if (bgCards < 7) throw new Error(`expected >=7 bracket cards, got ${bgCards}`);
+  ok("regional bracket diagram renders (" + bgCards + " games)");
+  await page.evaluate(() => { var b = [...document.querySelectorAll('#view-regional .view-toggle .vt')].find(x => x.getAttribute('data-mode') === 'list'); if (b) b.click(); });
+
+  // national Road-to-Omaha bracket
+  await go("#/bracket");
+  await page.waitForSelector("#view-bracket .nb-cols", { timeout: 10000 });
+  const cols = await page.locator("#view-bracket .nb-col").count();
+  if (cols !== 3) throw new Error(`expected 3 national columns, got ${cols}`);
+  ok("national bracket renders 3 columns (regionals -> super -> CWS)");
+
   // rich game detail: SIM situation strip (count/outs/diamond) renders
   await go("#/");
   await page.evaluate(() => { var b = document.querySelector('#scoreboard .sb-demo button'); if (b) b.click(); }); // start single-game sim

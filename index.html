@@ -178,6 +178,63 @@
       color:var(--gold); border:1px dashed rgba(242,193,78,.55); border-radius:8px; padding:7px 12px; margin-bottom:10px; }
     .pin.champ { background:var(--gold); border-color:#fff; }
     .pin.champ span { color:#0e0e10; }
+
+    /* regional controls + List/Bracket toggle */
+    .reg-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:18px; }
+    .view-toggle { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+    .view-toggle .vt { cursor:pointer; font-family:"Oswald",sans-serif; font-weight:600; text-transform:uppercase; letter-spacing:.06em; font-size:11px;
+      background:transparent; color:var(--muted); border:none; padding:7px 14px; transition:.15s; }
+    .view-toggle .vt.on { background:var(--accent); color:#fff; }
+    .view-toggle .vt:not(.on):hover { color:var(--text); }
+
+    /* double-elim bracket diagram */
+    .bracket { display:flex; flex-direction:column; gap:8px; }
+    .bk-sec { padding:8px 0; }
+    .bk-title { font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.12em; font-size:12px; color:var(--accent); margin-bottom:10px; }
+    .bk-rounds { display:flex; gap:34px; align-items:center; }
+    .bk-col { display:flex; flex-direction:column; gap:16px; flex:0 0 auto; min-width:200px; }
+    .bk-col.bk-mid { position:relative; }
+    .bk-col.bk-mid::before { content:""; position:absolute; left:-22px; top:50%; width:18px; height:1px; background:var(--line); }
+    .bg-card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:9px 11px; min-width:200px; }
+    .bg-card.elim { border-left:3px solid rgba(242,193,78,.5); }
+    .bg-card.bg-click { cursor:pointer; transition:.15s; }
+    .bg-card.bg-click:hover { border-color:var(--accent); }
+    .bg-h { font-family:"Oswald",sans-serif; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+    .bg-team { display:flex; align-items:center; gap:8px; padding:3px 0; font-family:"Oswald",sans-serif; font-size:14px; }
+    .bg-team .sd { color:var(--accent); font-size:11px; font-weight:600; min-width:20px; }
+    .bg-team .bn { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--muted); }
+    .bg-team .sc { font-family:"Anton",sans-serif; font-size:16px; min-width:18px; text-align:right; color:var(--muted); }
+    .bg-team.win .bn, .bg-team.win .sc { color:#fff; }
+    .bg-team.feeder { color:var(--muted); font-style:italic; font-size:12px; }
+    .bg-status { font-family:"Oswald",sans-serif; font-size:11px; letter-spacing:.04em; color:var(--muted); margin-top:5px; }
+    .bg-status .st-live { color:var(--accent); font-weight:700; }
+    .bk-note { font-family:"Oswald",sans-serif; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+    @media (max-width:700px) {
+      .bk-rounds { flex-direction:column; align-items:stretch; gap:16px; }
+      .bk-col, .bg-card { min-width:0; }
+      .bk-col.bk-mid::before { display:none; }
+    }
+
+    /* national "Road to Omaha" bracket */
+    .nb-cols { display:flex; gap:18px; align-items:flex-start; overflow-x:auto; padding-bottom:8px; }
+    .nb-col { flex:1 1 0; min-width:240px; }
+    .nb-col > .bk-title { position:sticky; top:0; }
+    .nb-pair { border:1px solid var(--line); border-radius:10px; margin-bottom:12px; overflow:hidden; }
+    .nb-node { display:flex; align-items:center; gap:8px; padding:9px 11px; cursor:pointer; transition:.15s; background:var(--panel); }
+    .nb-node + .nb-node { border-top:1px solid var(--line); }
+    .nb-node:hover { background:rgba(232,32,42,.06); }
+    .nb-node .seed { font-family:"Anton",sans-serif; font-size:15px; color:var(--muted); min-width:30px; }
+    .nb-node.champ .seed { color:var(--gold); }
+    .nb-node .nb-team { flex:1; min-width:0; }
+    .nb-node .nb-team .t { font-family:"Oswald",sans-serif; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .nb-node .nb-team .c { font-family:"Oswald",sans-serif; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .nb-node .trophy { color:var(--gold); }
+    .nb-cws { border:1px solid var(--gold); border-radius:10px; padding:16px; text-align:center; background:linear-gradient(180deg, rgba(242,193,78,.08), transparent); }
+    .nb-cws .ttl { font-family:"Anton",sans-serif; text-transform:uppercase; font-size:18px; }
+    .nb-cws .sub { font-family:"Oswald",sans-serif; color:var(--muted); font-size:12px; letter-spacing:.08em; text-transform:uppercase; margin-top:6px; }
+    .map-actions { margin-top:12px; }
+    .map-actions .btn { display:inline-flex; }
+    @media (max-width:700px) { .nb-cols { flex-direction:column; } .nb-col { min-width:0; } }
     .sched-day { font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.14em; font-size:12px; color:var(--text);
       margin:18px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
     .sched-day:first-of-type { margin-top:0; }
@@ -388,6 +445,7 @@
 
       <div id="map"></div>
       <div class="map-hint">Tap a host city to open its bracket.</div>
+      <div class="map-actions"><a class="btn" href="#/bracket">&#127942; View full bracket &rarr;</a></div>
     </section>
 
     <!-- REGIONAL VIEW -->
@@ -404,16 +462,19 @@
 
     <!-- MATCHUP COMPARISON VIEW (pregame head-to-head) -->
     <section id="view-compare" class="view"></section>
+
+    <!-- NATIONAL BRACKET VIEW (Road to Omaha) -->
+    <section id="view-bracket" class="view"></section>
   </main>
 
   <footer>
     Stats reflect the 2026 season as of May 25, 2026 (sources: official athletics sites, WarrenNolan, TheBaseballCube, D1Baseball). Figures that couldn't be verified show <span class="todo">TBD</span>. Stadium photos via Wikimedia Commons.
   </footer>
 
-  <script src="data.js?v=20260526c"></script>
-  <script src="photos.js?v=20260526c"></script>
-  <script src="schedule.js?v=20260526c"></script>
-  <script src="bracket.js?v=20260526c"></script>
+  <script src="data.js?v=20260526d"></script>
+  <script src="photos.js?v=20260526d"></script>
+  <script src="schedule.js?v=20260526d"></script>
+  <script src="bracket.js?v=20260526d"></script>
   <script>
   (function () {
     "use strict";
@@ -464,8 +525,9 @@
     }
 
     // ---- view switching ---------------------------------------------------
-    var VIEWS = ["map", "regional", "team", "stadium", "game", "compare"];
+    var VIEWS = ["map", "regional", "team", "stadium", "game", "compare", "bracket"];
     var currentView = null;
+    var regionalMode = "list"; // "list" | "bracket" — persists across live re-renders
     function showView(name) {
       VIEWS.forEach(function (v) {
         document.getElementById("view-" + v).classList.toggle("active", v === name);
@@ -577,14 +639,8 @@
       var simming = !!(LIVE.simSite && LIVE.simSite.siteId === s.id);
       var g6 = br.slots[5], g6Final = !!(g6 && g6.event && g6.event.state === "post");
 
-      var html = "";
-      if (br.champion) {
-        html += '<div class="champ-banner">&#127942; <b>' + esc(team(br.champion).name) + "</b> &mdash; " +
-          esc(s.city) + " " + roundLabel() + " champion" + (simming ? ' <span class="todo">Simulated</span>' : "") + "</div>";
-      }
-      html += '<div class="sched-head"><span class="panel-title" style="margin:22px 0 0">Regional Schedule &mdash; Double Elimination</span>' +
-        '<button class="sim-btn" data-sim="' + (simming ? "stop" : "start") + '" data-site="' + esc(s.id) + '">' +
-          (simming ? "■ Stop sim" : "▶ Simulate this regional") + "</button></div>" +
+      // champion banner + the Simulate control now live in showRegional (shared by both views).
+      var html = '<div class="panel-title" style="margin-top:18px">Regional Schedule &mdash; Double Elimination</div>' +
         '<div class="sched-note">' + (simming
           ? 'Simulated regional &middot; <span class="todo">not a real result</span>'
           : 'Friday matchups, times (ET) &amp; TV as published &middot; live scores update automatically') + "</div>";
@@ -671,6 +727,60 @@
       return html;
     }
 
+    // ---- regional bracket diagram (toggle alternative to the list) --------
+    var FEEDER = { 3: ["Game 1 loser", "Game 2 loser"], 4: ["Game 1 winner", "Game 2 winner"], 5: ["Game 3 winner", "Game 4 loser"], 6: ["Game 4 winner", "Game 5 winner"], 7: ["Game 6 rematch", "if necessary"] };
+    function eventWinner(ev, ids) {
+      if (!ev || ev.state !== "post") return null;
+      var w = (ev.comps.find(function (c) { return c.winner; }) || {}).id;
+      if (!w && ids) { var s0 = scoreFor(ev, ids[0]), s1 = scoreFor(ev, ids[1]); if (s0 != null && s1 != null && s0 !== s1) w = s0 > s1 ? ids[0] : ids[1]; }
+      return w || null;
+    }
+    function gameCard(slot, d1byPair) {
+      var g = slot.g, ev = slot.event, label = "G" + g, attrs = "", clk = "";
+      var winId = slot.teams ? eventWinner(ev, slot.teams) : null;
+      var status;
+      if (ev && ev.state !== "pre") {
+        status = ev.state === "in" ? '<span class="st-live">' + esc(ev.detail || "Live") + "</span>" : esc(ev.detail || "Final");
+        attrs = ' data-event="' + esc(ev.id) + '"'; clk = " bg-click";
+      } else if (g <= 2 && slot.teams) {
+        var sg = d1byPair[pairKey(slot.teams[0], slot.teams[1])];
+        status = sg ? esc(sg.time) + " ET" : "Time TBD";
+        attrs = ' data-a="' + esc(slot.teams[0]) + '" data-b="' + esc(slot.teams[1]) + '"'; clk = " bg-click";
+      } else { status = slot.teams ? "Time TBD" : "&mdash;"; }
+      function row(i) {
+        if (!slot.teams) return '<div class="bg-team feeder">' + esc((FEEDER[g] || ["TBD", "TBD"])[i]) + "</div>";
+        var id = slot.teams[i], sc = (ev && ev.state !== "pre") ? scoreFor(ev, id) : null;
+        return '<div class="bg-team' + (winId === id ? " win" : "") + '"><span class="sd">#' + slot.seeds[i] + '</span>' +
+          '<span class="bn">' + esc(team(id).name) + '</span><span class="sc">' + (sc == null ? "" : sc) + "</span></div>";
+      }
+      return '<div class="bg-card' + clk + (ELIM_OF[g] ? " elim" : "") + '"' + attrs + '>' +
+        '<div class="bg-h">' + label + (ELIM_OF[g] ? " &middot; Elim" : "") + "</div>" +
+        row(0) + row(1) + '<div class="bg-status">' + status + "</div></div>";
+    }
+    function renderRegionalBracket(s) {
+      // SUPER_REGIONAL_UPGRADE: best-of-3 list is already the cleanest super view.
+      if (T.round === "super-regional") return renderSuperSchedule(s);
+      var d1byPair = {};
+      ((window.SCHEDULES || {})[s.id] || []).forEach(function (gm) { d1byPair[pairKey(gm.a[0], gm.b[0])] = gm; });
+      var br = window.resolveBracket(s.teams, bracketGames(s));
+      var slot = function (n) { return br.slots[n - 1]; };
+      var g6 = slot(6), g6Final = !!(g6.event && g6.event.state === "post");
+
+      var html = '<div class="sched-note">Double elimination &middot; winners advance, two losses eliminate</div><div class="bracket">';
+      html += '<div class="bk-sec"><div class="bk-title">Winners Bracket</div><div class="bk-rounds">' +
+        '<div class="bk-col">' + gameCard(slot(1), d1byPair) + gameCard(slot(2), d1byPair) + "</div>" +
+        '<div class="bk-col bk-mid">' + gameCard(slot(4), d1byPair) + "</div></div></div>";
+      html += '<div class="bk-sec"><div class="bk-title">Elimination Bracket</div><div class="bk-rounds">' +
+        '<div class="bk-col">' + gameCard(slot(3), d1byPair) + "</div>" +
+        '<div class="bk-col bk-mid">' + gameCard(slot(5), d1byPair) + "</div></div></div>";
+      var champHtml;
+      if (g6Final && !slot(7).necessary) champHtml = gameCard(slot(6), d1byPair) + '<div class="bk-note">Game 7 not necessary</div>';
+      else champHtml = gameCard(slot(6), d1byPair) + gameCard(slot(7), d1byPair);
+      html += '<div class="bk-sec"><div class="bk-title">Championship</div><div class="bk-rounds">' +
+        '<div class="bk-col bk-mid">' + champHtml + "</div></div></div>";
+      return html + "</div>";
+    }
+
     // ---- REGIONAL ---------------------------------------------------------
     function showRegional(siteId) {
       var s = siteById(siteId);
@@ -694,13 +804,22 @@
         );
       }).join("");
 
+      var simming = !!(LIVE.simSite && LIVE.simSite.siteId === s.id);
+      var champ = siteChampion(s);
+      var banner = champ ? '<div class="champ-banner">&#127942; <b>' + esc(team(champ).name) + "</b> &mdash; " +
+        esc(s.city) + " " + roundLabel() + " champion" + (simming ? ' <span class="todo">Simulated</span>' : "") + "</div>" : "";
+      var controls = '<div class="reg-controls">' +
+        '<div class="view-toggle"><button class="vt' + (regionalMode === "list" ? " on" : "") + '" data-mode="list">List</button>' +
+        '<button class="vt' + (regionalMode === "bracket" ? " on" : "") + '" data-mode="bracket">Bracket</button></div>' +
+        '<button class="sim-btn" data-sim="' + (simming ? "stop" : "start") + '" data-site="' + esc(s.id) + '">' +
+          (simming ? "■ Stop sim" : "▶ Simulate this regional") + "</button></div>";
+      var body = regionalMode === "bracket" ? renderRegionalBracket(s) : renderSchedule(s);
       render(document.getElementById("view-regional"),
         '<div class="section-head">' + esc(s.city) + " " + roundLabel() + "</div>" +
         '<div class="section-sub">Host: ' + esc(host.name) +
           (host.seed != null ? " &middot; National No. " + host.seed : "") +
           " &middot; " + esc(host.stadium.name) + "</div>" +
-        '<div class="grid">' + cards + "</div>" +
-        renderSchedule(s));
+        '<div class="grid">' + cards + "</div>" + banner + controls + body);
 
       document.querySelectorAll("#view-regional .team-card").forEach(function (el) {
         el.addEventListener("click", function () { location.hash = "#/t/" + el.getAttribute("data-team"); });
@@ -720,6 +839,15 @@
       var simBtn = document.querySelector("#view-regional .sim-btn");
       if (simBtn) simBtn.addEventListener("click", function () {
         simBtn.getAttribute("data-sim") === "start" ? startRegionalSim(simBtn.getAttribute("data-site")) : stopRegionalSim();
+      });
+      document.querySelectorAll("#view-regional .view-toggle .vt").forEach(function (el) {
+        el.addEventListener("click", function () { regionalMode = el.getAttribute("data-mode"); showRegional(s.id); });
+      });
+      document.querySelectorAll("#view-regional .bg-card[data-event]").forEach(function (el) {
+        el.addEventListener("click", function () { location.hash = "#/g/" + el.getAttribute("data-event"); });
+      });
+      document.querySelectorAll("#view-regional .bg-card[data-a]").forEach(function (el) {
+        el.addEventListener("click", function () { location.hash = "#/vs/" + el.getAttribute("data-a") + "/" + el.getAttribute("data-b"); });
       });
 
       setCrumbs([{ text: "Map", href: "#/" }, { text: s.city + " " + roundLabel() }], "#/");
@@ -1350,6 +1478,78 @@
       if (map && mapBounds && mapBounds.length) setTimeout(function () { map.invalidateSize(); map.fitBounds(mapBounds, { padding: [50, 50] }); }, 60);
     }
 
+    // ---- national "Road to Omaha" bracket (#/bracket) ---------------------
+    // Pair the 16 regionals by host national seed (#s vs #17-s). Display-only.
+    function superPairings() {
+      var bySeed = {};
+      T.sites.forEach(function (s) { var hs = team(s.hostTeamId).seed; if (hs != null) bySeed[hs] = s; });
+      var pairs = [];
+      for (var sd = 1; sd <= 8; sd++) {
+        var hi = bySeed[sd], lo = bySeed[17 - sd];
+        if (!hi || !lo) continue;
+        pairs.push({ seed: sd, hi: { site: hi, champ: siteChampion(hi) }, lo: { site: lo, champ: siteChampion(lo) } });
+      }
+      return pairs;
+    }
+    function showBracket() {
+      setCrumbs([{ text: "Map", href: "#/" }, { text: "Bracket" }], "#/");
+      var html = '<div class="section-head">Road to Omaha</div>' +
+        '<div class="section-sub">' + (T.round === "super-regional" ? "Super Regionals" : "16 regionals") +
+        " &rarr; 8 super regionals &rarr; College World Series</div>";
+
+      function regNode(site) {
+        if (!site) return "";
+        var champ = siteChampion(site), host = team(site.hostTeamId);
+        var sub = champ ? '<span class="trophy">&#127942;</span> ' + esc(team(champ).name) + " advances" : esc(host.name) + " (host)";
+        return '<div class="nb-node' + (champ ? " champ" : "") + '" data-site="' + esc(site.id) + '">' +
+          '<span class="seed">' + (host.seed != null ? host.seed : "&middot;") + "</span>" +
+          '<div class="nb-team"><div class="t">' + esc(site.city) + '</div><div class="c">' + sub + "</div></div></div>";
+      }
+      function teamNode(id, label) {
+        if (!id) return '<div class="nb-node"><span class="seed">&middot;</span><div class="nb-team"><div class="t">' + esc(label || "TBD") + "</div></div></div>";
+        var t = team(id);
+        return '<div class="nb-node' + (t ? "" : "") + '"><span class="seed">' + (t.seed != null ? t.seed : "&middot;") + "</span>" +
+          '<div class="nb-team"><div class="t">' + esc(t.name) + "</div></div></div>";
+      }
+
+      var regCol = "", superCol = "", cwsTeams = [];
+      if (T.round === "super-regional") {
+        // 8 super sites are current; show their matchups + winners feeding CWS.
+        T.sites.forEach(function (s) {
+          var champ = siteChampion(s);
+          if (champ) cwsTeams.push(champ);
+          superCol += '<div class="nb-pair" data-site="' + esc(s.id) + '">' + teamNode(s.teams[0]) + teamNode(s.teams[1]) +
+            "</div>";
+        });
+        regCol = '<div class="bk-note">Regionals complete</div>';
+      } else {
+        var pairs = superPairings();
+        pairs.forEach(function (p) {
+          regCol += '<div class="nb-pair">' + regNode(p.hi.site) + regNode(p.lo.site) + "</div>";
+          var hostCity = p.hi.site.city;
+          superCol += '<div class="nb-pair"><div class="nb-node"><span class="seed">' + p.seed + "</span>" +
+            '<div class="nb-team"><div class="t">' + esc(hostCity) + " Super Regional</div>" +
+            '<div class="c">' + (p.hi.champ ? esc(team(p.hi.champ).name) : "Regional " + p.seed + " winner") +
+            " vs " + (p.lo.champ ? esc(team(p.lo.champ).name) : "Regional " + (17 - p.seed) + " winner") + "</div></div></div></div>";
+        });
+      }
+
+      html += '<div class="nb-cols">' +
+        '<div class="nb-col"><div class="bk-title">Regionals</div>' + (regCol || '<div class="bk-note">TBD</div>') + "</div>" +
+        '<div class="nb-col"><div class="bk-title">Super Regionals</div>' + (superCol || '<div class="bk-note">TBD</div>') + "</div>" +
+        '<div class="nb-col"><div class="bk-title">College World Series</div>' +
+          '<div class="nb-cws"><div class="ttl">Omaha</div><div class="sub">' +
+            (cwsTeams.length ? cwsTeams.map(function (id) { return esc(team(id).name); }).join(" &middot; ") : "8 super-regional winners &middot; TBD") +
+          "</div></div></div>" +
+        "</div>";
+
+      render(document.getElementById("view-bracket"), html);
+      document.querySelectorAll("#view-bracket .nb-node[data-site], #view-bracket .nb-pair[data-site]").forEach(function (el) {
+        el.addEventListener("click", function () { location.hash = "#/r/" + el.getAttribute("data-site"); });
+      });
+      showView("bracket");
+    }
+
     // ---- regional simulation (clearly labeled SIM; QA + preview) ----------
     var simClock = 0;
     function simGame(winId, loseId) {
@@ -1432,6 +1632,7 @@
       else if (parts[0] === "s") showStadium(decodeURIComponent(parts[1] || ""));
       else if (parts[0] === "g") showGame(decodeURIComponent(parts[1] || ""));
       else if (parts[0] === "vs") showCompare(decodeURIComponent(parts[1] || ""), decodeURIComponent(parts[2] || ""));
+      else if (parts[0] === "bracket") showBracket();
       else showMap();
     }
 
