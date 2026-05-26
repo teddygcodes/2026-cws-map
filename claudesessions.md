@@ -15,7 +15,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 |---|---------|--------|------------|
 | 1 | ✅ Ship it live (GitHub Pages + social card) + CI | S | — |
 | 2 | ✅ Self-advancing bracket | M | — |
-| 3 | Visual bracket diagram | M | 2 (nice-to-have) |
+| 3 | ✅ Visual bracket diagram | M | 2 |
 | 4 | ✅ Rich live game view | M | — |
 | 5 | Data freshness + CI | M | — |
 | 6 | Map UX (pin clustering) | S | — |
@@ -67,7 +67,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 3 — Visual bracket diagram
+## Session 3 — Visual bracket diagram ✅ SHIPPED
+> **Shipped:** commit `743df37` · live + CI green. Per-regional **List ⟷ Bracket toggle** (mode persists across live re-renders): double-elim diagram from `resolveBracket` — Winners (G1,G2→G4), Elimination (G3→G5), Championship (G6 + G7-if-necessary) — game cards with winner highlight + status + click-through, feeder text for undetermined slots. New **`#/bracket` "Road to Omaha"** view: 3 responsive columns (16 regionals in the 8 seed pairings → 8 super regionals → CWS/Omaha) with deep-linking nodes + champion badges, reached via a map button. Smoke asserts both. Zero new deps.
+
 **Goal:** Replace (or augment) the schedule list with a visual double-elim bracket per regional, plus a national "Road to Omaha" overview.
 
 **Why:** A bracket *looks* like a tournament; far more legible than a list.
