@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Playwright MCP scratch output
+.playwright-mcp/
+
+# Claude runtime locks (keep launch.json, ignore transient state)
+.claude/*.lock
+
+# Editor / OS cruft
+*.swp
+*~
+Thumbs.db
