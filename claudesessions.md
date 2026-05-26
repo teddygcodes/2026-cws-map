@@ -17,7 +17,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 2 | ✅ Self-advancing bracket | M | — |
 | 3 | ✅ Visual bracket diagram | M | 2 |
 | 4 | ✅ Rich live game view | M | — |
-| 5 | Data freshness + CI | M | — |
+| 5 | ✅ Data freshness + CI | M | — |
 | 6 | Map UX (pin clustering) | S | — |
 | 7 | Visual polish (team colors, a11y, image opt) | M | — |
 | 8 | Engagement (favorites, notifications, PWA) | M | 1 |
@@ -110,7 +110,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 5 — Data freshness + CI
+## Session 5 — Data freshness + CI ✅ SHIPPED
+> **Shipped:** commit `53df1dd` · live + CI green · `refresh.yml` dispatch green (clean no-op). Delivered: **`scripts/refresh-stats.mjs`** — pulls each team's current W-L record from ESPN (`teams/{id}` totals; dynamic name→id map via `teams?limit=900`) and re-serializes `data.js` **deterministically** (records-only; rpi/sos/rate-stats/players preserved byte-for-byte). Honest fallbacks: a team whose record can't be fetched **keeps its existing value** (18 offseason-gap teams handled this way), and an unreachable source **hard-fails with no write** (verified: exit 1, `data.js` untouched). `--check` asserts canonical form with no network. **`.github/workflows/refresh.yml`** runs nightly (`cron: 0 9 * * *`) + manual dispatch → refresh → validate → commits to `main` **only if a record changed** (redeploys via `ci.yml`); no untrusted `github.event.*` in any `run:`. **`ci.yml`** validate job now runs `npm run refresh:check` so a hand-edit that breaks canonical form fails CI. This run refreshed 4 records from ESPN (UNC 45-11, Florida 39-19, Southern Miss 44-15, Kentucky 31-21). Zero new runtime deps; README/CLAUDE.md document the auto-refresh + canonical-form rule.
+
 **Goal:** Stop the stats from going stale, and add automated safety nets.
 
 **Why:** `data.js` is hand-baked as of 5/25 and there are zero tests.
