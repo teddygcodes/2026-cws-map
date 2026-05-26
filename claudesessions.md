@@ -13,7 +13,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 | # | Session | Effort | Depends on |
 |---|---------|--------|------------|
-| 1 | Ship it live (GitHub Pages + social card) | S | — |
+| 1 | ✅ Ship it live (GitHub Pages + social card) + CI | S | — |
 | 2 | Self-advancing bracket | M | — |
 | 3 | Visual bracket diagram | M | 2 (nice-to-have) |
 | 4 | Rich live game view | M | — |
@@ -24,7 +24,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 1 — Ship it live (GitHub Pages + social card)
+## Session 1 — Ship it live (GitHub Pages + social card) ✅ SHIPPED
+> **Shipped:** commit `25e0bf6` · live at **https://teddygcodes.github.io/2026-cws-map/** · CI (validate → smoke → deploy) green, deploy gated on checks. Delivered: OG/Twitter tags + generated 1200×630 card (`docs/og-card.*`), `.github/workflows/ci.yml`, `scripts/validate.mjs` + `scripts/smoke.mjs` (dev-only `package.json`; runtime app still zero-dep), README live URL + CI badge. Live URL passes the browser smoke test.
+
 **Goal:** Give the app a real, shareable URL with a good link preview.
 
 **Why:** It only runs locally today. A live URL turns the repo into a usable product.
