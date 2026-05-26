@@ -61,6 +61,15 @@ try {
   await go("#/vs/boston-college/liberty");
   await page.waitForSelector("#view-compare .cmp-table", { timeout: 10000 });
   ok("matchup comparison renders table");
+
+  // self-advancing bracket: simulate all 16 regionals -> auto-advance to 8 super-regionals
+  await go("#/");
+  await page.evaluate(() => window.__simAll());
+  await page.waitForFunction(() => window.TOURNAMENT && window.TOURNAMENT.round === "super-regional", { timeout: 8000 });
+  const superSites = await page.evaluate(() => window.TOURNAMENT.sites.length);
+  if (superSites !== 8) throw new Error(`expected 8 super-regional sites, got ${superSites}`);
+  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 8, { timeout: 8000 });
+  ok("bracket resolves: 16 regionals -> 8 super-regionals");
 } catch (e) {
   failed = e;
 } finally {

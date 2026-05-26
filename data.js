@@ -14,11 +14,14 @@
    - Stadium lat/lng remain best-known approximations (flagged // verify coords).
    - Stadium photos + attribution live in photos.js (images/<teamId>).
 
-   SUPER_REGIONAL_UPGRADE (≈ June 2, 2026)
+   SUPER_REGIONAL_UPGRADE (≈ June 2, 2026) — NOW AUTOMATIC
    - Regionals run May 29 – June 1; super-regional pairings depend on who wins.
-   - To upgrade: flip `round` to "super-regional" and replace the 16 entries in
-     `sites` with 8. Each site keeps the SAME shape — only `teams` shrinks from
-     4 ids to 2. The renderer is count-agnostic, so NO UI code changes needed.
+   - As of Session 2 the app advances ITSELF: index.html resolves each regional's
+     champion from the live ESPN feed (bracket.js) and, once all 16 finish, builds
+     the 8 super-regionals in memory (#s vs #17-s, host = higher seed) and flips
+     `round`. This file's `round` stays "regional"; no manual edit is required.
+   - The shape is unchanged — a site's `teams` simply goes from 4 ids to 2; the
+     renderer is count-agnostic.
    ========================================================================== */
 
 const TOURNAMENT = {

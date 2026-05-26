@@ -167,6 +167,17 @@
 
     /* ---------- Regional schedule ---------- */
     .sched-note { font-family:"Oswald",sans-serif; color:var(--muted); font-size:12px; letter-spacing:.06em; margin:-6px 0 16px; }
+    .sched-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .sim-btn { cursor:pointer; font-family:"Oswald",sans-serif; font-weight:600; text-transform:uppercase; letter-spacing:.06em; font-size:11px;
+      background:var(--panel-2); color:var(--text); border:1px solid var(--line); padding:6px 12px; border-radius:8px; transition:.15s; }
+    .sim-btn:hover { border-color:var(--gold); color:var(--gold); }
+    .champ-banner { font-family:"Oswald",sans-serif; font-size:15px; letter-spacing:.04em; color:#0e0e10;
+      background:linear-gradient(90deg, var(--gold), #ffd97a); border-radius:10px; padding:11px 16px; margin:4px 0 6px; }
+    .champ-banner b { font-weight:700; }
+    .sim-banner { font-family:"Oswald",sans-serif; font-weight:600; letter-spacing:.08em; text-transform:uppercase; font-size:12px;
+      color:var(--gold); border:1px dashed rgba(242,193,78,.55); border-radius:8px; padding:7px 12px; margin-bottom:10px; }
+    .pin.champ { background:var(--gold); border-color:#fff; }
+    .pin.champ span { color:#0e0e10; }
     .sched-day { font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.14em; font-size:12px; color:var(--text);
       margin:18px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
     .sched-day:first-of-type { margin-top:0; }
@@ -362,9 +373,10 @@
     Stats reflect the 2026 season as of May 25, 2026 (sources: official athletics sites, WarrenNolan, TheBaseballCube, D1Baseball). Figures that couldn't be verified show <span class="todo">TBD</span>. Stadium photos via Wikimedia Commons.
   </footer>
 
-  <script src="data.js?v=20260525b"></script>
-  <script src="photos.js?v=20260525b"></script>
-  <script src="schedule.js?v=20260525b"></script>
+  <script src="data.js?v=20260526"></script>
+  <script src="photos.js?v=20260526"></script>
+  <script src="schedule.js?v=20260526"></script>
+  <script src="bracket.js?v=20260526"></script>
   <script>
   (function () {
     "use strict";
@@ -467,15 +479,19 @@
       T.sites.forEach(function (s) {
         var host = team(s.hostTeamId);
         var st = host.stadium;
+        var champId = siteChampion(s);
+        var champTeam = champId ? team(champId) : null;
         var icon = L.divIcon({
           className: "",
-          html: '<div class="pin"><span>' + (host.seed != null ? host.seed : "&middot;") + "</span></div>",
+          html: '<div class="pin' + (champId ? " champ" : "") + '"><span>' +
+            (champId ? "&#9733;" : (host.seed != null ? host.seed : "&middot;")) + "</span></div>",
           iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -32]
         });
         var m = L.marker([st.lat, st.lng], { icon: icon, title: s.city + " " + roundLabel() });
         m.bindTooltip(
           "<strong>" + esc(s.city) + "</strong><br>" + esc(host.name) +
-          " (" + (host.seed != null ? "No. " + host.seed : "host") + ")",
+          " (" + (host.seed != null ? "No. " + host.seed : "host") + ")" +
+          (champTeam ? "<br>&#127942; " + esc(champTeam.name) : ""),
           { direction: "top", offset: [0, -30] }
         );
         m.on("click", function () { location.hash = "#/r/" + s.id; });
@@ -487,14 +503,18 @@
     }
 
     // ---- REGIONAL schedule (double-elimination) ---------------------------
-    // SUPER_REGIONAL_UPGRADE: swap for best-of-3 super-regional games.
-    var LATER_GAMES = [
-      { g: 3, day: "Saturday, May 30", note: "Game 1 loser vs Game 2 loser", elim: true },
-      { g: 4, day: "Saturday, May 30", note: "Game 1 winner vs Game 2 winner" },
-      { g: 5, day: "Sunday, May 31",   note: "Game 3 winner vs Game 4 loser", elim: true },
-      { g: 6, day: "Sunday, May 31",   note: "Game 4 winner vs Game 5 winner" },
-      { g: 7, day: "Monday, June 1",   note: "Game 6 rematch (if necessary)" },
-    ];
+    // Per-game metadata for the double-elim schedule (the matchups themselves
+    // are resolved live by bracket.js → resolveBracket).
+    var DAY_OF = { 1: "Friday, May 29", 2: "Friday, May 29", 3: "Saturday, May 30", 4: "Saturday, May 30", 5: "Sunday, May 31", 6: "Sunday, May 31", 7: "Monday, June 1" };
+    var NOTE_OF = { 3: "Game 1 loser vs Game 2 loser", 4: "Game 1 winner vs Game 2 winner", 5: "Game 3 winner vs Game 4 loser", 6: "Game 4 winner vs Game 5 winner", 7: "Game 6 rematch (if necessary)" };
+    var ELIM_OF = { 3: true, 5: true };
+
+    // Games feeding the bracket for a site: simulated set if it's being SIM'd,
+    // else the real aggregated live events. (resolveBracket only advances finals.)
+    function bracketGames(site) {
+      if (LIVE.simSite && LIVE.simSite.siteId === site.id) return LIVE.simSite.games;
+      return (LIVE.bySite && LIVE.bySite[site.id]) || [];
+    }
     // whenHtml is injected as HTML (live overlays build safe markup with esc()).
     function gameRow(label, whenHtml, tv, matchupHtml, opts) {
       opts = opts || {};
@@ -509,37 +529,104 @@
         '<div class="game-matchup">' + matchupHtml + "</div>" + right + "</div>";
     }
     function renderSchedule(s) {
-      var d1 = (window.SCHEDULES || {})[s.id] || [];
-      var html = '<div class="panel-title" style="margin-top:30px">Regional Schedule &mdash; Double Elimination</div>' +
-        '<div class="sched-note">Friday matchups, times (ET) &amp; TV as published &middot; live scores update automatically</div>';
-      if (d1.length) {
-        html += '<div class="sched-day">Friday, May 29</div>';
-        d1.forEach(function (gm) {
-          var ta = team(gm.a[0]), tb = team(gm.b[0]);
-          var matchup =
-            '<span class="sd">#' + gm.a[1] + "</span>" + '<a href="#/t/' + esc(gm.a[0]) + '">' + esc(ta.name) + "</a>" +
-            '<span class="vs">vs</span>' +
-            '<span class="sd">#' + gm.b[1] + "</span>" + '<a href="#/t/' + esc(gm.b[0]) + '">' + esc(tb.name) + "</a>";
-          var lg = liveForPair(gm.a[0], gm.b[0]);
-          if (lg && lg.state !== "pre") {
-            var sa = scoreFor(lg, gm.a[0]), sb = scoreFor(lg, gm.b[0]);
-            var when = (lg.state === "in"
-                ? '<span class="st-live">' + esc(lg.detail || "Live") + "</span> "
-                : esc(lg.detail || "Final") + " ") +
-              '<span class="score">' + (sa == null ? "-" : sa) + "&ndash;" + (sb == null ? "-" : sb) + "</span>";
-            html += gameRow("G" + gm.g, when, "", matchup, { live: true, eventId: lg.id });
-          } else {
-            // Pregame: clicking opens a head-to-head comparison of the two teams.
-            html += gameRow("G" + gm.g, esc(gm.time) + " ET", gm.tv, matchup, { live: true, compare: [gm.a[0], gm.b[0]] });
-          }
-        });
+      // SUPER_REGIONAL_UPGRADE: best-of-3 layout once the round has flipped.
+      if (T.round === "super-regional") return renderSuperSchedule(s);
+
+      var d1by = {};
+      ((window.SCHEDULES || {})[s.id] || []).forEach(function (gm) { d1by[gm.g] = gm; });
+      var br = window.resolveBracket ? window.resolveBracket(s.teams, bracketGames(s)) : { slots: [], champion: null };
+      var simming = !!(LIVE.simSite && LIVE.simSite.siteId === s.id);
+      var g6 = br.slots[5], g6Final = !!(g6 && g6.event && g6.event.state === "post");
+
+      var html = "";
+      if (br.champion) {
+        html += '<div class="champ-banner">&#127942; <b>' + esc(team(br.champion).name) + "</b> &mdash; " +
+          esc(s.city) + " " + roundLabel() + " champion" + (simming ? ' <span class="todo">Simulated</span>' : "") + "</div>";
       }
+      html += '<div class="sched-head"><span class="panel-title" style="margin:22px 0 0">Regional Schedule &mdash; Double Elimination</span>' +
+        '<button class="sim-btn" data-sim="' + (simming ? "stop" : "start") + '" data-site="' + esc(s.id) + '">' +
+          (simming ? "■ Stop sim" : "▶ Simulate this regional") + "</button></div>" +
+        '<div class="sched-note">' + (simming
+          ? 'Simulated regional &middot; <span class="todo">not a real result</span>'
+          : 'Friday matchups, times (ET) &amp; TV as published &middot; live scores update automatically') + "</div>";
+
       var lastDay = null;
-      LATER_GAMES.forEach(function (gm) {
-        if (gm.day !== lastDay) { html += '<div class="sched-day">' + gm.day + "</div>"; lastDay = gm.day; }
-        var m = "<small>" + esc(gm.note) + "</small>" + (gm.elim ? ' <span class="todo">Elimination</span>' : "");
-        html += gameRow("G" + gm.g, "Time TBD", "", m, { tbd: true });
+      br.slots.forEach(function (slot) {
+        var g = slot.g, ev = slot.event;
+        if (DAY_OF[g] !== lastDay) { html += '<div class="sched-day">' + DAY_OF[g] + "</div>"; lastDay = DAY_OF[g]; }
+        var label = "G" + g;
+
+        // G7 is conditional ("if necessary")
+        if (g === 7) {
+          if (!g6Final) { html += gameRow(label, "Time TBD", "", "<small>" + esc(NOTE_OF[7]) + "</small>", { tbd: true }); return; }
+          if (!slot.necessary) { html += gameRow(label, "&mdash;", "", "<small>Not necessary &mdash; champion decided in Game 6</small>", { tbd: true }); return; }
+        }
+
+        var matchup;
+        if (slot.teams) {
+          var a = slot.teams[0], b = slot.teams[1];
+          matchup =
+            '<span class="sd">#' + slot.seeds[0] + "</span>" + '<a href="#/t/' + esc(a) + '">' + esc(team(a).name) + "</a>" +
+            '<span class="vs">vs</span>' +
+            '<span class="sd">#' + slot.seeds[1] + "</span>" + '<a href="#/t/' + esc(b) + '">' + esc(team(b).name) + "</a>" +
+            (ELIM_OF[g] ? ' <span class="todo">Elimination</span>' : "");
+        } else {
+          matchup = "<small>" + esc(NOTE_OF[g]) + "</small>" + (ELIM_OF[g] ? ' <span class="todo">Elimination</span>' : "");
+        }
+
+        if (ev && ev.state !== "pre") {
+          var sa = scoreFor(ev, slot.teams[0]), sb = scoreFor(ev, slot.teams[1]);
+          var when = (ev.state === "in"
+              ? '<span class="st-live">' + esc(ev.detail || "Live") + "</span> "
+              : esc(ev.detail || "Final") + " ") +
+            '<span class="score">' + (sa == null ? "-" : sa) + "&ndash;" + (sb == null ? "-" : sb) + "</span>";
+          html += gameRow(label, when, "", matchup, { live: true, eventId: ev.id });
+        } else if (g <= 2 && d1by[g]) {
+          // Friday pregame: scheduled time/TV + head-to-head Compare link
+          html += gameRow(label, esc(d1by[g].time) + " ET", d1by[g].tv, matchup, { live: true, compare: [d1by[g].a[0], d1by[g].b[0]] });
+        } else if (slot.teams) {
+          // matchup known but not yet played
+          html += gameRow(label, ev && ev.detail ? esc(ev.detail) : "Time TBD", "", matchup, { tbd: !ev });
+        } else {
+          html += gameRow(label, "Time TBD", "", matchup, { tbd: true });
+        }
       });
+      return html;
+    }
+
+    // SUPER_REGIONAL_UPGRADE: best-of-3 schedule. Built only after auto-advance;
+    // wins are tallied from real finals between the two paired teams.
+    function renderSuperSchedule(s) {
+      var a = s.teams[0], b = s.teams[1];
+      var games = bracketGames(s).slice().sort(function (x, y) { return (Date.parse(x.date) || 0) - (Date.parse(y.date) || 0); });
+      var wins = {}; wins[a] = 0; wins[b] = 0;
+      games.forEach(function (gm) {
+        if (gm.state !== "post") return;
+        var w = (gm.comps.find(function (c) { return c.winner; }) || {}).id;
+        if (w != null && wins[w] != null) wins[w]++;
+      });
+      var champ = wins[a] >= 2 ? a : (wins[b] >= 2 ? b : null);
+      var simming = !!(LIVE.simSite && LIVE.simSite.siteId === s.id);
+
+      var html = "";
+      if (champ) html += '<div class="champ-banner">&#127942; <b>' + esc(team(champ).name) + "</b> &mdash; advances to the College World Series" +
+        (simming ? ' <span class="todo">Simulated</span>' : "") + "</div>";
+      html += '<div class="panel-title" style="margin-top:22px">Super Regional &mdash; Best of 3</div>' +
+        '<div class="sched-note">' + esc(team(a).name) + " " + wins[a] + " &ndash; " + wins[b] + " " + esc(team(b).name) +
+        (simming ? ' &middot; <span class="todo">simulated</span>' : " &middot; first to two wins advances") + "</div>";
+      for (var i = 0; i < 3; i++) {
+        var ev = games[i], label = "G" + (i + 1);
+        var matchup = '<a href="#/t/' + esc(a) + '">' + esc(team(a).name) + '</a><span class="vs">vs</span><a href="#/t/' + esc(b) + '">' + esc(team(b).name) + "</a>" +
+          (i === 2 ? ' <span class="todo">If necessary</span>' : "");
+        if (ev && ev.state !== "pre") {
+          var sa = scoreFor(ev, a), sb = scoreFor(ev, b);
+          var when = (ev.state === "in" ? '<span class="st-live">' + esc(ev.detail || "Live") + "</span> " : esc(ev.detail || "Final") + " ") +
+            '<span class="score">' + (sa == null ? "-" : sa) + "&ndash;" + (sb == null ? "-" : sb) + "</span>";
+          html += gameRow(label, when, "", matchup, { live: true, eventId: ev.id });
+        } else {
+          html += gameRow(label, "Time TBD", "", matchup, { tbd: true });
+        }
+      }
       return html;
     }
 
@@ -588,6 +675,10 @@
           if (e.target.closest("a")) return;
           location.hash = "#/vs/" + el.getAttribute("data-a") + "/" + el.getAttribute("data-b");
         });
+      });
+      var simBtn = document.querySelector("#view-regional .sim-btn");
+      if (simBtn) simBtn.addEventListener("click", function () {
+        simBtn.getAttribute("data-sim") === "start" ? startRegionalSim(simBtn.getAttribute("data-site")) : stopRegionalSim();
       });
 
       setCrumbs([{ text: "Map", href: "#/" }, { text: s.city + " " + roundLabel() }], "#/");
@@ -791,7 +882,7 @@
     var ESPN = "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball";
     var POLL_MS = 30000;
     var TOURNEY_DATES = ["20260529", "20260530", "20260531", "20260601"];
-    var LIVE = { list: [], byPair: {}, activeDate: null, updated: null, loading: false, demo: null, demoTimer: null };
+    var LIVE = { list: [], byPair: {}, bySite: {}, activeDate: null, updated: null, loading: false, demo: null, demoTimer: null, simSite: null, simTimer: null };
 
     function normName(s) { return String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]/g, ""); }
     var FIELD_NORM = (function () { var m = {}; Object.keys(T.teams).forEach(function (id) { m[id] = normName(T.teams[id].name); }); return m; })();
@@ -835,7 +926,7 @@
         });
         var ids = comps.map(function (c) { return c.id; }).filter(Boolean);
         if (ids.length !== 2) return null; // only games between two teams in our field
-        return { id: ev.id, state: st.state || "pre", detail: st.shortDetail || st.detail || "", comps: comps, pair: pairKey(ids[0], ids[1]) };
+        return { id: ev.id, state: st.state || "pre", detail: st.shortDetail || st.detail || "", date: ev.date, comps: comps, pair: pairKey(ids[0], ids[1]) };
       } catch (e) { return null; }
     }
 
@@ -844,36 +935,53 @@
         .then(function (r) { if (!r.ok) throw new Error("sb " + r.status); return r.json(); });
     }
 
-    // Pick the date to display: today if it has our games; otherwise the first
-    // tournament date that isn't fully final. Stops early to limit requests.
+    // The site (regional or super-regional) a game belongs to: both teams in it.
+    function siteForGame(g) {
+      var ids = g.comps.map(function (c) { return c.id; });
+      return T.sites.find(function (s) { return ids.every(function (id) { return id && s.teams.indexOf(id) >= 0; }); });
+    }
+
+    // Fetch every tournament date, aggregate events per site (so the whole
+    // bracket is visible — not just one day), and pick an "active date" for the
+    // scoreboard (today if it has games, else the next slate). ≤ TOURNEY_DATES
+    // requests per poll.
     function refresh() {
       if (LIVE.loading) return; LIVE.loading = true;
-      var today = ymd(new Date());
-      var dates = [today].concat(TOURNEY_DATES.filter(function (d) { return d !== today; }));
-      var idx = 0, fallback = null;
-      function done(res) {
-        LIVE.activeDate = res.date; LIVE.list = res.games; LIVE.byPair = {};
-        res.games.forEach(function (g) { LIVE.byPair[g.pair] = g; });
-        LIVE.updated = new Date(); LIVE.loading = false; onLiveUpdate();
-      }
-      function next() {
-        if (idx >= dates.length) { done(fallback || { date: today, games: [] }); return; }
-        var d = dates[idx++];
-        espnScoreboard(d).then(function (data) {
-          var games = (data.events || []).map(parseEvent).filter(Boolean);
-          if (games.length) {
-            if (!fallback) fallback = { date: d, games: games };
-            if (d === today || games.some(function (g) { return g.state !== "post"; })) { done({ date: d, games: games }); return; }
-          }
-          next();
-        }).catch(next);
-      }
-      next();
+      var dates = TOURNEY_DATES.slice();
+      Promise.all(dates.map(function (d) {
+        return espnScoreboard(d)
+          .then(function (data) { return { date: d, games: (data.events || []).map(parseEvent).filter(Boolean) }; })
+          .catch(function () { return { date: d, games: [] }; });
+      })).then(function (results) {
+        // group all events by their site
+        var bySite = {};
+        results.forEach(function (r) {
+          r.games.forEach(function (g) {
+            var s = siteForGame(g);
+            if (s) (bySite[s.id] = bySite[s.id] || []).push(g);
+          });
+        });
+        LIVE.bySite = bySite;
+
+        // scoreboard active date: today if it has games, else first date with a
+        // not-yet-final game (upcoming), else first with any games.
+        var today = ymd(new Date());
+        var pick = results.find(function (r) { return r.date === today && r.games.length; })
+          || results.find(function (r) { return r.games.length && r.games.some(function (g) { return g.state !== "post"; }); })
+          || results.find(function (r) { return r.games.length; })
+          || { date: today, games: [] };
+        LIVE.activeDate = pick.date; LIVE.list = pick.games; LIVE.byPair = {};
+        pick.games.forEach(function (g) { LIVE.byPair[g.pair] = g; });
+
+        LIVE.updated = new Date(); LIVE.loading = false;
+        maybeAdvanceToSuperRegionals();
+        onLiveUpdate();
+      }).catch(function () { LIVE.loading = false; });
     }
 
     function onLiveUpdate() {
       var hash = location.hash || "#/";
-      if (hash === "#/" || hash === "") renderScoreboard();
+      if (hash === "#/" || hash === "") { renderScoreboard(); if (map && markersLayer) renderMarkers(); }
       else if (hash.indexOf("#/r/") === 0) { var s = siteById(hash.slice(4)); if (s) showRegional(s.id); }
       else if (hash.indexOf("#/g/") === 0) { var id = hash.slice(4); if (id === "demo" && LIVE.demo) renderGameDetail(document.getElementById("view-game"), demoSummary()); }
     }
@@ -913,7 +1021,8 @@
         ? '<div class="sb-rail">' + games.map(sbCard).join("") + "</div>"
         : (LIVE.updated ? '<div class="sb-empty">No games yet — first pitch Friday, May 29. Scores will appear here automatically.</div>'
                         : '<div class="sb-empty">Loading scores…</div>');
-      render(el, head + body);
+      var simBanner = LIVE.simAll ? '<div class="sim-banner">&#9888; Simulation mode &mdash; not real results</div>' : "";
+      render(el, simBanner + head + body);
       // Click handling is delegated once (see wireScoreboard) so it survives
       // the frequent re-renders the polling/demo loops trigger.
     }
@@ -1028,6 +1137,103 @@
       var wasDemoView = (location.hash || "") === "#/g/demo";
       LIVE.demo = null;
       if (wasDemoView) { location.hash = "#/"; } else { onLiveUpdate(); }
+    }
+
+    // ---- bracket advancement + champions ---------------------------------
+    // Champion of any site: regional via resolveBracket, super-regional via best-of-3.
+    function siteChampion(site) {
+      var games = bracketGames(site);
+      if (T.round === "super-regional" || site.teams.length === 2) {
+        var w = {}; site.teams.forEach(function (id) { w[id] = 0; });
+        games.forEach(function (g) { if (g.state === "post") { var x = (g.comps.find(function (c) { return c.winner; }) || {}).id; if (w[x] != null) w[x]++; } });
+        return site.teams.find(function (id) { return w[id] >= 2; }) || null;
+      }
+      return (window.resolveBracket ? window.resolveBracket(site.teams, games).champion : null);
+    }
+
+    // SUPER_REGIONAL_UPGRADE — now AUTOMATIC: once every regional has a champion
+    // (from real finals), build the 8 super-regionals by national seed
+    // (#s vs #17-s, host = higher seed) and flip the round. In-memory only.
+    function maybeAdvanceToSuperRegionals() {
+      if (T.round !== "regional") return;
+      var champ = {};
+      for (var i = 0; i < T.sites.length; i++) {
+        var s = T.sites[i];
+        var c = window.resolveBracket ? window.resolveBracket(s.teams, (LIVE.bySite[s.id] || [])).champion : null;
+        if (!c) return;                       // not all 16 finished
+        champ[s.id] = c;
+      }
+      var bySeed = {};
+      T.sites.forEach(function (s) { bySeed[team(s.hostTeamId).seed] = { site: s, champ: champ[s.id] }; });
+      var supers = [];
+      for (var sd = 1; sd <= 8; sd++) {
+        var hi = bySeed[sd], lo = bySeed[17 - sd];
+        if (!hi || !lo) return;
+        supers.push({ id: "super-" + sd, city: hi.site.city, hostTeamId: hi.site.hostTeamId, teams: [hi.champ, lo.champ], seed: sd });
+      }
+      T.round = "super-regional";
+      T.sites = supers;
+      renderMarkers();
+      location.hash = "#/";
+      if (map && mapBounds && mapBounds.length) setTimeout(function () { map.invalidateSize(); map.fitBounds(mapBounds, { padding: [50, 50] }); }, 60);
+    }
+
+    // ---- regional simulation (clearly labeled SIM; QA + preview) ----------
+    var simClock = 0;
+    function simGame(winId, loseId) {
+      simClock += 3600000;
+      var ws = 2 + Math.floor(Math.random() * 8), ls = Math.floor(Math.random() * ws);
+      return {
+        id: "sim-" + winId + "-" + loseId + "-" + simClock, state: "post", detail: "Final",
+        date: new Date(Date.now() + simClock).toISOString(),
+        comps: [{ id: winId, score: ws, winner: true }, { id: loseId, score: ls, winner: false }],
+        pair: pairKey(winId, loseId), sim: true,
+      };
+    }
+    // Play a regional to completion by repeatedly resolving the next open game.
+    function simRegionalGames(teams) {
+      var games = [];
+      for (var guard = 0; guard < 12; guard++) {
+        var br = window.resolveBracket(teams, games);
+        if (br.champion) break;
+        var slot = br.slots.find(function (sl) { return sl.determined && sl.necessary !== false && !sl.event; });
+        if (!slot) break;
+        var a = slot.teams[0], b = slot.teams[1], w = Math.random() < 0.5 ? a : b;
+        games.push(simGame(w, w === a ? b : a));
+      }
+      return games;
+    }
+    function startRegionalSim(siteId) {
+      stopRegionalSim();
+      LIVE.simSite = { siteId: siteId, games: [] };
+      location.hash = "#/r/" + siteId;
+      LIVE.simTimer = setInterval(function () {
+        var s = siteById(LIVE.simSite.siteId);
+        var br = window.resolveBracket(s.teams, LIVE.simSite.games);
+        var slot = br.slots.find(function (sl) { return sl.determined && sl.necessary !== false && !sl.event; });
+        if (br.champion || !slot) { clearInterval(LIVE.simTimer); LIVE.simTimer = null; onLiveUpdate(); return; }
+        var a = slot.teams[0], b = slot.teams[1], w = Math.random() < 0.5 ? a : b;
+        LIVE.simSite.games.push(simGame(w, w === a ? b : a));
+        onLiveUpdate();
+      }, 2500);
+      onLiveUpdate();
+    }
+    function stopRegionalSim() {
+      if (LIVE.simTimer) { clearInterval(LIVE.simTimer); LIVE.simTimer = null; }
+      LIVE.simSite = null;
+      onLiveUpdate();
+    }
+    // Test/preview hook: simulate ALL 16 regionals and trigger the super flip.
+    function simulateAllRegionals() {
+      LIVE.simAll = true;
+      T.sites.forEach(function (s) { LIVE.bySite[s.id] = simRegionalGames(s.teams); });
+      maybeAdvanceToSuperRegionals();
+      onLiveUpdate();
+    }
+    if (typeof window !== "undefined") {
+      window.__simRegional = startRegionalSim;
+      window.__stopSim = stopRegionalSim;
+      window.__simAll = simulateAllRegionals;
     }
 
     function startPolling() {

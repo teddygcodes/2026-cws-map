@@ -29,7 +29,7 @@ function nodeCheck(label, code) {
   }
 }
 
-const files = ["data.js", "photos.js", "schedule.js"];
+const files = ["data.js", "photos.js", "schedule.js", "bracket.js"];
 for (const f of files) nodeCheck(f, readFileSync(join(ROOT, f), "utf8"));
 
 const html = readFileSync(join(ROOT, "index.html"), "utf8");
