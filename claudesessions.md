@@ -14,7 +14,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | # | Session | Effort | Depends on |
 |---|---------|--------|------------|
 | 1 | ✅ Ship it live (GitHub Pages + social card) + CI | S | — |
-| 2 | Self-advancing bracket | M | — |
+| 2 | ✅ Self-advancing bracket | M | — |
 | 3 | Visual bracket diagram | M | 2 (nice-to-have) |
 | 4 | Rich live game view | M | — |
 | 5 | Data freshness + CI | M | — |
@@ -45,7 +45,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 2 — Self-advancing bracket
+## Session 2 — Self-advancing bracket ✅ SHIPPED
+> **Shipped:** commit `ec478be` · live + CI green (validate + `npm test` bracket fixtures → smoke (drives `__simAll`, asserts 16→8) → deploy). Delivered: `bracket.js` pure double-elim resolver (unit-tested), per-site live aggregation (`LIVE.bySite`), `renderSchedule` fills Games 3–7 from real finals + champion banner, gold champion map pins, auto super-regional advance (`#s` vs `#17−s`, in-memory), and a clearly-labeled "Simulate this regional" / `__simAll` demo. `data.js` round stays "regional" (advance is automatic from live results).
+
 **Goal:** Fill in Games 3–7 (and eventually super-regionals) automatically from real results instead of showing "TBD."
 
 **Why:** The headline of a *live* tournament map. The feed already knows winners/losers; the bracket should resolve itself.
