@@ -89,7 +89,13 @@ Regionals decide who advances, then 8 super‑regionals are set. The code is bui
 
 ## License
 
-Code is released under the [MIT License](LICENSE). Third‑party content (stadium photos, ESPN data, map tiles) remains under its own terms — see the LICENSE file for details and `photos.js` for per‑image attribution.
+The **source code** of this project is released under the [MIT License](LICENSE).
+
+Third‑party content is **not** covered by that license and remains under its own terms:
+
+- **Stadium photos** (`images/`) are from [Wikimedia Commons](https://commons.wikimedia.org) under their respective Creative Commons / public‑domain licenses. Per‑image author and license attribution is recorded in `photos.js`.
+- **Live scores and box scores** are fetched at runtime from ESPN's public endpoints and belong to their respective owners. This is an unofficial, non‑commercial fan/educational project — not affiliated with or endorsed by the NCAA, ESPN, or any institution.
+- **Map tiles** are served by CARTO using OpenStreetMap data (© OpenStreetMap contributors).
 
 ---
 
