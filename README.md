@@ -1,5 +1,9 @@
 # 2026 NCAA Baseball Tournament — Interactive Map
 
+### ▶ Live site: **https://teddygcodes.github.io/2026-cws-map/**
+
+[![CI](https://github.com/teddygcodes/2026-cws-map/actions/workflows/ci.yml/badge.svg)](https://github.com/teddygcodes/2026-cws-map/actions/workflows/ci.yml)
+
 An interactive, broadcast-styled map of the **2026 NCAA Division I Baseball Tournament** (Road to Omaha). Explore all 16 regional sites on a map, drill into each bracket, compare teams head-to-head, browse full team stats and home‑stadium pages, and watch **live scores update on their own** once games start.
 
 It's a single static page — **no build step, no backend, no install**. Open `index.html` in a browser and it runs.

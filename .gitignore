@@ -1,6 +1,10 @@
 # macOS
 .DS_Store
 
+# Node (dev/CI tooling only — the app ships no runtime deps)
+node_modules/
+.validate-tmp.js
+
 # Playwright MCP scratch output
 .playwright-mcp/
 
