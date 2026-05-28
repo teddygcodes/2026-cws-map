@@ -31,7 +31,9 @@ const ALLOWED_ORIGINS = [
 const MAX_MEMBERS_PER_LEAGUE = 200;
 const MAX_LEAGUES_PER_IP = 25;          // per rolling window (best-effort backstop)
 const IP_WINDOW_SECONDS = 86400;        // 24h
-const MAX_BODY_BYTES = 2048;
+const MAX_BODY_BYTES = 8192;            // a full per-game picks map (~136 keys) + name
+const MAX_GAMES_PER_REQUEST = 80;       // games submitted in one POST
+const MAX_GAMES_TOTAL = 160;            // total per-game picks a member can hold
 const CODE_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"; // Crockford base32 (no I L O U)
 // Default lock = 2026 regionals first pitch; override with [vars] LOCK_TS in wrangler.toml.
 const DEFAULT_LOCK_TS = Date.parse("2026-05-29T16:00:00Z");
@@ -39,6 +41,14 @@ const DEFAULT_LOCK_TS = Date.parse("2026-05-29T16:00:00Z");
 // ---- pure validators (exported for Node unit tests; no CF globals here) -----
 export function isValidBracketCode(s) {
   return typeof s === "string" && s.length === 26 && s.charAt(0) === "1" && /^[0-9]{26}$/.test(s);
+}
+// Per-game pick keys: regionals "<siteId>_G<1-7>", supers "super-<1-8>_G<1-3>".
+export function isValidGameKey(s) {
+  // regional "<siteId>_G1-7" (siteId can't start with "super-") OR super "super-<1-8>_G1-3"
+  return typeof s === "string" && s.length <= 40 && /^((?!super-)[a-z0-9-]+_G[1-7]|super-[1-8]_G[1-3])$/.test(s);
+}
+export function isValidTeamId(s) {
+  return typeof s === "string" && /^[a-z0-9-]{1,40}$/.test(s);
 }
 export function sanitizeDisplayName(s) {
   if (typeof s !== "string") return null;
@@ -97,7 +107,7 @@ async function ipAllowsNewLeague(env, ip) {
 function publicMembers(league) {
   return Object.keys(league.members || {}).map(function (id) {
     var m = league.members[id];
-    return { displayName: m.displayName, bracket: m.bracket, updated: m.updated };
+    return { displayName: m.displayName, bracket: m.bracket, games: m.games || {}, updated: m.updated };
   });
 }
 
@@ -158,6 +168,41 @@ export default {
         };
         await env.LEAGUES.put(key, JSON.stringify(L));
         return json({ displayName: dn, bracket: b.bracket, updated: L.members[memberId].updated }, 200, origin);
+      }
+
+      // POST /league/<code>/games — submit/merge per-game picks. NOT lock-gated:
+      // daily picks stay open all tournament; fairness is enforced per-pick at
+      // scoring time (a pick counts only if its ts predates that game's first pitch).
+      if (method === "POST" && parts.length === 3 && parts[0] === "league" && parts[2] === "games") {
+        var gKey = "league:" + parts[1].toUpperCase();
+        var GL = await env.LEAGUES.get(gKey, "json");
+        if (!GL) return json({ error: "not_found" }, 404, origin);
+        var gb = await readBody(request);
+        if (!gb) return json({ error: "bad_request" }, 400, origin);
+        var gMemberId = typeof gb.memberId === "string" && gb.memberId.length >= 8 && gb.memberId.length <= 64 ? gb.memberId : null;
+        var gName = sanitizeDisplayName(gb.displayName);
+        if (!gMemberId || !gName || !gb.picks || typeof gb.picks !== "object") return json({ error: "invalid_entry" }, 400, origin);
+        var keys = Object.keys(gb.picks);
+        if (keys.length > MAX_GAMES_PER_REQUEST) return json({ error: "too_many" }, 400, origin);
+        GL.members = GL.members || {};
+        var gm = GL.members[gMemberId];
+        if (!gm && Object.keys(GL.members).length >= MAX_MEMBERS_PER_LEAGUE) return json({ error: "league_full" }, 409, origin);
+        gm = gm || { memberId: gMemberId, displayName: gName, bracket: null, games: {}, updated: Date.now() };
+        gm.displayName = gName;
+        gm.games = gm.games || {};
+        var now = Date.now();
+        for (var k = 0; k < keys.length; k++) {
+          var gk = keys[k], pick = gb.picks[gk];
+          if (!isValidGameKey(gk) || !isValidTeamId(pick)) continue;
+          var prev = gm.games[gk];
+          if (prev && prev.pick === pick) continue;           // unchanged → keep original ts (lock integrity)
+          gm.games[gk] = { pick: pick, ts: now };
+        }
+        if (Object.keys(gm.games).length > MAX_GAMES_TOTAL) return json({ error: "too_many" }, 400, origin);
+        gm.gamesUpdated = now;
+        GL.members[gMemberId] = gm;
+        await env.LEAGUES.put(gKey, JSON.stringify(GL));
+        return json({ games: gm.games, updated: now }, 200, origin);
       }
 
       return json({ error: "not_found" }, 404, origin);

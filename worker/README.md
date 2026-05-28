@@ -62,9 +62,13 @@ app (`npm run serve`), and exercise create/join/standings. (CORS already allows
 | `POST` | `/league` | `{name}` | `{code,name,lockTs}` |
 | `GET` | `/league/<code>` | — | `{name,lockTs,members:[{displayName,bracket,updated}]}` |
 | `POST` | `/league/<code>/member` | `{memberId,displayName,bracket}` | the member, or `409 {error:"locked"}` after first pitch |
+| `POST` | `/league/<code>/games` | `{memberId,displayName,picks:{gameKey:teamId}}` | `{games,updated}` — merges per-game picks, stamping `ts` per pick (NOT lock-gated) |
 
-`bracket` is the app's opaque 26-char pick code (`encodePicks`). CORS is locked
-to the app origins (`https://teddygcodes.github.io` + localhost dev).
+`bracket` is the app's opaque 26-char pick code (`encodePicks`); `games` keys are
+`siteId_G#` / `super-<sd>_G#`. The `/games` endpoint stays open all tournament —
+per-game fairness is enforced client-side at scoring time (a pick counts only if
+its server `ts` predates that game's first pitch). CORS is locked to the app
+origins (`https://teddygcodes.github.io` + localhost dev).
 
 ## Guardrails
 

@@ -40,10 +40,10 @@ try {
   if (markers !== 16) throw new Error(`expected 16 map pins, got ${markers}`);
   ok("map renders 16 pins");
 
-  // Top nav bar: Map · List · Bracket · Picks · Leagues (5 tabs)
+  // Top nav bar: Map · List · Bracket · Picks · Games · Leagues (6 tabs)
   const segs = await page.locator("#mapToggle .vt").count();
-  if (segs !== 5) throw new Error(`expected 5 nav tabs, got ${segs}`);
-  for (const m of ["map", "list", "bracket", "picks", "league"]) {
+  if (segs !== 6) throw new Error(`expected 6 nav tabs, got ${segs}`);
+  for (const m of ["map", "list", "bracket", "picks", "games", "league"]) {
     if (await page.locator(`#mapToggle .vt[data-mode="${m}"]`).count() !== 1) throw new Error(`missing nav tab: ${m}`);
   }
   // switch to List → 16 clickable site rows
@@ -157,11 +157,13 @@ try {
   // Private leagues — enabled flow against a mocked Worker (no real backend in CI)
   const future = Date.now() + 3 * 86400000;
   const aCode = "1" + "0".repeat(25), bCode = "1" + "1111111111111111000000007";
+  const games1 = { athens_G1: { pick: "georgia", ts: 1 }, super_1_G1: { pick: "ucla", ts: 1 } };
   await page.route("**/league**", (route) => {
     const r = route.request(), u = r.url().split("#")[0], m = r.method();
     if (m === "POST" && /\/league$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ code: "ABC123", name: "Smoke League", lockTs: future }) });
-    if (m === "GET" && /\/league\/ABC123$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ name: "Smoke League", lockTs: future, members: [{ displayName: "Alice", bracket: aCode }, { displayName: "Bob", bracket: bCode }] }) });
+    if (m === "GET" && /\/league\/ABC123$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ name: "Smoke League", lockTs: future, members: [{ displayName: "Alice", bracket: aCode, games: games1 }, { displayName: "Bob", bracket: bCode, games: {} }] }) });
     if (m === "POST" && /\/member$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ displayName: "Me", bracket: aCode, updated: Date.now() }) });
+    if (m === "POST" && /\/games$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ games: games1, updated: Date.now() }) });
     return route.continue();
   });
   await page.evaluate(() => window.__leagues.setApi("https://mock.test"));
@@ -170,9 +172,25 @@ try {
   const lgRows = await page.locator("#view-league .lg-standings tbody tr").count();
   if (lgRows !== 2) throw new Error(`expected 2 league standings rows, got ${lgRows}`);
   if (await page.locator("#view-league .pick-banner").count() < 1) throw new Error("league standings missing unofficial banner");
+  // switch to the Daily standings tab
+  await page.evaluate(() => { document.querySelector('#view-league [data-leaguetab="daily"]').click(); });
+  await page.waitForSelector("#view-league .lg-subtoggle .vt.on[data-leaguetab='daily']", { timeout: 10000 });
+  const dailyRows = await page.locator("#view-league .lg-standings tbody tr").count();
+  if (dailyRows !== 2) throw new Error(`expected 2 daily standings rows, got ${dailyRows}`);
   await page.unroute("**/league**");
   await page.evaluate(() => window.__leagues.setApi(""));
-  ok("private leagues: mocked standings render ranked rows");
+  ok("private leagues: bracket + daily standings both render");
+
+  // Daily per-game pick'em view (pre-tournament: only G1/G2 of each regional are open)
+  await go("#/games");
+  await page.waitForSelector("#view-games.active", { timeout: 10000 });
+  if (await page.locator("#view-games .pick-banner").count() < 1) throw new Error("games view missing banner");
+  const openGames = await page.locator("#view-games .gp-game.open").count();
+  if (openGames < 1) throw new Error(`expected open games, got ${openGames}`);
+  await page.evaluate(() => { const n = document.querySelector('#view-games .gp-game.open .nb-node.pick[data-team]'); if (n) n.click(); });
+  const gpCount = await page.evaluate(() => Object.keys(window.__gamepicks.get().picks).length);
+  if (gpCount < 1) throw new Error("game pick did not persist to GAME_PICKS");
+  ok(`daily pick'em: ${openGames} open games, pick round-trips`);
 
   // rich game detail: SIM situation strip (count/outs/diamond) renders
   await go("#/");
@@ -192,6 +210,13 @@ try {
   if (superSites !== 8) throw new Error(`expected 8 super-regional sites, got ${superSites}`);
   await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 8, { timeout: 8000 });
   ok("bracket resolves: 16 regionals -> 8 super-regionals");
+
+  // after simulating all regionals, the Games view should show finished games as Final
+  await go("#/games");
+  await page.waitForSelector("#view-games.active", { timeout: 10000 });
+  const finalGames = await page.locator("#view-games .gp-game.final").count();
+  if (finalGames < 1) throw new Error(`expected final games after __simAll, got ${finalGames}`);
+  ok(`daily pick'em: ${finalGames} games show Final after sim`);
 } catch (e) {
   failed = e;
 } finally {

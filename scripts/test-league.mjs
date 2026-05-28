@@ -3,7 +3,7 @@
  * Unit tests for the league Worker's pure validators (no Cloudflare bindings).
  * These guard the exact shapes the Worker accepts/rejects.
  */
-import { isValidBracketCode, sanitizeDisplayName, makeCode } from "../worker/worker.js";
+import { isValidBracketCode, sanitizeDisplayName, makeCode, isValidGameKey, isValidTeamId } from "../worker/worker.js";
 
 let pass = 0, fail = 0;
 function eq(actual, expected, msg) {
@@ -33,6 +33,25 @@ eq(sanitizeDisplayName("Tab\tHere"), "TabHere", "strip control chars");
 const code = makeCode(6);
 eq(typeof code === "string" && code.length === 6, true, "makeCode length 6");
 eq(/^[0-9A-HJKMNP-TV-Z]{6}$/.test(code), true, "makeCode uses Crockford alphabet");
+
+// isValidGameKey — regional "<site>_G1-7" or super "super-1-8_G1-3"
+eq(isValidGameKey("athens_G3"), true, "regional game key");
+eq(isValidGameKey("los-angeles_G7"), true, "hyphenated site key");
+eq(isValidGameKey("super-1_G2"), true, "super game key");
+eq(isValidGameKey("athens_G8"), false, "reject G8");
+eq(isValidGameKey("athens_G0"), false, "reject G0");
+eq(isValidGameKey("super-9_G1"), false, "reject super seed 9");
+eq(isValidGameKey("super-1_G4"), false, "reject super G4");
+eq(isValidGameKey("athens_G3; DROP TABLE"), false, "reject injection");
+eq(isValidGameKey("a".repeat(45) + "_G1"), false, "reject overlong key");
+eq(isValidGameKey(42), false, "reject non-string");
+
+// isValidTeamId — lowercase id format only
+eq(isValidTeamId("georgia-tech"), true, "team id");
+eq(isValidTeamId("Bad Id"), false, "reject space");
+eq(isValidTeamId("UPPER"), false, "reject uppercase");
+eq(isValidTeamId("a".repeat(50)), false, "reject overlong");
+eq(isValidTeamId(null), false, "reject null");
 
 console.log(`\n${fail === 0 ? "✓" : "✗"} league worker: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

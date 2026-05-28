@@ -27,7 +27,7 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 | 12 | Verified team history & program context | L | — |
 | 13 | ✅ Bracket Challenge — full chain, shareable (static) | L | 2 |
 | 14 | ✅ Pick'em backend + private leagues (Cloudflare Worker + KV) | M | 13 |
-| 15 | Daily per-game pick'em (W/L tally + standings) | M | 14 |
+| 15 | ✅ Daily per-game pick'em (W/L tally + standings) | M | 14 |
 
 ---
 
@@ -287,7 +287,9 @@ This file breaks the "next level" work into **discrete, self-contained sessions*
 
 ---
 
-## Session 15 — Daily per-game pick'em (W/L tally + standings)
+## Session 15 — Daily per-game pick'em (W/L tally + standings) ✅ SHIPPED
+> **Shipped:** commit `<pending>` · live + CI green (Worker redeployed). New **`#/games`** view (6th nav tab) + a **Daily** standings tab in the existing private leagues. `enumerateGames()` lists every game with a stable key (`siteId_G#` regionals from the snapshot, `super-<sd>_G#` supers) classified Open/Locked/Upcoming via `resolveBracket` + best-of-3; pick winners → `localStorage["cws-gamepicks-v1"]` → `POST /league/<code>/games` (new Worker endpoint that stamps a server `ts` per pick, **not** lock-gated). **Fair locking without a server schedule:** `scoreGames()` counts a pick a win only if `ts < first-pitch && pick === winner` (client knows real start times from the live feed). Append-only `RESULTS_CACHE` keeps decided games scored after they leave the 30s poll window. Scope = regionals + super-regionals (Omaha not modeled). Bracket contest untouched (separate key/endpoint/scorer). Verified: worker `/games` e2e (post-lock accepted, ts preserved on unchanged picks, invalid keys rejected, memberId hidden); 31 worker unit asserts; smoke covers 6 tabs + Games view (32 open pre-tournament, 103 final after `__simAll`, pick round-trip) + Bracket|Daily standings.
+
 **Goal:** Pick the winner of **every tournament game** as matchups unlock; build a **W/L record**; crown the league's per-game champion.
 
 **Why:** The engagement engine — a reason to come back daily for two weeks. Complements the one-shot Bracket Challenge.

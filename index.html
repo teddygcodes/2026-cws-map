@@ -313,6 +313,7 @@
     .lg-list-row .go { color:var(--accent); font-family:"Oswald",sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
     .lg-empty { color:var(--muted); font-size:14px; padding:10px 2px; }
     .lg-loading { color:var(--muted); font-family:"Oswald",sans-serif; letter-spacing:.06em; padding:20px 2px; }
+    .lg-subtoggle { margin:12px 0 4px; }
     .lg-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:12px 0 14px; }
     .lg-actions { display:flex; gap:8px; flex-wrap:wrap; }
     .lg-actions .btn { padding:8px 13px; font-size:12px; }
@@ -325,6 +326,23 @@
     .lg-unavailable { border:1px dashed var(--line); border-radius:12px; padding:22px; text-align:center; margin-top:14px; }
     .lg-unavailable .ttl { font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
     .lg-unavailable p { color:var(--muted); line-height:1.6; max-width:48ch; margin:0 auto; }
+
+    /* ---------- Daily per-game pick'em ---------- */
+    .gp-prevlbl { font-family:"Oswald",sans-serif; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+    .gp-sec { margin:16px 0; }
+    .gp-count { font-family:"Oswald",sans-serif; font-size:12px; color:var(--muted); }
+    .gp-game { display:flex; align-items:center; gap:12px; flex-wrap:wrap; border:1px solid var(--line); border-radius:10px; padding:10px 13px; margin-bottom:8px; background:var(--panel); }
+    .gp-game .gp-label { font-family:"Anton",sans-serif; font-size:13px; color:var(--muted); min-width:120px; }
+    .gp-game.upcoming { opacity:.55; }
+    .gp-tbd { font-family:"Oswald",sans-serif; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .gp-matchup { font-family:"Oswald",sans-serif; font-weight:600; flex:1; min-width:160px; }
+    .gp-matchup .vs { color:var(--muted); font-weight:400; font-size:12px; margin:0 4px; }
+    .gp-pick { font-size:13px; color:var(--muted); }
+    .gp-pick b { color:var(--text); }
+    .gp-result { font-family:"Oswald",sans-serif; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; min-width:90px; text-align:right; }
+    .gp-game.open .gp-opts { display:flex; gap:8px; flex:1; min-width:200px; }
+    .gp-game.open .nb-node.pick { flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 11px; }
+    .gp-game.open .nb-node.pick .nb-team .t { font-family:"Oswald",sans-serif; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     .sched-day { font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.14em; font-size:12px; color:var(--text);
       margin:18px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
@@ -543,6 +561,7 @@
         <button class="vt" data-mode="list">List</button>
         <button class="vt" data-mode="bracket">Bracket</button>
         <button class="vt" data-mode="picks">Picks</button>
+        <button class="vt" data-mode="games">Games</button>
         <button class="vt" data-mode="league">Leagues</button>
       </div>
 
@@ -574,6 +593,9 @@
 
     <!-- BRACKET CHALLENGE pick'em (predict the whole field; client-side only) -->
     <section id="view-picks" class="view"></section>
+
+    <!-- DAILY PER-GAME PICK'EM -->
+    <section id="view-games" class="view"></section>
 
     <!-- PRIVATE LEAGUES (optional Cloudflare-backed leaderboard) -->
     <section id="view-league" class="view"></section>
@@ -637,10 +659,11 @@
     }
 
     // ---- view switching ---------------------------------------------------
-    var VIEWS = ["map", "regional", "team", "stadium", "game", "compare", "bracket", "picks", "league"];
+    var VIEWS = ["map", "regional", "team", "stadium", "game", "compare", "bracket", "picks", "games", "league"];
     var currentView = null;
     var regionalMode = "list"; // "list" | "bracket" — persists across live re-renders
     var mapMode = "map"; // "map" | "list" — host-sites display mode (Map/List/Bracket toggle)
+    var leagueTab = "bracket"; // "bracket" | "daily" — which standings the league page shows
     function showView(name) {
       VIEWS.forEach(function (v) {
         document.getElementById("view-" + v).classList.toggle("active", v === name);
@@ -1335,6 +1358,7 @@
         if (id === "demo") { if (LIVE.demo) renderGameDetail(document.getElementById("view-game"), demoSummary()); }
         else refreshOpenGame(id); // live re-fetch of a real game on the 30s poll
       }
+      else if (hash.indexOf("#/games") === 0) showGamePicks();   // finals/locks update live
     }
 
     // ---- scoreboard (home screen) ----------------------------------------
@@ -1672,7 +1696,7 @@
     // Top-level nav bar (Map · List · Bracket · Picks · Leagues). Shared by the
     // map, bracket, picks and league views so every feature is one tap from home.
     function navToggle(active) {
-      var tabs = [["map", "Map"], ["list", "List"], ["bracket", "Bracket"], ["picks", "Picks"], ["league", "Leagues"]];
+      var tabs = [["map", "Map"], ["list", "List"], ["bracket", "Bracket"], ["picks", "Picks"], ["games", "Games"], ["league", "Leagues"]];
       return '<div class="view-toggle map-toggle">' + tabs.map(function (t) {
         return '<button class="vt' + (t[0] === active ? " on" : "") + '" data-mode="' + t[0] + '">' + t[1] + "</button>";
       }).join("") + "</div>";
@@ -1797,6 +1821,7 @@
       window.__picks = { encode: encodePicks, decode: decodePicks, get: function () { return PICKS; }, set: function (p) { PICKS = p; savePicks(); } };
       // Test hook only: LEAGUE_API is a closure-local var, so smoke flips it here.
       window.__leagues = { setApi: function (u) { LEAGUE_API = u; }, get: function () { return LEAGUES; } };
+      window.__gamepicks = { get: function () { return GAME_PICKS; }, set: function (g) { GAME_PICKS = g; saveGamePicks(); }, enumerate: enumerateGames, score: scoreGames };
     }
 
     function startPolling() {
@@ -1862,6 +1887,20 @@
     }
     function saveLeagues() { try { localStorage.setItem(LEAGUES_KEY, JSON.stringify(LEAGUES)); } catch (e) { /* ignore */ } }
     function joinedLeague(code) { return LEAGUES.joined.filter(function (j) { return j.code === code; })[0] || null; }
+
+    // ---- per-game pick'em (Session 15): local picks + append-only results cache ----
+    var GAME_PICKS_KEY = "cws-gamepicks-v1";
+    var GAME_PICKS = { v: 1, picks: {} };   // { gameKey: teamId } — the pick ts lives only on the server
+    function loadGamePicks() {
+      try { var raw = localStorage.getItem(GAME_PICKS_KEY); if (!raw) return; var g = JSON.parse(raw); if (g && g.v === 1 && g.picks) GAME_PICKS = { v: 1, picks: g.picks }; } catch (e) { /* ignore */ }
+    }
+    function saveGamePicks() { try { localStorage.setItem(GAME_PICKS_KEY, JSON.stringify(GAME_PICKS)); } catch (e) { /* ignore */ } }
+    // Append-only cache of decided games so finished games keep scoring after they
+    // age out of the 4-date live-poll window. Only ever adds; never removes.
+    var RESULTS_KEY = "cws-results-v1";
+    var RESULTS_CACHE = {};   // { gameKey: { winner, startMs } }
+    function loadResultsCache() { try { var raw = localStorage.getItem(RESULTS_KEY); if (raw) { var r = JSON.parse(raw); if (r && typeof r === "object") RESULTS_CACHE = r; } } catch (e) { /* ignore */ } }
+    function saveResultsCache() { try { localStorage.setItem(RESULTS_KEY, JSON.stringify(RESULTS_CACHE)); } catch (e) { /* ignore */ } }
     function newMemberId() {
       try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) { /* ignore */ }
       return "m-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
@@ -1916,6 +1955,89 @@
       return window.resolveBracket(s.teams, (LIVE.bySite && LIVE.bySite[siteId]) || []).champion || null;
     }
     function actualSuperWinner(sd) { var ss = siteById("super-" + sd); return ss ? siteChampion(ss) : null; }
+
+    // ---- per-game enumeration + scoring (Session 15) ----
+    // Every tournament game with a STABLE key, current state, start time and winner.
+    // Regionals come from the load-time snapshot (keys survive the super-flip); supers
+    // are best-of-3. Decided games are recorded into the append-only RESULTS_CACHE.
+    function enumerateGames() {
+      var out = [], dirty = false;
+      function record(key, winner, startMs) {
+        if (winner && !RESULTS_CACHE[key]) { RESULTS_CACHE[key] = { winner: winner, startMs: startMs }; dirty = true; }
+      }
+      PICK_SITES.forEach(function (site) {
+        if (!window.resolveBracket) return;
+        var br = window.resolveBracket(site.teams, (LIVE.bySite && LIVE.bySite[site.id]) || []);
+        var g6 = br.slots[5], g6Final = !!(g6 && g6.event && g6.event.state === "post");
+        br.slots.forEach(function (slot) {
+          if (slot.g === 7 && g6Final && !slot.necessary) return;     // G7 not needed
+          var ev = slot.event, startMs = (ev && ev.date) ? Date.parse(ev.date) : null;
+          var winner = slot.teams ? eventWinner(ev, slot.teams) : null;
+          var key = site.id + "_G" + slot.g;
+          record(key, winner, startMs);
+          out.push({
+            key: key, label: site.city.split(",")[0] + " G" + slot.g, round: "regional",
+            teamA: slot.teams ? slot.teams[0] : null, teamB: slot.teams ? slot.teams[1] : null,
+            determined: slot.determined, state: ev ? ev.state : (slot.determined ? "pre" : "tbd"),
+            startMs: startMs, winner: winner,
+          });
+        });
+      });
+      if (T.round === "super-regional") {
+        T.sites.forEach(function (s) {
+          var games = bracketGames(s).slice().sort(function (x, y) { return (Date.parse(x.date) || 0) - (Date.parse(y.date) || 0); });
+          var w = {}; w[s.teams[0]] = 0; w[s.teams[1]] = 0;
+          games.forEach(function (gm) { if (gm.state === "post") { var x = eventWinner(gm, s.teams); if (x != null && w[x] != null) w[x]++; } });
+          var champ = w[s.teams[0]] >= 2 ? s.teams[0] : (w[s.teams[1]] >= 2 ? s.teams[1] : null);
+          for (var i = 0; i < 3; i++) {
+            if (i === 2 && champ) break;                               // G3 only if necessary
+            var ev = games[i], key = "super-" + s.seed + "_G" + (i + 1);
+            var startMs = (ev && ev.date) ? Date.parse(ev.date) : null, winner = eventWinner(ev, s.teams);
+            record(key, winner, startMs);
+            out.push({
+              key: key, label: s.city.split(",")[0] + " Super G" + (i + 1), round: "super",
+              teamA: s.teams[0], teamB: s.teams[1], determined: true,
+              state: ev ? ev.state : "pre", startMs: startMs, winner: winner,
+            });
+          }
+        });
+      }
+      if (dirty) saveResultsCache();
+      return out;
+    }
+    function gameClass(g) {
+      if (!g.determined) return "upcoming";
+      if (g.state === "in" || g.state === "post") return "locked";
+      if (g.startMs != null && g.startMs < Date.now()) return "locked";  // first pitch passed
+      return "open";
+    }
+    // Build the truth map of decided games (live + cached), for scoring.
+    function gamesTruth() {
+      var truth = {};
+      enumerateGames().forEach(function (g) { if (g.state === "post" && g.winner) truth[g.key] = { winner: g.winner, startMs: g.startMs }; });
+      Object.keys(RESULTS_CACHE).forEach(function (k) { if (!truth[k] && RESULTS_CACHE[k].winner) truth[k] = RESULTS_CACHE[k]; });
+      return truth;
+    }
+    // Score a member's server-side games map {gameKey:{pick,ts}} — a pick counts as a
+    // WIN only if it was recorded before that game's first pitch (ts < startMs).
+    function scoreGames(gamesMap) {
+      var truth = gamesTruth(), wins = 0, losses = 0, decided = 0, superWins = 0;
+      Object.keys(gamesMap || {}).forEach(function (k) {
+        var t = truth[k]; if (!t) return;
+        decided++;
+        var e = gamesMap[k] || {};
+        if (e.ts != null && t.startMs != null && e.ts < t.startMs && e.pick === t.winner) { wins++; if (k.indexOf("super-") === 0) superWins++; }
+        else losses++;
+      });
+      return { wins: wins, losses: losses, decided: decided, superWins: superWins };
+    }
+    // The local user's own (unsubmitted) preview record — no server ts, so it can't
+    // verify the first-pitch lock; labeled "preview" in the UI.
+    function scoreLocalGames() {
+      var truth = gamesTruth(), wins = 0, decided = 0;
+      Object.keys(GAME_PICKS.picks).forEach(function (k) { var t = truth[k]; if (!t) return; decided++; if (GAME_PICKS.picks[k] === t.winner) wins++; });
+      return { wins: wins, losses: decided - wins, decided: decided };
+    }
 
     function regBadge(siteId) {
       var a = actualRegChamp(siteId); if (a == null) return '<span class="pick-badge pending">your pick</span>';
@@ -2158,33 +2280,57 @@
       render(el, '<div class="section-head">League ' + esc(code) + "</div><div class=\"lg-loading\">Loading standings…</div>");
       showView("league");
       leagueApi("GET", "/league/" + encodeURIComponent(code)).then(function (data) {
-        var ls = lockState(data.lockTs), mine = joinedLeague(code);
-        var rows = (data.members || []).map(function (mm) { return { name: mm.displayName, sc: scoreBracketCode(mm.bracket) }; });
-        rows.sort(function (a, b) {
+        var ls = lockState(data.lockTs), mine = joinedLeague(code), members = data.members || [];
+        // BRACKET standings (existing)
+        var bRows = members.map(function (mm) { return { name: mm.displayName, sc: scoreBracketCode(mm.bracket) }; });
+        bRows.sort(function (a, b) {
           if (!a.sc && !b.sc) return 0; if (!a.sc) return 1; if (!b.sc) return -1;
           if (b.sc.correct !== a.sc.correct) return b.sc.correct - a.sc.correct;
           var aw = a.sc.decided ? a.sc.correct / a.sc.decided : 0, bw = b.sc.decided ? b.sc.correct / b.sc.decided : 0;
           if (bw !== aw) return bw - aw;
           return b.sc.sup - a.sc.sup;
         });
-        var body = rows.length ? rows.map(function (r, i) {
+        var bBody = bRows.length ? bRows.map(function (r, i) {
           var wp = (r.sc && r.sc.decided) ? Math.round(100 * r.sc.correct / r.sc.decided) + "%" : "&ndash;";
           var corr = r.sc ? r.sc.correct : '<span class="todo">invalid</span>';
-          return "<tr><td class=\"lg-rank\">" + (i + 1) + "</td><td>" + esc(r.name) + "</td><td>" + corr + "</td><td>" + wp + "</td></tr>";
+          return '<tr><td class="lg-rank">' + (i + 1) + "</td><td>" + esc(r.name) + "</td><td>" + corr + "</td><td>" + wp + "</td></tr>";
         }).join("") : '<tr><td colspan="4" class="lg-empty">No entries yet — be the first to submit your bracket.</td></tr>';
+        // DAILY standings (per-game W–L)
+        var dRows = members.map(function (mm) { return { name: mm.displayName, sc: scoreGames(mm.games || {}) }; });
+        dRows.sort(function (a, b) {
+          if (b.sc.wins !== a.sc.wins) return b.sc.wins - a.sc.wins;
+          var aw = a.sc.decided ? a.sc.wins / a.sc.decided : 0, bw = b.sc.decided ? b.sc.wins / b.sc.decided : 0;
+          if (bw !== aw) return bw - aw;
+          return b.sc.superWins - a.sc.superWins;
+        });
+        var dBody = dRows.length ? dRows.map(function (r, i) {
+          var wp = r.sc.decided ? Math.round(100 * r.sc.wins / r.sc.decided) + "%" : "&ndash;";
+          return '<tr><td class="lg-rank">' + (i + 1) + "</td><td>" + esc(r.name) + "</td><td>" + r.sc.wins + "–" + r.sc.losses + "</td><td>" + wp + "</td></tr>";
+        }).join("") : '<tr><td colspan="4" class="lg-empty">No picks submitted yet.</td></tr>';
+
+        var daily = leagueTab === "daily";
+        var subToggle = '<div class="view-toggle lg-subtoggle">' +
+          '<button class="vt' + (daily ? "" : " on") + '" data-leaguetab="bracket">Bracket</button>' +
+          '<button class="vt' + (daily ? " on" : "") + '" data-leaguetab="daily">Daily</button></div>';
         var actions = (mine ? "" : '<button class="btn primary" data-act="joinhere" data-code="' + esc(code) + '">Join this league</button> ') +
-          (mine && !ls.locked ? '<button class="btn primary" data-act="submit" data-code="' + esc(code) + '">Submit my bracket</button> ' : (mine && ls.locked ? '<button class="btn" disabled>Locked</button> ' : "")) +
+          (daily
+            ? (mine && LEAGUE_API ? '<button class="btn primary" data-act="submitgames">Submit my picks</button> ' : "")
+            : (mine && !ls.locked ? '<button class="btn primary" data-act="submit" data-code="' + esc(code) + '">Submit my bracket</button> ' : (mine && ls.locked ? '<button class="btn" disabled>Bracket locked</button> ' : ""))) +
           '<button class="btn" data-act="copycode" data-code="' + esc(code) + '">Copy invite</button>';
+        var table = daily
+          ? '<table class="cmp-table lg-standings"><thead><tr><th>#</th><th>Player</th><th>W–L</th><th>Win%</th></tr></thead><tbody>' + dBody + "</tbody></table>" +
+            '<div class="lg-note">Daily = winner of each game. A pick counts only if made before that game’s scheduled first pitch. Regionals + super-regionals (Omaha not modeled).</div>'
+          : '<table class="cmp-table lg-standings"><thead><tr><th>#</th><th>Player</th><th>Correct</th><th>Win%</th></tr></thead><tbody>' + bBody + "</tbody></table>" +
+            '<div class="lg-note">Bracket = regional + super-regional champions picked. Champion is scored after Omaha.</div>';
         render(el,
           '<div class="section-head">' + esc(data.name || ("League " + code)) + "</div>" +
           '<div class="section-sub">Code <b>' + esc(code) + "</b> &middot; share it to invite friends</div>" +
-          navToggle("league") +
+          navToggle("league") + subToggle +
           leagueBanner() +
-          '<div class="lg-bar"><span class="lg-lock' + (ls.locked ? " locked" : "") + '">' + ls.text + "</span>" +
+          '<div class="lg-bar">' + (daily ? '<span class="lg-lock">Daily — picks open all tournament</span>' : '<span class="lg-lock' + (ls.locked ? " locked" : "") + '">' + ls.text + "</span>") +
             '<span class="lg-actions">' + actions + "</span></div>" +
-          '<table class="cmp-table lg-standings"><thead><tr><th>#</th><th>Player</th><th>Correct</th><th>Win%</th></tr></thead><tbody>' + body + "</tbody></table>" +
-          '<div class="lg-note">Correct = regional + super-regional picks decided so far. Champion is scored after Omaha.</div>' +
-          '<div class="map-actions"><a class="btn" href="#/picks">&#8592; My picks</a> <a class="btn" href="#/league">All leagues</a></div>');
+          table +
+          '<div class="map-actions"><a class="btn" href="' + (daily ? "#/games" : "#/picks") + '">&#8592; My ' + (daily ? "game picks" : "bracket") + '</a> <a class="btn" href="#/league">All leagues</a></div>');
         showView("league");
       }).catch(function (err) {
         render(el, '<div class="section-head">League ' + esc(code) + "</div>" +
@@ -2232,6 +2378,13 @@
       var el = document.getElementById("view-league");
       if (!el || el.__wired) return; el.__wired = true;
       el.addEventListener("click", function (e) {
+        var tab = e.target.closest("[data-leaguetab]");
+        if (tab) {
+          leagueTab = tab.getAttribute("data-leaguetab");
+          var cm = (location.hash.match(/#\/league\/([^/]+)/) || [])[1];
+          if (cm) showLeagueStandings(decodeURIComponent(cm));
+          return;
+        }
         var row = e.target.closest(".lg-list-row");
         if (row) { location.hash = "#/league/" + row.getAttribute("data-code"); return; }
         var b = e.target.closest("[data-act]"); if (!b) return;
@@ -2240,7 +2393,88 @@
         if (act === "join") return leagueJoinForm();
         if (act === "joinhere") return leagueJoin(code, (joinedLeague(code) || {}).displayName);
         if (act === "submit") return leagueSubmit(code, b);
+        if (act === "submitgames") return submitGamePicks(b);
         if (act === "copycode") return leagueCopyInvite(code, b);
+      });
+    }
+
+    // ===================================================================
+    // DAILY PER-GAME PICK'EM (Session 15) — pick every game as it unlocks.
+    // ===================================================================
+    function gameTeamNode(g, tid) {
+      var picked = GAME_PICKS.picks[g.key] === tid;
+      return '<div class="nb-node pick' + (picked ? " picked" : "") + '" data-gamekey="' + esc(g.key) + '" data-team="' + esc(tid) + '">' +
+        '<div class="nb-team"><div class="t">' + esc(team(tid).name) + "</div></div></div>";
+    }
+    function gameCardRow(g, mode) {
+      if (mode === "upcoming") return '<div class="gp-game upcoming"><span class="gp-label">' + esc(g.label) + '</span><span class="gp-tbd">Matchup TBD</span></div>';
+      if (mode === "open") return '<div class="gp-game open"><div class="gp-label">' + esc(g.label) + '</div><div class="gp-opts">' + gameTeamNode(g, g.teamA) + gameTeamNode(g, g.teamB) + "</div></div>";
+      var myPick = GAME_PICKS.picks[g.key] || null;
+      var badge;
+      if (mode === "final" && g.winner) badge = !myPick ? '<span class="pick-badge pending">no pick</span>'
+        : (myPick === g.winner ? '<span class="pick-badge ok">&#10003;</span>' : '<span class="pick-badge no">&#10007;</span>');
+      else badge = myPick ? '<span class="pick-badge pending">your pick</span>' : '<span class="pick-badge pending">no pick</span>';
+      var right = (mode === "final" && g.winner) ? ("Won: " + esc(team(g.winner).name)) : (g.state === "in" ? '<span class="st-live">Live</span>' : "Locked");
+      return '<div class="gp-game ' + mode + '"><span class="gp-label">' + esc(g.label) + "</span>" +
+        '<span class="gp-matchup">' + esc(team(g.teamA).name) + ' <span class="vs">vs</span> ' + esc(team(g.teamB).name) + "</span>" +
+        '<span class="gp-pick">You: <b>' + (myPick ? esc(team(myPick).name) : "&mdash;") + "</b> " + badge + "</span>" +
+        '<span class="gp-result">' + right + "</span></div>";
+    }
+    function showGamePicks() {
+      setCrumbs([{ text: "Map", href: "#/" }, { text: "Games" }], "#/");
+      var open = [], live = [], finals = [], upcoming = [];
+      enumerateGames().forEach(function (g) {
+        var c = gameClass(g);
+        if (c === "open") open.push(g);
+        else if (c === "upcoming") upcoming.push(g);
+        else if (g.state === "post") finals.push(g);
+        else live.push(g);
+      });
+      var rec = scoreLocalGames();
+      function section(title, list, mode) {
+        if (!list.length) return "";
+        return '<div class="gp-sec"><div class="bk-title">' + title + ' <span class="gp-count">' + list.length + "</span></div>" +
+          list.map(function (g) { return gameCardRow(g, mode); }).join("") + "</div>";
+      }
+      var html =
+        '<div class="section-head">Daily Pick’em</div>' +
+        '<div class="section-sub">Pick every game as it unlocks &middot; build a W&ndash;L record &middot; locked at first pitch</div>' +
+        navToggle("games") +
+        '<div class="pick-banner">&#9888; Predictions only — unofficial. Picks lock at each game’s first pitch; submit to a league to compete.</div>' +
+        '<div class="pick-bar"><div class="pick-progress">' + rec.wins + "–" + rec.losses + ' <span class="gp-prevlbl">your picks (preview)</span></div><div class="pick-actions">' +
+          (LEAGUES.joined.length
+            ? '<button class="btn primary" data-act="submitgames">&#128228; Submit to my league' + (LEAGUES.joined.length > 1 ? "s" : "") + "</button>"
+            : '<a class="btn primary" href="#/league">Join a league to compete &rarr;</a>') +
+        "</div></div>" +
+        section("Open — pick now", open, "open") +
+        section("In progress / locked", live, "locked") +
+        section("Final", finals, "final") +
+        section("Upcoming — matchup TBD", upcoming, "upcoming");
+      if (!open.length && !live.length && !finals.length) html += '<div class="lg-empty">No games are open yet — the tournament hasn’t started. Check back at first pitch (May 29).</div>';
+      render(document.getElementById("view-games"), html);
+      showView("games");
+    }
+    function submitGamePicks(btn) {
+      if (!LEAGUES.joined.length) { location.hash = "#/league"; return; }
+      if (!leaguesEnabled()) return leagueErr({ offline: true });
+      var was = btn ? btn.innerHTML : ""; if (btn) { btn.disabled = true; btn.innerHTML = "Submitting…"; }
+      var jobs = LEAGUES.joined.map(function (j) {
+        return leagueApi("POST", "/league/" + encodeURIComponent(j.code) + "/games", { memberId: j.memberId, displayName: j.displayName, picks: GAME_PICKS.picks });
+      });
+      Promise.allSettled(jobs).then(function (res) {
+        var ok = res.filter(function (r) { return r.status === "fulfilled"; }).length;
+        if (btn) { btn.disabled = false; btn.innerHTML = ok ? ("Submitted ✓") : was; if (ok) setTimeout(function () { if (btn) btn.innerHTML = was; }, 2000); }
+        if (!ok) leagueErr({});
+      });
+    }
+    function wireGames() {
+      var el = document.getElementById("view-games");
+      if (!el || el.__wired) return; el.__wired = true;
+      el.addEventListener("click", function (e) {
+        var node = e.target.closest(".nb-node.pick[data-gamekey]");
+        if (node) { GAME_PICKS.picks[node.getAttribute("data-gamekey")] = node.getAttribute("data-team"); saveGamePicks(); showGamePicks(); return; }
+        var act = e.target.closest("[data-act]");
+        if (act && act.getAttribute("data-act") === "submitgames") submitGamePicks(act);
       });
     }
 
@@ -2255,6 +2489,7 @@
       else if (parts[0] === "bracket") showBracket();
       else if (parts[0] === "picks") { if (parts[1]) loadSharedPicks(decodeURIComponent(parts[1])); else showPicks(); }
       else if (parts[0] === "h2h") showH2H(decodeURIComponent(parts[1] || ""), decodeURIComponent(parts[2] || ""));
+      else if (parts[0] === "games") showGamePicks();
       else if (parts[0] === "league") {
         if (!leaguesEnabled()) showLeagueUnavailable();
         else if (parts[1]) showLeagueStandings(decodeURIComponent(parts[1]));
@@ -2272,6 +2507,7 @@
           var mode = vt.getAttribute("data-mode");
           if (mode === "bracket") { location.hash = "#/bracket"; return; }
           if (mode === "picks") { location.hash = "#/picks"; return; }
+          if (mode === "games") { location.hash = "#/games"; return; }
           if (mode === "league") { location.hash = "#/league"; return; }
           mapMode = mode; // "map" | "list"
           if (currentView === "map") showMap(); else location.hash = "#/";
@@ -2287,11 +2523,14 @@
       snapshotPickSites();   // capture the original 16-site structure BEFORE any super-flip
       loadPicks();
       loadLeagues();
+      loadGamePicks();
+      loadResultsCache();
       initMap();
       wireScoreboard();
       wireMapNav();
       wirePicks();
       wireLeague();
+      wireGames();
       router();
       startPolling();
     });
