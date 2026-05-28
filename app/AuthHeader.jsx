@@ -1,19 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { signIn, signOut } from "next-auth/react";
 
 /**
  * Floating auth chrome in the top-right: shows the signed-in user's avatar +
- * email and a Sign Out button, or a Sign In dropdown (Google + email link).
- * Anonymous use of the legacy app keeps working — this just adds the
- * affordance to sign in for cross-device sync.
+ * name (or email) and a Sign Out button, or a single "Sign in with Google"
+ * button when anonymous. Anonymous use of the legacy app keeps working —
+ * this just adds the affordance to sign in for cross-device sync.
  */
 export default function AuthHeader({ session }) {
-  const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [sentTo, setSentTo] = useState("");
-
   if (session?.user) {
     return (
       <div className="auth-chrome" data-signed-in="true">
@@ -38,55 +33,13 @@ export default function AuthHeader({ session }) {
 
   return (
     <div className="auth-chrome" data-signed-in="false">
-      {!open ? (
-        <button type="button" className="auth-btn primary" onClick={() => setOpen(true)}>
-          Sign in
-        </button>
-      ) : (
-        <div className="auth-menu">
-          <button
-            type="button"
-            className="auth-btn"
-            onClick={() => signIn("google", { callbackUrl: "/" })}
-          >
-            Continue with Google
-          </button>
-          {sentTo ? (
-            <div className="auth-msg">
-              Link sent to <b>{sentTo}</b>. Check your email.
-            </div>
-          ) : (
-            <form
-              className="auth-email"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const addr = email.trim();
-                if (!addr) return;
-                try {
-                  await signIn("resend", { email: addr, redirect: false, callbackUrl: "/" });
-                  setSentTo(addr);
-                } catch (_) {
-                  /* network — surface? */
-                }
-              }}
-            >
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <button type="submit" className="auth-btn">
-                Email me a link
-              </button>
-            </form>
-          )}
-          <button type="button" className="auth-close" onClick={() => setOpen(false)}>
-            Close
-          </button>
-        </div>
-      )}
+      <button
+        type="button"
+        className="auth-btn primary"
+        onClick={() => signIn("google", { callbackUrl: "/" })}
+      >
+        Sign in with Google
+      </button>
       <style jsx>{styles}</style>
     </div>
   );
@@ -105,17 +58,8 @@ const styles = `
   .auth-btn {
     appearance: none; border: 1px solid rgba(255,255,255,.14); background: rgba(20,22,26,.85);
     color: #f3f4f6; font: 600 11px/1 "Oswald", system-ui, sans-serif; letter-spacing: .06em;
-    text-transform: uppercase; padding: 6px 10px; border-radius: 6px; cursor: pointer;
+    text-transform: uppercase; padding: 8px 12px; border-radius: 6px; cursor: pointer;
   }
   .auth-btn.primary { background: #c0211b; border-color: #c0211b; }
   .auth-btn:hover { filter: brightness(1.15); }
-  .auth-menu {
-    background: rgba(15,16,20,.96); border: 1px solid rgba(255,255,255,.12);
-    border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;
-    min-width: 240px; box-shadow: 0 8px 24px rgba(0,0,0,.5);
-  }
-  .auth-email { display: flex; gap: 6px; }
-  .auth-email input { flex: 1; padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,.14); background: #0f1014; color: #f3f4f6; font: 13px/1.2 system-ui; }
-  .auth-msg { color: #cdd1d6; font-size: 12px; }
-  .auth-close { background: transparent; border: 0; color: #9aa0a6; font-size: 11px; cursor: pointer; text-transform: uppercase; }
 `;
