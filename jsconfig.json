@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "jsx": "preserve",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "checkJs": false,
+    "allowJs": true
+  },
+  "include": ["app/**/*", "lib/**/*", "auth.js", "next.config.mjs"]
+}

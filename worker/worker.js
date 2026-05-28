@@ -23,10 +23,14 @@
  */
 
 // ---- config ----------------------------------------------------------------
+// Vercel preview/prod origins are added once the project is created; placeholder
+// matches `*.vercel.app` is NOT used (CORS demands exact origins) — list each.
 const ALLOWED_ORIGINS = [
-  "https://teddygcodes.github.io",
-  "http://localhost:4173",
+  "https://teddygcodes.github.io",   // legacy Pages deploy (retire after Vercel cutover)
+  "http://localhost:4173",            // legacy smoke test (retire after pipeline cutover)
   "http://127.0.0.1:4173",
+  "http://localhost:3000",            // Next dev (next dev default port)
+  "http://127.0.0.1:3000",
 ];
 const MAX_MEMBERS_PER_LEAGUE = 200;
 const MAX_LEAGUES_PER_IP = 25;          // per rolling window (best-effort backstop)

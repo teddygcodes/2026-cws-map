@@ -1,9 +1,19 @@
 # macOS
 .DS_Store
 
-# Node (dev/CI tooling only — the app ships no runtime deps)
+# Node (Next runtime + dev/CI tooling)
 node_modules/
 .validate-tmp.js
+
+# Next.js build output
+.next/
+out/
+
+# Env / secrets
+.env
+.env.local
+.env*.local
+.vercel
 
 # Playwright MCP scratch output
 .playwright-mcp/

@@ -2,15 +2,26 @@
   "name": "cws-map",
   "version": "1.0.0",
   "private": true,
-  "description": "Dev/CI tooling for the 2026 NCAA Baseball Tournament interactive map. The app itself ships ZERO runtime dependencies — these devDependencies and scripts exist only for local checks and CI.",
   "type": "module",
+  "description": "2026 NCAA Baseball Tournament interactive map. The view logic stays vanilla JS in /public/legacy/; the Next.js shell adds auth + cross-device pick sync.",
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "validate": "node scripts/validate.mjs",
     "test": "node scripts/test-bracket.mjs && node scripts/test-league.mjs",
     "refresh": "node scripts/refresh-stats.mjs",
     "refresh:check": "node scripts/refresh-stats.mjs --check",
     "smoke": "node scripts/smoke.mjs",
     "serve": "python3 -m http.server 4173"
+  },
+  "dependencies": {
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "next-auth": "5.0.0-beta.25",
+    "@auth/pg-adapter": "1.7.4",
+    "pg": "8.13.1"
   },
   "devDependencies": {
     "playwright": "^1.49.0"
