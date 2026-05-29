@@ -39,6 +39,8 @@ function isAllowedOrigin(origin) {
 const MAX_MEMBERS_PER_LEAGUE = 200;
 const MAX_LEAGUES_PER_IP = 25;          // per rolling window (best-effort backstop)
 const IP_WINDOW_SECONDS = 86400;        // 24h
+const MAX_READS_PER_IP = 60;            // GET /league reads per minute per IP (anti-enumeration)
+const READ_WINDOW_SECONDS = 60;
 const MAX_BODY_BYTES = 8192;            // a full per-game picks map (~136 keys) + name
 const MAX_GAMES_PER_REQUEST = 80;       // games submitted in one POST
 const MAX_GAMES_TOTAL = 160;            // total per-game picks a member can hold
@@ -111,6 +113,17 @@ async function ipAllowsNewLeague(env, ip) {
   await env.LEAGUES.put(key, JSON.stringify(n + 1), { expirationTtl: IP_WINDOW_SECONDS });
   return true;
 }
+// Best-effort per-IP read cap: league codes are short, so unlimited reads would
+// let someone enumerate codes and scrape every league's standings. 60/min is
+// ample for a human viewing standings but throttles bulk scraping hard.
+async function ipAllowsRead(env, ip) {
+  if (!ip) return true;
+  var key = "rip:" + ip;
+  var n = (await env.LEAGUES.get(key, "json")) || 0;
+  if (n >= MAX_READS_PER_IP) return false;
+  await env.LEAGUES.put(key, JSON.stringify(n + 1), { expirationTtl: READ_WINDOW_SECONDS });
+  return true;
+}
 // Members are returned without exposing other people's edit tokens (memberId).
 function publicMembers(league) {
   return Object.keys(league.members || {}).map(function (id) {
@@ -150,6 +163,8 @@ export default {
 
       // GET /league/<code>
       if (method === "GET" && parts.length === 2 && parts[0] === "league") {
+        var readIp = request.headers.get("CF-Connecting-IP") || "";
+        if (!(await ipAllowsRead(env, readIp))) return json({ error: "rate_limited" }, 429, origin);
         var lg = await env.LEAGUES.get("league:" + parts[1].toUpperCase(), "json");
         if (!lg) return json({ error: "not_found" }, 404, origin);
         return json({ name: lg.name, lockTs: lg.lockTs, members: publicMembers(lg) }, 200, origin);

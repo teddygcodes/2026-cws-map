@@ -53,3 +53,22 @@ CREATE TABLE IF NOT EXISTS user_picks (
   game_picks   JSONB NOT NULL DEFAULT '{}'::jsonb,
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Integrity + performance hardening (idempotent; upgrades pre-existing tables
+-- too, since CREATE TABLE IF NOT EXISTS above won't alter them).
+-- Foreign keys so deleting a user cleans up their accounts/sessions; indexes on
+-- the adapter's lookup columns; uniqueness on session tokens.
+CREATE INDEX IF NOT EXISTS idx_accounts_user ON accounts("userId");
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions("userId");
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_token ON sessions("sessionToken");
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'accounts_user_fk') THEN
+    ALTER TABLE accounts ADD CONSTRAINT accounts_user_fk
+      FOREIGN KEY ("userId") REFERENCES users(id) ON DELETE CASCADE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sessions_user_fk') THEN
+    ALTER TABLE sessions ADD CONSTRAINT sessions_user_fk
+      FOREIGN KEY ("userId") REFERENCES users(id) ON DELETE CASCADE;
+  END IF;
+END $$;

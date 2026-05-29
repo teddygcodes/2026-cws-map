@@ -119,7 +119,9 @@ try {
     if (m === "POST" && /\/games$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ games: games1, updated: Date.now() }) });
     return route.continue();
   });
-  await page.evaluate(() => window.__leagues.setApi("https://mock.test"));
+  // Point at the real Worker origin (allowlisted by the app's CSP connect-src);
+  // page.route intercepts it, so no real network call is made.
+  await page.evaluate(() => window.__leagues.setApi("https://cws-map-leagues.tyler-696.workers.dev"));
   await go("#/league/ABC123");
   await page.waitForSelector('[data-testid="standings"] tbody tr', { timeout: 10000 });
   if ((await count('[data-testid="standings"] tbody tr')) !== 2) throw new Error("expected 2 standings rows");

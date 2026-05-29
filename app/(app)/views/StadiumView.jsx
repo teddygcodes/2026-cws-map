@@ -46,6 +46,7 @@ export default function StadiumView({ teamId }) {
                   src={"/" + photo.file}
                   alt={`${st.name}, home of ${t.name}`}
                   fill
+                  priority
                   sizes="(max-width: 760px) 100vw, 640px"
                   className={styles.img}
                 />
