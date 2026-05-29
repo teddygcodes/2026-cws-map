@@ -7,6 +7,8 @@ import { useCrumbs } from "../CrumbsContext";
 import { parseSummary } from "@/lib/live-parse";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
 import Tbd from "../../components/Tbd";
+import Skeleton from "../../components/Skeleton";
+import CountUp from "../../components/CountUp";
 import styles from "./GameView.module.css";
 
 export default function GameView({ eventId }) {
@@ -19,7 +21,7 @@ export default function GameView({ eventId }) {
   const isDemo = eventId === "demo";
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Game" }], "#/");
+    set([{ text: "Home", href: "#/" }, { text: "Game" }], "#/");
   }, [set]);
 
   // Demo game updates live from the LiveProvider's simulator.
@@ -62,8 +64,21 @@ export default function GameView({ eventId }) {
   if (!game || game.teams.length < 2) {
     return (
       <section className="view">
-        <h1 className="section-head">Game</h1>
-        <p className={styles.note}>{isDemo ? "No simulated game running." : "Loading box score…"}</p>
+        <h1 className="section-head" tabIndex={-1} data-view-heading>
+          Game
+        </h1>
+        {isDemo ? (
+          <p className={styles.note}>No simulated game running.</p>
+        ) : (
+          <div className={styles.loading} aria-busy="true" aria-label="Loading box score">
+            <div className={styles.loadBug}>
+              <Skeleton w={48} h={48} r={11} />
+              <Skeleton w="40%" h={26} />
+              <Skeleton w={56} h={40} style={{ marginLeft: "auto" }} />
+            </div>
+            <Skeleton w="100%" h={140} r={14} style={{ marginTop: "var(--space-4)" }} />
+          </div>
+        )}
       </section>
     );
   }
@@ -72,9 +87,14 @@ export default function GameView({ eventId }) {
   const nInn = Math.max(a.innings.length, b.innings.length, 9);
   const hasInn = a.innings.concat(b.innings).some((v) => v != null);
   const teamName = (t) => (t.id && TOURNAMENT.teams[t.id] ? TOURNAMENT.teams[t.id].name : t.name);
+  const regionalSite =
+    a.id && b.id ? TOURNAMENT.sites.find((s) => s.teams.indexOf(a.id) >= 0 && s.teams.indexOf(b.id) >= 0) : null;
 
   return (
     <section className="view">
+      <h1 className="sr-only" tabIndex={-1} data-view-heading>
+        {teamName(a)} vs {teamName(b)} — {game.detail || (game.state === "post" ? "Final" : game.state === "in" ? "Live" : "Upcoming")}
+      </h1>
       {/* Broadcast scorebug */}
       <div className={`${styles.bug} ${game.state === "in" ? styles.bugLive : ""}`}>
         <ScoreSide team={a} name={teamName(a)} lead={a.score != null && b.score != null && a.score > b.score} />
@@ -204,6 +224,21 @@ export default function GameView({ eventId }) {
         {game.demo ? "Simulated game for preview — not a real result." : "Live box score via ESPN · updates while you watch."}
       </p>
       <div className="btn-row">
+        {a.id && TOURNAMENT.teams[a.id] && (
+          <a className="btn" href={"#/t/" + a.id}>
+            {teamName(a)}
+          </a>
+        )}
+        {b.id && TOURNAMENT.teams[b.id] && (
+          <a className="btn" href={"#/t/" + b.id}>
+            {teamName(b)}
+          </a>
+        )}
+        {regionalSite && (
+          <a className="btn" href={"#/r/" + regionalSite.id}>
+            {regionalSite.city} Regional
+          </a>
+        )}
         <a className="btn" href="#/">
           ← Back to scores
         </a>
@@ -222,7 +257,7 @@ function ScoreSide({ team, name, lead, right }) {
       <div className={styles.bugInfo}>
         <span className={styles.bugName}>{name}</span>
       </div>
-      <span className={`${styles.bugScore} tnum ${lead ? styles.bugLead : ""}`}>{team.score == null ? "–" : team.score}</span>
+      <CountUp value={team.score} blank="–" className={`${styles.bugScore} tnum ${lead ? styles.bugLead : ""}`} />
     </div>
   );
 }

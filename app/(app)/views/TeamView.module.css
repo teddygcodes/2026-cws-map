@@ -63,6 +63,17 @@
   font-weight: 700;
   color: var(--text);
 }
+.statRank {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--data);
+  letter-spacing: 0.02em;
+}
+.statRankOf {
+  color: var(--faint);
+  font-weight: 600;
+}
 .players {
   width: 100%;
   border-collapse: collapse;

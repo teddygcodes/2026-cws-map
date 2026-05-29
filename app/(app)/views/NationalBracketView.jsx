@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useData } from "../providers/DataProvider";
 import { useLive } from "../providers/LiveProvider";
 import { useCrumbs } from "../CrumbsContext";
 import { superPairings } from "@/lib/live-parse";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
+import PageHeader from "../../components/PageHeader";
+import BracketShell from "../../components/BracketShell";
+import BracketModeToggle from "../../components/BracketModeToggle";
 import styles from "./BracketTree.module.css";
 
 export default function NationalBracketView() {
@@ -15,83 +18,103 @@ export default function NationalBracketView() {
   const team = (id) => TOURNAMENT.teams[id];
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Bracket" }], "#/");
+    set([{ text: "Home", href: "#/" }, { text: "Bracket" }], "#/");
   }, [set]);
 
   const isSuper = live.round === "super-regional";
   const cwsTeams = [];
 
-  let content;
+  // Recompute the regional pairings only when the live feed changes, not on
+  // every unrelated re-render.
+  const regionalPairs = useMemo(
+    () => (isSuper ? [] : superPairings(live.sites, TOURNAMENT.teams, live.live.bySite, resolveBracket)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isSuper, live.version, TOURNAMENT, resolveBracket]
+  );
+
+  let stages;
   if (isSuper) {
     const supers = live.sites.map((s) => {
       const champ = live.siteChampion(s);
       if (champ) cwsTeams.push(champ);
       return { site: s, champ };
     });
-    content = (
-      <div className={styles.cols}>
-        <div className={styles.col}>
-          <div className={styles.colTitle}>Super Regionals</div>
-          {supers.map(({ site, champ }) => (
-            <div className={styles.pair} key={site.id}>
-              <a className={styles.link} href={"#/r/" + site.id}>
-                {[0, 1].map((i) => (
-                  <TeamNode key={i} id={site.teams[i]} team={team} win={champ === site.teams[i]} />
-                ))}
-              </a>
-            </div>
-          ))}
-        </div>
-        <CwsColumn cwsTeams={cwsTeams} team={team} />
-      </div>
-    );
+    stages = [
+      { key: "regionals", title: "Regionals", short: "Regionals", content: <div className={styles.stageNote}>Regionals complete — the 8 super-regional matchups are set.</div> },
+      {
+        key: "supers",
+        title: "Super Regionals",
+        short: "Supers",
+        content: (
+          <>
+            {supers.map(({ site, champ }) => (
+              <div className={styles.pair} key={site.id}>
+                <a className={styles.link} href={"#/r/" + site.id}>
+                  {[0, 1].map((i) => (
+                    <TeamNode key={i} id={site.teams[i]} team={team} win={champ === site.teams[i]} />
+                  ))}
+                </a>
+              </div>
+            ))}
+          </>
+        ),
+      },
+      { key: "cws", title: "College World Series", short: "CWS", content: <CwsBlock cwsTeams={cwsTeams} team={team} /> },
+    ];
   } else {
-    const pairs = superPairings(live.sites, TOURNAMENT.teams, live.live.bySite, resolveBracket);
-    content = (
-      <div className={styles.cols}>
-        <div className={styles.col}>
-          <div className={styles.colTitle}>Regionals</div>
-          {pairs.map((p) => (
-            <div className={styles.pairGroup} key={p.seed}>
-              <RegionNode p={p.hi} team={team} />
-              <RegionNode p={p.lo} team={team} />
-            </div>
-          ))}
-        </div>
-        <div className={styles.col}>
-          <div className={styles.colTitle}>Super Regionals</div>
-          {pairs.map((p) => (
-            <div className={styles.superSlot} key={p.seed}>
-              <div className={styles.superNode}>
-                <span className={styles.superSeed}>{p.seed}</span>
-                <div>
-                  <div className={styles.superCity}>{p.hi.site.city} Super</div>
-                  <div className={styles.superFeed}>
-                    {p.hi.champ ? team(p.hi.champ).name : `Regional ${p.seed} winner`} vs{" "}
-                    {p.lo.champ ? team(p.lo.champ).name : `Regional ${17 - p.seed} winner`}
+    const pairs = regionalPairs;
+    stages = [
+      {
+        key: "regionals",
+        title: "Regionals",
+        short: "Regionals",
+        content: (
+          <>
+            {pairs.map((p) => (
+              <div className={styles.pairGroup} key={p.seed}>
+                <RegionNode p={p.hi} team={team} />
+                <RegionNode p={p.lo} team={team} />
+              </div>
+            ))}
+          </>
+        ),
+      },
+      {
+        key: "supers",
+        title: "Super Regionals",
+        short: "Supers",
+        content: (
+          <>
+            {pairs.map((p) => (
+              <div className={styles.superSlot} key={p.seed}>
+                <div className={styles.superNode}>
+                  <span className={styles.superSeed}>{p.seed}</span>
+                  <div>
+                    <div className={styles.superCity}>{p.hi.site.city} Super</div>
+                    <div className={styles.superFeed}>
+                      {p.hi.champ ? team(p.hi.champ).name : `Regional ${p.seed} winner`} vs{" "}
+                      {p.lo.champ ? team(p.lo.champ).name : `Regional ${17 - p.seed} winner`}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <CwsColumn cwsTeams={[]} team={team} />
-      </div>
-    );
+            ))}
+          </>
+        ),
+      },
+      { key: "cws", title: "College World Series", short: "CWS", content: <CwsBlock cwsTeams={[]} team={team} /> },
+    ];
   }
 
   return (
     <section className="view">
-      <h1 className="section-head">Road to Omaha</h1>
-      <div className="section-sub">
-        {isSuper ? "Super Regionals" : "16 regionals"} → 8 super regionals → College World Series
-      </div>
-      <div className={styles.actions}>
-        <a className="btn primary" href="#/picks">
-          📋 Make Your Picks →
-        </a>
-      </div>
-      <div className={styles.scroll}>{content}</div>
+      <PageHeader
+        kicker="National Bracket"
+        title="Road to Omaha"
+        sub={`${isSuper ? "Super Regionals" : "16 regionals"} → 8 super regionals → College World Series`}
+      />
+      <BracketModeToggle active="results" />
+      <BracketShell stages={stages} initial={isSuper ? "supers" : "regionals"} />
     </section>
   );
 }
@@ -127,16 +150,13 @@ function RegionNode({ p, team }) {
   );
 }
 
-function CwsColumn({ cwsTeams, team }) {
+function CwsBlock({ cwsTeams, team }) {
   return (
-    <div className={`${styles.col} ${styles.cwsCol}`}>
-      <div className={styles.colTitle}>College World Series</div>
-      <div className={styles.cws}>
-        <div className={styles.cwsTrophy}>🏆</div>
-        <div className={styles.cwsTitle}>Omaha</div>
-        <div className={styles.cwsSub}>
-          {cwsTeams.length ? cwsTeams.map((id) => team(id).name).join(" · ") : "8 super-regional winners · TBD"}
-        </div>
+    <div className={styles.cws}>
+      <div className={styles.cwsTrophy}>🏆</div>
+      <div className={styles.cwsTitle}>Omaha</div>
+      <div className={styles.cwsSub}>
+        {cwsTeams.length ? cwsTeams.map((id) => team(id).name).join(" · ") : "8 super-regional winners · TBD"}
       </div>
     </div>
   );

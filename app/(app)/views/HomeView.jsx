@@ -4,13 +4,18 @@ import { useEffect, useState } from "react";
 import { useData } from "../providers/DataProvider";
 import { useLive } from "../providers/LiveProvider";
 import { useCrumbs } from "../CrumbsContext";
-import { roundLabel, formatRecord } from "@/lib/format";
+import { roundLabel, formatRecord, dateLabel, timeAgo } from "@/lib/format";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
-import Scoreboard from "../../components/Scoreboard";
 import MatchupCard from "../../components/MatchupCard";
 import MapCanvas from "../../components/MapCanvas";
-import SeedBadge from "../../components/SeedBadge";
+import PageHeader from "../../components/PageHeader";
+import Segmented from "../../components/Segmented";
 import styles from "./HomeView.module.css";
+
+const HOME_MODES = [
+  { value: "hub", label: "Hub" },
+  { value: "map", label: "Map" },
+];
 
 export default function HomeView() {
   const { TOURNAMENT, SCHEDULES } = useData();
@@ -20,33 +25,29 @@ export default function HomeView() {
   const team = (id) => TOURNAMENT.teams[id];
 
   useEffect(() => {
-    set([{ text: "Map" }], null);
+    set([{ text: "Home" }], null);
   }, [set]);
 
   return (
     <section className="view">
-      <h1 className="section-head">Road to Omaha</h1>
-      <div className="section-sub">
-        {live.sites.length} {roundLabel(live.round).toLowerCase()}s · double-elimination · May 29 – June 1
+      <PageHeader
+        title="Road to Omaha"
+        sub={`${live.sites.length} ${roundLabel(live.round).toLowerCase()}s · double-elimination · May 29 – June 1`}
+      />
+
+      {/* Single games strip (replaces the old separate scoreboard ticker). */}
+      <TodaysGames SCHEDULES={SCHEDULES} live={live} team={team} />
+
+      <div className={styles.toggleRow}>
+        <Segmented options={HOME_MODES} value={mode} onChange={setMode} ariaLabel="Home layout" />
       </div>
 
-      <Scoreboard />
-
-      <div className={styles.toggle}>
-        {["hub", "map", "list"].map((m) => (
-          <button key={m} className={`${styles.vt} ${mode === m ? styles.vtOn : ""}`} onClick={() => setMode(m)} data-mode={m}>
-            {m === "hub" ? "Hub" : m === "map" ? "Map" : "List"}
-          </button>
-        ))}
-      </div>
-
-      {mode === "map" && <MapCanvas />}
-
-      {mode === "list" && <SiteList sites={sortSites(live.sites, team)} team={team} live={live} />}
+      {/* Kept mounted (lazy-inits on first show) so toggling away and back
+          doesn't re-initialize Leaflet. */}
+      <MapCanvas visible={mode === "map"} />
 
       {mode === "hub" && (
         <>
-          <Hero SCHEDULES={SCHEDULES} live={live} />
           <div className="panel-title">{roundLabel(live.round)} Sites</div>
           <div className={styles.grid}>
             {sortSites(live.sites, team).map((s) => (
@@ -67,32 +68,42 @@ function sortSites(sites, team) {
   });
 }
 
-function Hero({ SCHEDULES, live }) {
-  // Live games first; otherwise the next scheduled Friday matchups so the front
-  // door always feels alive. Built only from real feed + published schedule.
+function TodaysGames({ SCHEDULES, live, team }) {
+  // The single games strip: live/today's games (or the marquee Friday matchups
+  // pre-tournament), the live heartbeat, the Simulate control, and a link to the
+  // full Pick'em slate. Built only from the real feed + published schedule.
   let cards = [];
+  let heading;
   const L = live.live;
   if (L.list.length) {
-    cards = L.list.slice(0, 6).map((g) => ({
-      a: g.comps[0].id,
-      b: g.comps[1].id,
-      state: g.state,
-      detail: g.detail,
-      startMs: Date.parse(g.date) || null,
-      scoreA: g.comps[0].score,
-      scoreB: g.comps[1].score,
-      odds: g.odds,
-      label: "Live",
-    }));
+    heading = L.list.some((g) => g.state === "in") ? "Live Now" : "Today's Games";
+    cards = L.list
+      .slice()
+      .sort((a, b) => (a.state === "in" ? -1 : 0) - (b.state === "in" ? -1 : 0) || (Date.parse(a.date) || 0) - (Date.parse(b.date) || 0))
+      .slice(0, 8)
+      .map((g) => ({
+        a: g.comps[0].id,
+        b: g.comps[1].id,
+        state: g.state,
+        detail: g.detail,
+        startMs: Date.parse(g.date) || null,
+        scoreA: g.comps[0].score,
+        scoreB: g.comps[1].score,
+        odds: g.odds,
+        label: "Live",
+      }));
   } else {
+    heading = "Featured Friday Matchups";
     const upcoming = [];
     live.sites.forEach((s) => {
+      const seed = team(s.hostTeamId).seed == null ? 99 : team(s.hostTeamId).seed;
       (SCHEDULES[s.id] || []).forEach((gm) => {
         upcoming.push({
           a: gm.a[0],
           b: gm.b[0],
           aSeed: gm.a[1],
           bSeed: gm.b[1],
+          seed,
           state: "pre",
           detail: "Fri " + gm.time + " ET",
           tv: gm.tv,
@@ -101,34 +112,79 @@ function Hero({ SCHEDULES, live }) {
         });
       });
     });
-    cards = upcoming.slice(0, 6);
+    upcoming.sort((a, b) => a.seed - b.seed); // biggest games first
+    cards = upcoming.slice(0, 8);
   }
-  if (!cards.length) return null;
+
+  // Surface the clearly-labeled SIM game alongside the real ones when running.
+  if (L.demo) {
+    cards = [
+      {
+        a: L.demo.comps[0].id,
+        b: L.demo.comps[1].id,
+        state: L.demo.state,
+        detail: L.demo.detail,
+        scoreA: L.demo.comps[0].score,
+        scoreB: L.demo.comps[1].score,
+        label: "SIM",
+      },
+      ...cards,
+    ];
+  }
+
+  const liveCount = L.list.filter((g) => g.state === "in").length + (L.demo ? 1 : 0);
+  const meta = !L.updated
+    ? "Loading scores…"
+    : `${L.activeDate ? dateLabel(L.activeDate) : ""}${liveCount ? " · " + liveCount + " live" : ""} · updated ${timeAgo(L.updated)}`;
 
   return (
-    <>
-      <div className="panel-title">Today on the Road to Omaha</div>
-      <div className={styles.heroStrip}>
-        {cards.map((c, i) => (
-          <div key={i} className={styles.heroCard}>
-            <MatchupCard
-              a={c.a}
-              b={c.b}
-              aSeed={c.aSeed}
-              bSeed={c.bSeed}
-              label={c.label}
-              state={c.state}
-              detail={c.detail}
-              startMs={c.startMs}
-              scoreA={c.scoreA}
-              scoreB={c.scoreB}
-              odds={c.odds}
-              compareHref={"#/vs/" + c.a + "/" + c.b}
-            />
-          </div>
-        ))}
+    <div className={styles.games} data-testid="scoreboard">
+      <div className={styles.gamesHead}>
+        <div className={styles.gamesHeadL}>
+          <span className={styles.gamesTitle}>
+            {liveCount > 0 && <span className={styles.dot} />}
+            {heading}
+          </span>
+          <span className={styles.gamesMeta}>{meta}</span>
+        </div>
+        <div className={styles.gamesHeadR}>
+          <button
+            className={styles.simBtn}
+            onClick={() => (L.demo ? live.stopDemo() : live.startDemo())}
+            data-demo={L.demo ? "stop" : "start"}
+          >
+            {L.demo ? "■ Stop demo" : "▶ Simulate a live game"}
+          </button>
+          <a className={styles.seeAll} href="#/schedule">
+            Full schedule →
+          </a>
+        </div>
       </div>
-    </>
+      {cards.length ? (
+        <div className={styles.heroStrip}>
+          {cards.map((c, i) => (
+            <div key={i} className={styles.heroCard}>
+              <MatchupCard
+                a={c.a}
+                b={c.b}
+                aSeed={c.aSeed}
+                bSeed={c.bSeed}
+                label={c.label}
+                state={c.state}
+                detail={c.detail}
+                startMs={c.startMs}
+                scoreA={c.scoreA}
+                scoreB={c.scoreB}
+                odds={c.odds}
+                compareHref={"#/vs/" + c.a + "/" + c.b}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className={styles.gamesEmpty}>No games yet — first pitch Friday, May 29. Scores appear here automatically.</div>
+      )}
+    </div>
   );
 }
 
@@ -151,7 +207,7 @@ function RegionalCard({ site, team, live }) {
         )}
       </div>
       <div className={styles.cardHost}>
-        {host.name} · {host.conference}
+        {host.name} · {host.conference} · <span className="tnum">{formatRecord(host.record) || "TBD"}</span>
       </div>
       <div className={styles.monos}>
         {site.teams.map((id) => {
@@ -164,37 +220,5 @@ function RegionalCard({ site, team, live }) {
         })}
       </div>
     </a>
-  );
-}
-
-function SiteList({ sites, team, live }) {
-  return (
-    <div className={styles.siteList} data-testid="site-list">
-      {sites.map((s) => {
-        const host = team(s.hostTeamId);
-        const champId = live.siteChampion(s);
-        const isLive = live.siteIsLive(s);
-        return (
-          <a key={s.id} className={styles.siteRow} href={"#/r/" + s.id} data-testid="site-row">
-            <SeedBadge national={host.seed != null ? host.seed : undefined} size="sm" />
-            <div className={styles.srMain}>
-              <div className={styles.srCity}>
-                {s.city}
-                {champId && <span className={styles.srChamp}>★</span>}
-              </div>
-              <div className={styles.srHost}>
-                {host.name} · {host.conference}
-              </div>
-            </div>
-            {isLive && (
-              <span className={styles.srLive}>
-                <span className={styles.dot} /> Live
-              </span>
-            )}
-            <span className={`${styles.srRec} tnum`}>{formatRecord(host.record) || "TBD"}</span>
-          </a>
-        );
-      })}
-    </div>
   );
 }

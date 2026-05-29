@@ -6,7 +6,7 @@ import Breadcrumbs from "./Breadcrumbs";
 import { useGamePicks } from "../(app)/providers/GamePicksProvider";
 import styles from "./Masthead.module.css";
 
-export default function Masthead({ session, hash }) {
+export default function Masthead({ session, hash, prevHash }) {
   const { localRecord } = useGamePicks();
   const rec = localRecord();
   const hasRec = rec.decided > 0;
@@ -31,7 +31,7 @@ export default function Masthead({ session, hash }) {
       </div>
 
       <div className={styles.navRow}>
-        <PrimaryNav hash={hash} />
+        <PrimaryNav hash={hash} prevHash={prevHash} />
       </div>
       <div className={styles.crumbRow}>
         <Breadcrumbs />

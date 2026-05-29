@@ -63,10 +63,12 @@
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  transition: border-color var(--dur) var(--ease);
+  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 .row:hover {
   border-color: var(--line-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--elev-2);
 }
 .code {
   font-family: var(--font-mono);
@@ -93,29 +95,21 @@
   border-radius: var(--radius);
 }
 .subToggle {
-  display: inline-flex;
-  background: var(--surface-2);
+  margin-bottom: var(--space-4);
+}
+.skel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--surface-1);
   border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-  padding: 3px;
-  margin-bottom: 14px;
+  border-radius: var(--radius);
+  padding: var(--space-4);
 }
-.vt {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 7px 20px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-}
-.vtOn {
-  background: var(--surface-3);
-  color: var(--text);
+.skelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 .bar {
   display: flex;

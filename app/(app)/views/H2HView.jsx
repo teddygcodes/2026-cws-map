@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useData } from "../providers/DataProvider";
 import { usePicks } from "../providers/PicksProvider";
 import { useCrumbs } from "../CrumbsContext";
+import PageHeader from "../../components/PageHeader";
 import styles from "./H2HView.module.css";
 
 export default function H2HView({ a, b }) {
@@ -14,7 +15,7 @@ export default function H2HView({ a, b }) {
   const nm = (id) => (id ? team(id).name : "—");
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "Head-to-Head" }], "#/bracket");
+    set([{ text: "Home", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "Head-to-Head" }], "#/bracket");
   }, [set]);
 
   const pa = decode(a);
@@ -46,8 +47,7 @@ export default function H2HView({ a, b }) {
 
   return (
     <section className="view">
-      <h1 className="section-head">Head-to-Head</h1>
-      <div className="section-sub">Your bracket vs. a friend&apos;s · ✓ marks the correct pick once a result is in</div>
+      <PageHeader kicker="Bracket Challenge" title="Head-to-Head" sub="Your bracket vs. a friend's · ✓ marks the correct pick once a result is in" />
       <div className="unofficial-banner">⚠ Predictions only — unofficial, not real results.</div>
 
       <table className={styles.table} data-testid="h2h-table">

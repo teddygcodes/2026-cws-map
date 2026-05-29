@@ -6,8 +6,8 @@ import styles from "./PrimaryNav.module.css";
 
 /** Desktop: premium broadcast tabs under the masthead. Hidden on mobile (the
     BottomTabBar takes over there). */
-export default function PrimaryNav({ hash }) {
-  const active = activeNavKey(hash);
+export default function PrimaryNav({ hash, prevHash }) {
+  const active = activeNavKey(hash, prevHash);
   return (
     <nav className={styles.nav} aria-label="Primary">
       {NAV_ITEMS.map((it) => (

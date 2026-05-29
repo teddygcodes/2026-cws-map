@@ -10,7 +10,14 @@ import { scoreFor, eventWinner } from "@/lib/live-parse";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
 import SeedBadge from "../../components/SeedBadge";
 import LiveBadge from "../../components/LiveBadge";
+import PageHeader from "../../components/PageHeader";
+import Segmented from "../../components/Segmented";
 import styles from "./RegionalView.module.css";
+
+const REG_MODES = [
+  { value: "list", label: "List" },
+  { value: "bracket", label: "Bracket" },
+];
 
 const DAY_OF = { 1: "Friday, May 29", 2: "Friday, May 29", 3: "Saturday, May 30", 4: "Saturday, May 30", 5: "Sunday, May 31", 6: "Sunday, May 31", 7: "Monday, June 1" };
 const NOTE_OF = { 3: "Game 1 loser vs Game 2 loser", 4: "Game 1 winner vs Game 2 winner", 5: "Game 3 winner vs Game 4 loser", 6: "Game 4 winner vs Game 5 winner", 7: "Game 6 rematch (if necessary)" };
@@ -31,7 +38,7 @@ export default function RegionalView({ siteId }) {
       navigate("#/");
       return;
     }
-    set([{ text: "Map", href: "#/" }, { text: site.city + " " + roundLabel(live.round) }], "#/");
+    set([{ text: "Home", href: "#/" }, { text: site.city + " " + roundLabel(live.round) }], "#/");
   }, [site, set, navigate, live.round]);
 
   if (!site) return null;
@@ -44,13 +51,11 @@ export default function RegionalView({ siteId }) {
 
   return (
     <section className="view">
-      <h1 className="section-head">
-        {site.city} {roundLabel(live.round)}
-      </h1>
-      <div className="section-sub">
-        Host: {host.name}
-        {host.seed != null ? " · National No. " + host.seed : ""} · {host.stadium.name}
-      </div>
+      <PageHeader
+        kicker={roundLabel(live.round)}
+        title={site.city}
+        sub={`Host: ${host.name}${host.seed != null ? " · National No. " + host.seed : ""} · ${host.stadium.name}`}
+      />
 
       {/* Seeded field */}
       <div className={styles.field}>
@@ -88,16 +93,7 @@ export default function RegionalView({ siteId }) {
 
       {/* Controls */}
       <div className={styles.controls}>
-        {!isSuper && (
-          <div className={styles.toggle}>
-            <button className={`${styles.vt} ${mode === "list" ? styles.vtOn : ""}`} onClick={() => setMode("list")}>
-              List
-            </button>
-            <button className={`${styles.vt} ${mode === "bracket" ? styles.vtOn : ""}`} onClick={() => setMode("bracket")}>
-              Bracket
-            </button>
-          </div>
-        )}
+        {!isSuper && <Segmented options={REG_MODES} value={mode} onChange={setMode} ariaLabel="Regional view" />}
         <button
           className={styles.simBtn}
           onClick={() => (simming ? live.stopRegionalSim() : live.startRegionalSim(site.id))}
@@ -122,8 +118,31 @@ function pairKey(a, b) {
 }
 
 function GameRow({ num, when, tv, children, live: isLive, tbd, onClick }) {
+  // Guard nested team-link clicks so they don't bubble to the row's nav.
+  const handleClick = onClick
+    ? (e) => {
+        if (e.target.closest("a")) return;
+        onClick(e);
+      }
+    : undefined;
+  const handleKey = onClick
+    ? (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick(e);
+        }
+      }
+    : undefined;
   return (
-    <div className={`${styles.gameRow} ${isLive ? styles.grLive : ""} ${tbd ? styles.grTbd : ""} ${onClick ? styles.grClick : ""}`} onClick={onClick} data-testid="game-row">
+    <div
+      className={`${styles.gameRow} ${isLive ? styles.grLive : ""} ${tbd ? styles.grTbd : ""} ${onClick ? styles.grClick : ""}`}
+      onClick={handleClick}
+      onKeyDown={handleKey}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `Open ${num}` : undefined}
+      data-testid="game-row"
+    >
       <div className={styles.gameNum}>{num}</div>
       <div className={styles.gameMatch}>{children}</div>
       <div className={styles.gameWhen}>
@@ -280,7 +299,15 @@ function GameCard({ slot, d1byPair, team, navigate }) {
   };
 
   return (
-    <div className={`${styles.bgCard} ${ELIM_OF[g] ? styles.bgElim : ""} ${onClick ? styles.grClick : ""}`} onClick={onClick} data-testid="bg-card">
+    <div
+      className={`${styles.bgCard} ${ELIM_OF[g] ? styles.bgElim : ""} ${onClick ? styles.grClick : ""}`}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(e); } } : undefined}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `Open game ${g}` : undefined}
+      data-testid="bg-card"
+    >
       <div className={styles.bgH}>
         G{g}
         {ELIM_OF[g] ? " · Elim" : ""}

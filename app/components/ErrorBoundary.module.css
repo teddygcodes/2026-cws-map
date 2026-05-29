@@ -1,0 +1,22 @@
+.wrap {
+  max-width: 460px;
+  margin: var(--space-8) auto;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-7) var(--space-5);
+  box-shadow: var(--elev-2);
+}
+.icon {
+  font-size: 34px;
+  margin-bottom: var(--space-3);
+}
+.msg {
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: var(--space-2);
+}
+.wrap :global(.btn-row) {
+  justify-content: center;
+}

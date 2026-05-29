@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useData } from "../providers/DataProvider";
 import { useCrumbs } from "../CrumbsContext";
 import { useRoute } from "../RouteContext";
 import { roundLabel, seasonSummary, formatRecord } from "@/lib/format";
 import { teamColor } from "@/lib/team-colors";
+import { fieldRanks } from "@/lib/ranks";
 import SeedBadge from "../../components/SeedBadge";
 import Tbd from "../../components/Tbd";
 import styles from "./TeamView.module.css";
@@ -22,24 +23,29 @@ export default function TeamView({ teamId }) {
       navigate("#/");
       return;
     }
-    const crumbs = [{ text: "Map", href: "#/" }];
+    const crumbs = [{ text: "Home", href: "#/" }];
     if (site) crumbs.push({ text: site.city + " " + roundLabel(TOURNAMENT.round), href: "#/r/" + site.id });
     crumbs.push({ text: t.name });
     set(crumbs, site ? "#/r/" + site.id : "#/");
   }, [t, site, set, navigate, TOURNAMENT.round]);
 
+  // Rank of each comparable stat within the field (computed once per dataset).
+  const ranks = useMemo(() => fieldRanks(TOURNAMENT.teams), [TOURNAMENT]);
+
   if (!t) return null;
   const c = teamColor(teamId);
+  const myRank = ranks[teamId] || {};
 
+  // [label, value, rankKey] — rankKey null means "no field rank for this stat".
   const stats = [
-    ["Record", formatRecord(t.record)],
-    ["RPI", t.rpi],
-    ["Nat. Seed", t.seed != null ? "No. " + t.seed : null],
-    ["Runs", t.stats.runs],
-    ["Runs Allowed", t.stats.runsAllowed],
-    ["Batting Avg", t.stats.battingAvg],
-    ["Team ERA", t.stats.era],
-    ["Strength of Sched.", t.stats.sos],
+    ["Record", formatRecord(t.record), "recordPct"],
+    ["RPI", t.rpi, "rpi"],
+    ["Nat. Seed", t.seed != null ? "No. " + t.seed : null, null],
+    ["Runs", t.stats.runs, "runs"],
+    ["Runs Allowed", t.stats.runsAllowed, "runsAllowed"],
+    ["Batting Avg", t.stats.battingAvg, "battingAvg"],
+    ["Team ERA", t.stats.era, "era"],
+    ["Strength of Sched.", t.stats.sos, "sos"],
   ];
 
   return (
@@ -48,7 +54,9 @@ export default function TeamView({ teamId }) {
         <div className={styles.heroAccent} aria-hidden="true" />
         <SeedBadge national={t.seed != null ? t.seed : undefined} size="lg" />
         <div className={styles.heroBody}>
-          <h1 className={styles.name}>{t.name}</h1>
+          <h1 className={styles.name} tabIndex={-1} data-view-heading>
+            {t.name}
+          </h1>
           <div className={styles.sub}>
             {t.conference}
             {site ? " · " + site.city + " " + roundLabel(TOURNAMENT.round) : ""}
@@ -64,14 +72,22 @@ export default function TeamView({ teamId }) {
 
       <div className="panel-title">Team Stats</div>
       <div className={styles.statGrid} data-testid="team-stats">
-        {stats.map(([label, val]) => (
-          <div key={label} className={`panel ${styles.stat}`}>
-            <div className={styles.statLbl}>{label}</div>
-            <div className={`${styles.statVal} tnum`}>
-              <Tbd value={val} />
+        {stats.map(([label, val, rankKey]) => {
+          const r = rankKey && myRank[rankKey];
+          return (
+            <div key={label} className={`panel ${styles.stat}`}>
+              <div className={styles.statLbl}>{label}</div>
+              <div className={`${styles.statVal} tnum`}>
+                <Tbd value={val} />
+              </div>
+              {r && (
+                <div className={`${styles.statRank} tnum`}>
+                  #{r.rank} <span className={styles.statRankOf}>of {r.of}</span>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="panel-title">Key Players</div>

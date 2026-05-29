@@ -13,12 +13,14 @@
   border: 1px solid var(--line);
   border-left: 3px solid var(--team);
   border-radius: var(--radius);
-  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 .teamCard:hover {
   background: var(--surface-2);
   border-color: var(--line-strong);
   border-left-color: var(--team);
+  transform: translateY(-2px);
+  box-shadow: var(--elev-2);
 }
 .tcMono {
   width: 42px;
@@ -30,6 +32,7 @@
   font-family: var(--font-display);
   font-size: 17px;
   flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 .tcBody {
   flex: 1;
@@ -87,31 +90,6 @@
   gap: 12px;
   margin: 18px 0 14px;
   flex-wrap: wrap;
-}
-.toggle {
-  display: inline-flex;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-  padding: 3px;
-}
-.vt {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 7px 16px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
-}
-.vtOn {
-  background: var(--surface-3);
-  color: var(--text);
 }
 .simBtn {
   background: var(--surface-2);
@@ -262,18 +240,42 @@
 }
 .bkRounds {
   display: flex;
-  gap: 18px;
+  gap: var(--space-6);
   align-items: center;
-  overflow-x: auto;
 }
 .bkCol {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
   min-width: 200px;
 }
 .bkMid {
   justify-content: center;
+  position: relative;
+}
+/* desktop: a short connector suggesting the feeder games advance into this one */
+@media (min-width: 761px) {
+  .bkMid::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--space-6) / -2 - 1px);
+    top: 50%;
+    width: calc(var(--space-6) / 2);
+    height: 1px;
+    background: var(--line-strong);
+  }
+}
+/* mobile: stack the rounds vertically instead of horizontal-scroll/clip */
+@media (max-width: 760px) {
+  .bkRounds {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+  .bkCol,
+  .bgCard {
+    min-width: 0;
+  }
 }
 .bgCard {
   background: var(--surface-2);

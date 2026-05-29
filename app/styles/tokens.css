@@ -15,8 +15,12 @@
 
   /* faint top highlight + soft shadow for "glass on a dark stage" */
   --card-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 40%);
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.45);
-  --shadow-pop: 0 16px 48px rgba(0, 0, 0, 0.6);
+  /* Elevation ladder — one coherent shadow language across every surface. */
+  --elev-1: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 4px 14px rgba(0, 0, 0, 0.35);
+  --elev-2: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.45);
+  --elev-3: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-card: var(--elev-2); /* aliases — prefer --elev-* in new code */
+  --shadow-pop: var(--elev-3);
 
   /* ---- Brand + semantic accents ---- */
   --accent: #e8202a;        /* Broadcast Red — live, brand, primary CTAs */
@@ -56,6 +60,16 @@
   --dur-fast: 120ms;
   --dur: 180ms;
   --dur-slow: 240ms;
+
+  /* ---- Spacing scale (unifies vertical rhythm + density everywhere) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
 
   /* ---- Layout ---- */
   --tab-h: 60px;            /* mobile bottom tab bar height */

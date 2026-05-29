@@ -31,15 +31,12 @@ try {
   await page.waitForSelector('[data-testid="scoreboard"]', { timeout: 20000 });
   ok("TOURNAMENT data loaded (64 teams) + app boots");
 
-  // HOME — hub: 16 regional cards; list: 16 rows; map: 16 markers
+  // HOME — hub: 16 regional cards; map: 16 markers
   await page.waitForSelector('[data-testid="regional-card"]', { timeout: 10000 });
   if ((await count('[data-testid="regional-card"]')) !== 16) throw new Error("expected 16 regional cards");
-  await page.evaluate(() => document.querySelector('button[data-mode="list"]').click());
-  await page.waitForSelector('[data-testid="site-row"]', { timeout: 10000 });
-  if ((await count('[data-testid="site-row"]')) !== 16) throw new Error("expected 16 site rows");
-  await page.evaluate(() => document.querySelector('button[data-mode="map"]').click());
-  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 16, { timeout: 15000 });
-  ok("home: 16 regional cards, 16 list rows, 16 map markers");
+  await page.evaluate(() => document.querySelector('[data-seg="map"]').click());
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="map-pin"]').length === 16, { timeout: 15000 });
+  ok("home: 16 regional cards + 16 map markers");
 
   // REGIONAL — 4 teams, >=7 schedule rows, bracket diagram >=7 cards
   await go("#/r/athens");
@@ -126,7 +123,7 @@ try {
   await go("#/league/ABC123");
   await page.waitForSelector('[data-testid="standings"] tbody tr', { timeout: 10000 });
   if ((await count('[data-testid="standings"] tbody tr')) !== 2) throw new Error("expected 2 standings rows");
-  await page.evaluate(() => document.querySelector('[data-leaguetab="daily"]').click());
+  await page.evaluate(() => document.querySelector('[data-seg="daily"]').click());
   await page.waitForFunction(() => document.querySelectorAll('[data-testid="standings"] tbody tr').length === 2, { timeout: 10000 });
   await page.unroute("**/league**");
   await page.evaluate(() => window.__leagues.setApi(""));
@@ -139,6 +136,21 @@ try {
   const gpCount = await page.evaluate(() => Object.keys(window.__gamepicks.get().picks).length);
   if (gpCount < 1) throw new Error("game pick did not persist");
   ok("daily pick'em: open games render, pick round-trips");
+
+  // RANKINGS — the 16 national seeds
+  await go("#/rankings");
+  await page.waitForSelector('[data-testid="rankings"] tbody tr', { timeout: 10000 });
+  if ((await count('[data-testid="rankings"] tbody tr')) !== 16) throw new Error("expected 16 seeded rows");
+  ok("rankings: 16 national seeds");
+
+  // SCHEDULE — day tabs; selecting Friday lists its 32 matchups in pitch order
+  await go("#/schedule");
+  await page.waitForSelector('[data-testid="schedule-tab"]', { timeout: 10000 });
+  if ((await count('[data-testid="schedule-tab"]')) < 4) throw new Error("expected >=4 day tabs");
+  await page.evaluate(() => document.querySelector('[data-testid="schedule-tab"][data-day="fri"]').click());
+  await page.waitForSelector('[data-testid="schedule-row"]', { timeout: 10000 });
+  if ((await count('[data-testid="schedule-row"]')) !== 32) throw new Error("expected 32 Friday game rows");
+  ok("schedule: day tabs + Friday's 32 games in pitch order");
 
   // LIVE GAME — SIM situation strip (count/outs/diamond)
   await go("#/");
@@ -156,8 +168,8 @@ try {
   await page.waitForFunction(() => window.TOURNAMENT.round === "super-regional", { timeout: 10000 });
   if ((await page.evaluate(() => window.TOURNAMENT.sites.length)) !== 8) throw new Error("expected 8 super-regional sites");
   await go("#/");
-  await page.evaluate(() => document.querySelector('button[data-mode="map"]')?.click());
-  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 8, { timeout: 10000 });
+  await page.evaluate(() => document.querySelector('[data-seg="map"]')?.click());
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="map-pin"]').length === 8, { timeout: 10000 });
   ok("bracket resolves: 16 regionals → 8 super-regionals");
 } catch (e) {
   failed = e;

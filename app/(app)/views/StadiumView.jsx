@@ -6,6 +6,7 @@ import { useCrumbs } from "../CrumbsContext";
 import { useRoute } from "../RouteContext";
 import { roundLabel, seasonSummary } from "@/lib/format";
 import Tbd from "../../components/Tbd";
+import PageHeader from "../../components/PageHeader";
 import styles from "./StadiumView.module.css";
 
 export default function StadiumView({ teamId }) {
@@ -21,7 +22,7 @@ export default function StadiumView({ teamId }) {
       navigate("#/");
       return;
     }
-    const crumbs = [{ text: "Map", href: "#/" }];
+    const crumbs = [{ text: "Home", href: "#/" }];
     if (site) crumbs.push({ text: site.city + " " + roundLabel(TOURNAMENT.round), href: "#/r/" + site.id });
     crumbs.push({ text: t.name, href: "#/t/" + teamId });
     crumbs.push({ text: st.name });
@@ -33,10 +34,7 @@ export default function StadiumView({ teamId }) {
 
   return (
     <section className="view">
-      <h1 className="section-head">{st.name}</h1>
-      <div className="section-sub">
-        Home of {t.name} · {t.conference}
-      </div>
+      <PageHeader kicker="Ballpark" title={st.name} sub={`Home of ${t.name} · ${t.conference}`} />
 
       <div className={styles.wrap}>
         <div>

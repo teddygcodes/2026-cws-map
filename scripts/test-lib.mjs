@@ -21,6 +21,7 @@ import {
 } from "../lib/picks.js";
 import { enumerateGames, gameClass, gamesTruth, scoreGames, scoreLocalGames } from "../lib/games.js";
 import { impliedProbFromMoneyline, formatRecord, isMissing } from "../lib/format.js";
+import { fieldRanks } from "../lib/ranks.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 function loadInSandbox(file) {
@@ -119,6 +120,21 @@ eq("formatRecord missing", formatRecord(null), null);
 ok("isMissing catches TODO + empty + null", isMissing("TODO") && isMissing("") && isMissing(null) && !isMissing("ok"));
 ok("implied prob of -180 ≈ 0.643", Math.abs(impliedProbFromMoneyline("-180") - 0.6428) < 0.01);
 ok("implied prob of +140 ≈ 0.417", Math.abs(impliedProbFromMoneyline("+140") - 0.4167) < 0.01);
+
+// ---- fieldRanks ----
+const ranks = fieldRanks(TOURNAMENT.teams);
+const teamsArr = Object.entries(TOURNAMENT.teams);
+// RPI is "low is better": the #1-ranked team must have the minimum RPI.
+const rpiTeams = teamsArr.filter(([, t]) => typeof t.rpi === "number");
+const minRpi = Math.min(...rpiTeams.map(([, t]) => t.rpi));
+const rpiLeader = teamsArr.find(([id]) => ranks[id].rpi && ranks[id].rpi.rank === 1);
+ok("rpi rank #1 has the minimum RPI", rpiLeader && TOURNAMENT.teams[rpiLeader[0]].rpi === minRpi);
+ok("rpi 'of' equals the count of teams with an RPI", rpiLeader && ranks[rpiLeader[0]].rpi.of === rpiTeams.length);
+// runs is "high is better": rank #1 has the max runs.
+const runTeams = teamsArr.filter(([, t]) => t.stats && t.stats.runs != null);
+const maxRuns = Math.max(...runTeams.map(([, t]) => t.stats.runs));
+const runLeader = teamsArr.find(([id]) => ranks[id].runs && ranks[id].runs.rank === 1);
+ok("runs rank #1 has the most runs", runLeader && TOURNAMENT.teams[runLeader[0]].stats.runs === maxRuns);
 
 console.log(`\n${fail ? "✗" : "✓"} lib modules: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

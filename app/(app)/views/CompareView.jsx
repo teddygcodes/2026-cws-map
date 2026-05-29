@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useData } from "../providers/DataProvider";
 import { useLive } from "../providers/LiveProvider";
 import { useCrumbs } from "../CrumbsContext";
@@ -11,6 +11,7 @@ import OddsChip from "../../components/OddsChip";
 import ProbBar from "../../components/ProbBar";
 import StatRow from "../../components/StatRow";
 import Tbd from "../../components/Tbd";
+import PageHeader from "../../components/PageHeader";
 import styles from "./CompareView.module.css";
 
 export default function CompareView({ idA, idB }) {
@@ -29,7 +30,7 @@ export default function CompareView({ idA, idB }) {
       return;
     }
     const fromGames = prevHash.indexOf("#/games") === 0;
-    const crumbs = [{ text: "Map", href: "#/" }];
+    const crumbs = [{ text: "Home", href: "#/" }];
     let back = "#/";
     if (fromGames) {
       crumbs.push({ text: "Daily Pick'em", href: "#/games" });
@@ -41,6 +42,10 @@ export default function CompareView({ idA, idB }) {
     crumbs.push({ text: a.name + " vs " + b.name });
     set(crumbs, back);
   }, [a, b, site, prevHash, set, navigate, TOURNAMENT.round]);
+
+  // Memoized so the 8-row build doesn't recompute on every 30s live re-render.
+  // (Declared before the early return to satisfy rules-of-hooks.)
+  const rows = useMemo(() => (a && b ? buildRows(a, b) : []), [a, b]);
 
   if (!a || !b) return null;
 
@@ -58,20 +63,21 @@ export default function CompareView({ idA, idB }) {
     });
   }
 
-  const rows = buildRows(a, b);
   const ia = od ? impliedProbFromMoneyline(od.byTeam[idA]) : null;
   const ib = od ? impliedProbFromMoneyline(od.byTeam[idB]) : null;
   const probs = ia != null && ib != null && ia + ib > 0 ? { a: ia / (ia + ib), b: ib / (ia + ib) } : null;
 
   return (
     <section className="view">
-      <h1 className="section-head">
-        {a.name} <span className={styles.vsWord}>vs</span> {b.name}
-      </h1>
-      <div className="section-sub">
-        {site ? site.city + " " + roundLabel(TOURNAMENT.round) : "Head-to-head"}
-        {gctx}
-      </div>
+      <PageHeader
+        kicker="Matchup"
+        title={
+          <>
+            {a.name} <span className={styles.vsWord}>vs</span> {b.name}
+          </>
+        }
+        sub={(site ? site.city + " " + roundLabel(TOURNAMENT.round) : "Head-to-head") + gctx}
+      />
 
       {/* Head-to-head hero */}
       <div className={styles.hero}>
@@ -115,7 +121,12 @@ export default function CompareView({ idA, idB }) {
 
       {/* Stat comparison */}
       <div className="panel-title">Head-to-Head Stats</div>
-      <div className={`panel ${styles.stats}`} data-testid="cmp-table">
+      <div className={`panel ${styles.stats}`} data-testid="cmp-table" role="table" aria-label="Head-to-head statistics">
+        <div className="sr-only" role="row">
+          <span role="columnheader">{a.name}</span>
+          <span role="columnheader">Statistic</span>
+          <span role="columnheader">{b.name}</span>
+        </div>
         {rows.map((r) => (
           <StatRow key={r.label} label={r.label} a={r.aDisp} b={r.bDisp} better={r.better} aFill={r.aFill} bFill={r.bFill} />
         ))}
@@ -189,16 +200,21 @@ function buildRows(a, b) {
     ["Strength of Sched.", a.stats.sos, b.stats.sos, num(a.stats.sos), num(b.stats.sos), "low"],
   ];
   return defs.map(([label, aRaw, bRaw, aN, bN, dir]) => {
+    // National Seed is a label, not a magnitude — highlight the higher seed but
+    // draw no proportional bar (a bar for "No.1 vs No.8" is misleading).
+    const noBar = label === "National Seed";
     let better = null;
     let aFill = 0;
     let bFill = 0;
     if (aN != null && bN != null) {
       if (aN !== bN) better = (dir === "high" ? aN > bN : aN < bN) ? "a" : "b";
-      const mn = Math.min(Math.abs(aN), Math.abs(bN));
-      const mx = Math.max(Math.abs(aN), Math.abs(bN)) || 1;
-      const r = mn / mx;
-      aFill = better === "a" ? 1 : better === "b" ? r : 0.6;
-      bFill = better === "b" ? 1 : better === "a" ? r : 0.6;
+      if (!noBar) {
+        const mn = Math.min(Math.abs(aN), Math.abs(bN));
+        const mx = Math.max(Math.abs(aN), Math.abs(bN)) || 1;
+        const r = mn / mx;
+        aFill = better === "a" ? 1 : better === "b" ? r : 0.6;
+        bFill = better === "b" ? 1 : better === "a" ? r : 0.6;
+      }
     }
     return {
       label,

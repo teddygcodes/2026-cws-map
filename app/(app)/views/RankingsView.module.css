@@ -1,0 +1,77 @@
+.toggleRow {
+  margin-bottom: var(--space-4);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.table th {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+.table th.teamCol,
+.table th.rank,
+.table th.confCol {
+  text-align: left;
+}
+.table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  text-align: right;
+  color: var(--muted);
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+.rank {
+  width: 44px;
+  text-align: left !important;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--text) !important;
+}
+.teamCol {
+  text-align: left !important;
+}
+.team {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  color: var(--text);
+}
+.team:hover .teamName {
+  color: var(--data);
+}
+.mono {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 11px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.confCol {
+  text-align: left !important;
+  font-size: 12px;
+}
+
+@media (max-width: 560px) {
+  .confCol {
+    display: none;
+  }
+}

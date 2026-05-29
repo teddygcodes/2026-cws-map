@@ -1,34 +1,10 @@
-.actions {
-  margin: 6px 0 18px;
-}
-.scroll {
-  overflow-x: auto;
-  padding-bottom: 12px;
-}
-.cols {
-  display: flex;
-  gap: 28px;
-  min-width: min-content;
-  align-items: stretch;
-}
-.col {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 240px;
-}
-.colTitle {
-  font-family: var(--font-ui);
-  font-weight: 800;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.stageNote {
   color: var(--muted);
-  position: sticky;
-  top: 0;
+  font-size: 13px;
+  padding: var(--space-2) 0;
 }
 
-/* a pair of regional nodes feeding one super — bracket connector */
+/* a pair of regional nodes feeding one super — bracket connector (desktop) */
 .pairGroup {
   display: flex;
   flex-direction: column;
@@ -62,6 +38,22 @@
   width: 14px;
   height: 1px;
   background: var(--line-strong);
+}
+
+/* On mobile the BracketShell stepper shows one stage at a time, so the
+   cross-column connectors would dangle — drop them and their padding. */
+@media (max-width: 760px) {
+  .pairGroup {
+    padding-right: 0;
+  }
+  .pairGroup::after,
+  .superSlot::before {
+    display: none;
+  }
+  .superSlot {
+    padding-left: 0;
+    min-height: 0;
+  }
 }
 
 .node {
@@ -98,6 +90,7 @@ a.node:hover {
   font-family: var(--font-display);
   font-size: 13px;
   flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 .nodeSeed {
   width: 26px;
