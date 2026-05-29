@@ -23,15 +23,19 @@
  */
 
 // ---- config ----------------------------------------------------------------
-// Vercel preview/prod origins are added once the project is created; placeholder
-// matches `*.vercel.app` is NOT used (CORS demands exact origins) — list each.
+// Exact prod origins + local dev. Vercel PREVIEW deploys use per-commit
+// *.vercel.app URLs that can't be enumerated, so they're matched by suffix in
+// isAllowedOrigin() below (non-sensitive public data, IP-rate-limited).
 const ALLOWED_ORIGINS = [
-  "https://teddygcodes.github.io",   // legacy Pages deploy (retire after Vercel cutover)
-  "http://localhost:4173",            // legacy smoke test (retire after pipeline cutover)
-  "http://127.0.0.1:4173",
+  "https://swishtd.com",              // production
+  "https://www.swishtd.com",
   "http://localhost:3000",            // Next dev (next dev default port)
   "http://127.0.0.1:3000",
 ];
+// Vercel preview deployments: https://<anything>.vercel.app
+function isAllowedOrigin(origin) {
+  return ALLOWED_ORIGINS.indexOf(origin) !== -1 || /^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.vercel\.app$/i.test(origin || "");
+}
 const MAX_MEMBERS_PER_LEAGUE = 200;
 const MAX_LEAGUES_PER_IP = 25;          // per rolling window (best-effort backstop)
 const IP_WINDOW_SECONDS = 86400;        // 24h
@@ -77,7 +81,7 @@ export function makeCode(n) {
 // ---- helpers ---------------------------------------------------------------
 function corsHeaders(origin) {
   var h = { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Origin" };
-  if (ALLOWED_ORIGINS.indexOf(origin) !== -1) {
+  if (isAllowedOrigin(origin)) {
     h["Access-Control-Allow-Origin"] = origin;
     h["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS";
     h["Access-Control-Allow-Headers"] = "Content-Type";
