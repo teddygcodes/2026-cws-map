@@ -31,7 +31,7 @@ function loadLeaflet() {
 }
 
 export default function MapCanvas({ visible = true }) {
-  const { TOURNAMENT } = useData();
+  const { TOURNAMENT, SCHEDULES } = useData();
   const live = useLive();
   const { navigate } = useRoute();
   const elRef = useRef(null);
@@ -107,13 +107,32 @@ export default function MapCanvas({ visible = true }) {
         popupAnchor: [0, -14],
       });
       const m = L.marker([st.lat, st.lng], { icon, title: s.city + " " + roundLabel(live.round) });
-      m.bindTooltip(
-        `<strong>${esc(s.city)}</strong><br>${esc(host.name)} (${host.seed != null ? "No. " + host.seed : "host"})` +
-          (champId ? `<br>🏆 ${esc(team(champId).name)}` : "") +
-          (isLive ? '<br><span style="color:#18C964">● Live now</span>' : ""),
-        { direction: "top", offset: [0, -12] }
-      );
-      m.on("click", () => navRef.current("#/r/" + s.id));
+      m.bindTooltip(`<strong>${esc(s.city)}</strong> · ${esc(host.name)}`, { direction: "top", offset: [0, -12] });
+      // Rich popover: the site's matchups + odds + a regional CTA (the map is a
+      // designed object, not just a link grid).
+      const ml = (od, id) =>
+        od && od.byTeam[id]
+          ? `<span class="${styles.popMl}${od.favoriteId === id ? " " + styles.popFav : ""}">${esc(od.byTeam[id])}</span>`
+          : "";
+      const gameLink = (a, b, when) => {
+        const od = live.oddsForPair(a, b);
+        return `<a class="${styles.popGame}" href="#/vs/${esc(a)}/${esc(b)}">
+          <span class="${styles.popRow}"><span class="${styles.popName}">${esc(team(a).name)}</span>${ml(od, a)}</span>
+          <span class="${styles.popRow}"><span class="${styles.popName}">${esc(team(b).name)}</span>${ml(od, b)}</span>
+          ${when ? `<span class="${styles.popWhen}">${esc(when)}</span>` : ""}
+        </a>`;
+      };
+      const sched = SCHEDULES[s.id] || [];
+      let gamesHtml = sched.map((gm) => gameLink(gm.a[0], gm.b[0], "Fri " + gm.time + " ET" + (gm.tv ? " · " + gm.tv : ""))).join("");
+      if (!gamesHtml && s.teams.length === 2) gamesHtml = gameLink(s.teams[0], s.teams[1], "Best of 3");
+      const html = `<div class="${styles.pop}">
+        <div class="${styles.popTitle}">${esc(s.city)} ${esc(roundLabel(live.round))}</div>
+        <div class="${styles.popHost}">${esc(host.name)}${host.seed != null ? " · No. " + host.seed : ""}${isLive ? ` · <span style="color:var(--up)">● Live</span>` : ""}</div>
+        ${champId ? `<div class="${styles.popChamp}">🏆 ${esc(team(champId).name)} advances</div>` : ""}
+        ${gamesHtml || `<div class="${styles.popEmpty}">Matchups TBD</div>`}
+        <a class="${styles.popCta}" href="#/r/${esc(s.id)}">View regional →</a>
+      </div>`;
+      m.bindPopup(html, { maxWidth: 300, className: styles.popup });
       m.addTo(layerRef.current);
       bounds.push([st.lat, st.lng]);
     });
