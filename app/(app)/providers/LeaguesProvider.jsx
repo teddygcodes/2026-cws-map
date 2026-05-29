@@ -138,22 +138,35 @@ export function LeaguesProvider({ children }) {
 
   const joinedLeague = useCallback((code) => leagues.joined.find((j) => j.code === code) || null, [leagues]);
 
+  // create/join now register a server-side member entry IMMEDIATELY (with the
+  // caller's current bracket code) so you appear in standings the moment you
+  // join — no separate "Submit" step required. Uses the freshly-minted memberId
+  // directly to avoid a stale-closure race. bracketCode is optional; when given
+  // it must be a valid 26-char code (the empty bracket qualifies, so brand-new
+  // users still show up with a 0 score).
   const create = useCallback(
-    (name, displayName) =>
+    (name, displayName, bracketCode) =>
       request("POST", "/league", { name: name || "League" }).then((r) => {
-        save({ ...leagues, joined: [...leagues.joined, { code: r.code, memberId: newMemberId(), displayName: displayName.slice(0, 24) }] });
-        return r.code;
+        const memberId = newMemberId();
+        const dn = (displayName || "Player").slice(0, 24);
+        save({ ...leagues, joined: [...leagues.joined, { code: r.code, memberId, displayName: dn }] });
+        if (!bracketCode) return r.code;
+        // Await the member registration so the next standings fetch includes you.
+        return request("POST", "/league/" + encodeURIComponent(r.code) + "/member", { memberId, displayName: dn, bracket: bracketCode }).then(() => r.code, () => r.code);
       }),
     [request, save, leagues]
   );
 
   const join = useCallback(
-    (code, displayName) =>
+    (code, displayName, bracketCode) =>
       request("GET", "/league/" + encodeURIComponent(code)).then(() => {
-        if (!joinedLeague(code)) {
-          save({ ...leagues, joined: [...leagues.joined, { code, memberId: newMemberId(), displayName: (displayName || "Player").slice(0, 24) }] });
+        let mine = joinedLeague(code);
+        if (!mine) {
+          mine = { code, memberId: newMemberId(), displayName: (displayName || "Player").slice(0, 24) };
+          save({ ...leagues, joined: [...leagues.joined, mine] });
         }
-        return code;
+        if (!bracketCode) return code;
+        return request("POST", "/league/" + encodeURIComponent(code) + "/member", { memberId: mine.memberId, displayName: mine.displayName, bracket: bracketCode }).then(() => code, () => code);
       }),
     [request, save, leagues, joinedLeague]
   );
