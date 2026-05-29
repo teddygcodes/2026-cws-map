@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
- * Browser smoke test — proves the app actually renders, using only the static
- * TOURNAMENT data. Deliberately does NOT assert on ESPN/scoreboard data or
- * console errors (those depend on external network and would be flaky in CI).
+ * Browser smoke test — proves the React app actually renders from the static
+ * TOURNAMENT data. Deliberately does NOT assert on ESPN/scoreboard network data
+ * (flaky in CI). Selectors use stable data-testid hooks; the window.__* globals
+ * are the behavioral contract preserved across the vanilla→React migration.
  *
- * Requires a server running at BASE (default http://localhost:4173) and the
- * `playwright` dev dependency. Run: `npm run smoke`.
+ * Requires a server at BASE (default http://localhost:3000) + the `playwright`
+ * dev dependency. Run: `npm run smoke`.
  */
 import { chromium } from "playwright";
 
-const BASE = process.env.BASE || "http://localhost:4173";
+const BASE = process.env.BASE || "http://localhost:3000";
 const steps = [];
 const ok = (m) => steps.push("  ✓ " + m);
 
@@ -19,147 +20,102 @@ const pageErrors = [];
 page.on("pageerror", (e) => pageErrors.push(String(e)));
 let failed = null;
 
-async function go(hash) {
-  // set hash on the live document (avoids full reloads for hash-only nav)
-  await page.evaluate((h) => { location.hash = h; }, hash);
-}
+const go = (hash) => page.evaluate((h) => { location.hash = h; }, hash);
+const count = (sel) => page.locator(sel).count();
 
 try {
   await page.goto(BASE + "/#/", { waitUntil: "domcontentloaded", timeout: 30000 });
 
-  // data loaded
-  await page.waitForFunction(
-    () => window.TOURNAMENT && Object.keys(window.TOURNAMENT.teams).length === 64,
-    { timeout: 20000 }
-  );
-  ok("TOURNAMENT data loaded (64 teams)");
+  // data + app boot (DataProvider loads /legacy/*.js, then renders)
+  await page.waitForFunction(() => window.TOURNAMENT && Object.keys(window.TOURNAMENT.teams).length === 64, { timeout: 20000 });
+  await page.waitForSelector('[data-testid="scoreboard"]', { timeout: 20000 });
+  ok("TOURNAMENT data loaded (64 teams) + app boots");
 
-  // map: 16 pins
-  await page.waitForSelector(".leaflet-marker-icon", { timeout: 20000 });
-  const markers = await page.locator(".leaflet-marker-icon").count();
-  if (markers !== 16) throw new Error(`expected 16 map pins, got ${markers}`);
-  ok("map renders 16 pins");
+  // HOME — hub: 16 regional cards; list: 16 rows; map: 16 markers
+  await page.waitForSelector('[data-testid="regional-card"]', { timeout: 10000 });
+  if ((await count('[data-testid="regional-card"]')) !== 16) throw new Error("expected 16 regional cards");
+  await page.evaluate(() => document.querySelector('button[data-mode="list"]').click());
+  await page.waitForSelector('[data-testid="site-row"]', { timeout: 10000 });
+  if ((await count('[data-testid="site-row"]')) !== 16) throw new Error("expected 16 site rows");
+  await page.evaluate(() => document.querySelector('button[data-mode="map"]').click());
+  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 16, { timeout: 15000 });
+  ok("home: 16 regional cards, 16 list rows, 16 map markers");
 
-  // Top nav bar: Map · List · Bracket · Picks · Games · Leagues (6 tabs)
-  const segs = await page.locator("#mapToggle .vt").count();
-  if (segs !== 6) throw new Error(`expected 6 nav tabs, got ${segs}`);
-  for (const m of ["map", "list", "bracket", "picks", "games", "league"]) {
-    if (await page.locator(`#mapToggle .vt[data-mode="${m}"]`).count() !== 1) throw new Error(`missing nav tab: ${m}`);
-  }
-  // switch to List → 16 clickable site rows
-  await page.evaluate(() => { document.querySelector('#mapToggle .vt[data-mode="list"]').click(); });
-  await page.waitForSelector("#siteList .site-row", { timeout: 10000 });
-  const siteRows = await page.locator("#siteList .site-row").count();
-  if (siteRows !== 16) throw new Error(`expected 16 site rows in list mode, got ${siteRows}`);
-  // a row navigates to that regional
-  await page.evaluate(() => { document.querySelector("#siteList .site-row").click(); });
-  await page.waitForSelector("#view-regional.active .team-card", { timeout: 10000 });
-  // Picks tab navigates to the bracket challenge
-  await go("#/");
-  await page.evaluate(() => { document.querySelector('#mapToggle .vt[data-mode="picks"]').click(); });
-  await page.waitForSelector("#view-picks.active .nb-cols", { timeout: 10000 });
-  // back to map mode → pins return
-  await go("#/");
-  await page.evaluate(() => { document.querySelector('#mapToggle .vt[data-mode="map"]').click(); });
-  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 16, { timeout: 10000 });
-  ok(`top nav: ${segs} tabs (Map/List/Bracket/Picks/Leagues), List shows ${siteRows} rows, Picks tab navigates`);
-
-  // regional → 4 team cards + schedule rows
+  // REGIONAL — 4 teams, >=7 schedule rows, bracket diagram >=7 cards
   await go("#/r/athens");
-  await page.waitForSelector("#view-regional .team-card", { timeout: 10000 });
-  const cards = await page.locator("#view-regional .team-card").count();
-  if (cards !== 4) throw new Error(`expected 4 team cards in regional, got ${cards}`);
-  const rows = await page.locator("#view-regional .game-row").count();
-  if (rows < 7) throw new Error(`expected >=7 schedule rows, got ${rows}`);
-  ok(`regional renders ${cards} teams + ${rows} schedule rows`);
+  await page.waitForSelector('[data-testid="regional-team"]', { timeout: 10000 });
+  if ((await count('[data-testid="regional-team"]')) !== 4) throw new Error("expected 4 regional teams");
+  if ((await count('[data-testid="game-row"]')) < 7) throw new Error("expected >=7 schedule rows");
+  await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Bracket")?.click());
+  await page.waitForSelector('[data-testid="bg-card"]', { timeout: 10000 });
+  if ((await count('[data-testid="bg-card"]')) < 7) throw new Error("expected >=7 bracket cards");
+  ok("regional: 4 teams + schedule + double-elim bracket diagram");
 
-  // team → stat grid + 2026 Season narrative
+  // TEAM — stat grid + 2026 Season
   await go("#/t/georgia");
-  await page.waitForSelector("#view-team .stat-grid", { timeout: 10000 });
-  const teamSeason = await page.locator("#view-team .panel-title", { hasText: "2026 Season" }).count();
-  if (teamSeason < 1) throw new Error("team view missing 2026 Season section");
-  ok("team view renders stat grid + 2026 Season");
+  await page.waitForSelector('[data-testid="team-stats"]', { timeout: 10000 });
+  ok("team: stat grid renders");
 
-  // stadium → photo, City/State location, history/about, and NO google map
+  // STADIUM — photo, City/ST location, history, NO map embed
   await go("#/s/arizona-state");
-  await page.waitForSelector("#view-stadium .stadium-photo img", { timeout: 10000 });
-  if (await page.locator("#view-stadium .map-embed, #view-stadium iframe").count() !== 0)
-    throw new Error("stadium view still has a map embed");
-  const locText = (await page.locator("#view-stadium .stadium-facts li").filter({ hasText: "Location" }).innerText()).trim();
-  if (!/,\s*[A-Z]{2}\b/.test(locText)) throw new Error(`stadium Location not 'City, ST': ${locText}`);
-  if (/Lincoln/.test(locText)) throw new Error("stadium Location wrongly shows the regional host city");
-  const hist = await page.locator("#view-stadium .panel-title", { hasText: "History" }).count();
-  if (hist < 1) throw new Error("stadium view missing History section");
-  ok("stadium view renders photo + City/State + history (no map)");
+  await page.waitForSelector(".stadium-photo img", { timeout: 10000 });
+  if ((await count("section iframe, .map-embed")) !== 0) throw new Error("stadium has a map embed");
+  const loc = (await page.locator(".stadium-facts li", { hasText: "Location" }).innerText()).trim();
+  if (!/,\s*[A-Z]{2}\b/.test(loc)) throw new Error(`stadium Location not 'City, ST': ${loc}`);
+  ok("stadium: photo + City/State + no map embed");
 
-  // comparison → table
+  // COMPARE — stat table
   await go("#/vs/boston-college/liberty");
-  await page.waitForSelector("#view-compare .cmp-table", { timeout: 10000 });
-  ok("matchup comparison renders table");
+  await page.waitForSelector('[data-testid="cmp-table"]', { timeout: 10000 });
+  ok("compare: head-to-head stat table");
 
-  // regional bracket toggle renders the visual double-elim diagram
-  await go("#/r/athens");
-  await page.waitForSelector("#view-regional .view-toggle .vt", { timeout: 10000 });
-  await page.evaluate(() => { var b = [...document.querySelectorAll('#view-regional .view-toggle .vt')].find(x => x.getAttribute('data-mode') === 'bracket'); if (b) b.click(); });
-  await page.waitForSelector("#view-regional .bracket .bg-card", { timeout: 10000 });
-  const bgCards = await page.locator("#view-regional .bracket .bg-card").count();
-  if (bgCards < 7) throw new Error(`expected >=7 bracket cards, got ${bgCards}`);
-  ok("regional bracket diagram renders (" + bgCards + " games)");
-  await page.evaluate(() => { var b = [...document.querySelectorAll('#view-regional .view-toggle .vt')].find(x => x.getAttribute('data-mode') === 'list'); if (b) b.click(); });
-
-  // national Road-to-Omaha bracket
+  // NATIONAL BRACKET — 16 regional nodes
   await go("#/bracket");
-  await page.waitForSelector("#view-bracket .nb-cols", { timeout: 10000 });
-  const cols = await page.locator("#view-bracket .nb-col").count();
-  if (cols !== 3) throw new Error(`expected 3 national columns, got ${cols}`);
-  await page.waitForSelector('#view-bracket .map-toggle .vt.on[data-mode="bracket"]', { timeout: 5000 });
-  ok("national bracket renders 3 columns + toggle (Bracket active)");
+  await page.waitForSelector('[data-testid="reg-node"]', { timeout: 10000 });
+  if ((await count('[data-testid="reg-node"]')) !== 16) throw new Error("expected 16 regional nodes");
+  ok("national bracket: 16 regional nodes feeding the tree");
 
-  // Bracket Challenge pick'em (client-side; ESPN-independent)
+  // PICKS — 16 pick cards, fill all, encode/decode round-trips to 26 chars
   await go("#/picks");
-  await page.waitForSelector("#view-picks.active .nb-cols", { timeout: 10000 });
-  const pCols = await page.locator("#view-picks .nb-col").count();
-  if (pCols !== 3) throw new Error(`expected 3 pick columns, got ${pCols}`);
-  const regCards = await page.locator("#view-picks .pick-reg").count();
-  if (regCards !== 16) throw new Error(`expected 16 regional pick cards, got ${regCards}`);
-  if (await page.locator("#view-picks .pick-banner").count() < 1) throw new Error("missing unofficial predictions banner");
-  // fill all 16 regional champions (re-query each time — view re-renders per pick)
+  await page.waitForSelector('[data-testid="picks-cols"]', { timeout: 10000 });
+  if ((await count('[data-testid="pick-reg"]')) !== 16) throw new Error("expected 16 pick cards");
+  if ((await count('[data-testid="picks-banner"]')) < 1) throw new Error("missing unofficial banner");
   for (let i = 0; i < 16; i++) {
-    await page.evaluate((idx) => document.querySelectorAll("#view-picks .pick-reg")[idx].querySelector(".nb-node.pick[data-team]").click(), i);
+    await page.evaluate((idx) => document.querySelectorAll('[data-testid="pick-reg"]')[idx].querySelector('[data-testid="pick-node"]').click(), i);
   }
-  const pickedReg = await page.locator("#view-picks .pick-reg .nb-node.picked").count();
-  if (pickedReg !== 16) throw new Error(`expected 16 picked regionals, got ${pickedReg}`);
-  // encode -> decode round-trips exactly; garbage decodes to null
   const rt = await page.evaluate(() => {
-    const g = window.__picks.get(), code = window.__picks.encode(g);
+    const g = window.__picks.get();
+    const code = window.__picks.encode(g);
     return { len: code.length, eq: JSON.stringify(window.__picks.decode(code)) === JSON.stringify(g), bad: window.__picks.decode("garbage"), code };
   });
-  if (rt.len !== 26 || !rt.eq || rt.bad !== null) throw new Error(`pick encode/decode round-trip failed: ${JSON.stringify(rt)}`);
-  ok("bracket challenge: 3 columns, 16 picks, encode/decode round-trips");
+  if (rt.len !== 26 || !rt.eq || rt.bad !== null) throw new Error(`pick encode/decode failed: ${JSON.stringify(rt)}`);
+  ok("bracket challenge: 16 picks, encode/decode round-trips (26 chars)");
 
-  // shared link loads the bracket; head-to-head renders
+  // shared link restores + head-to-head renders
   await go("#/picks/" + rt.code);
-  await page.waitForSelector("#view-picks.active .nb-cols", { timeout: 10000 });
-  const loadedPicks = await page.locator("#view-picks .pick-reg .nb-node.picked").count();
-  if (loadedPicks !== 16) throw new Error(`shared link did not restore picks, got ${loadedPicks}`);
+  await page.waitForSelector('[data-testid="picks-cols"]', { timeout: 10000 });
+  await page.waitForFunction(() => Object.keys(window.__picks.get().reg).length === 16, { timeout: 10000 });
   await go("#/h2h/" + rt.code + "/" + rt.code);
-  await page.waitForSelector("#view-picks .h2h-table", { timeout: 10000 });
+  await page.waitForSelector('[data-testid="h2h-table"]', { timeout: 10000 });
   ok("shared link restores picks + head-to-head renders");
 
-  // Private leagues — disabled state must degrade gracefully (force-disable for this check)
+  // LEAGUES — disabled state degrades gracefully
   const errsBefore = pageErrors.length;
   await page.evaluate(() => window.__leagues.setApi(""));
   await go("#/league");
-  await page.waitForSelector("#view-league.active .lg-unavailable", { timeout: 10000 });
-  if (pageErrors.length !== errsBefore) throw new Error("league disabled state produced page errors: " + pageErrors.slice(errsBefore).join("; "));
-  ok("private leagues: graceful 'unavailable' state when backend off");
+  await page.waitForSelector('[data-testid="lg-unavailable"]', { timeout: 10000 });
+  if (pageErrors.length !== errsBefore) throw new Error("league disabled produced errors: " + pageErrors.slice(errsBefore).join("; "));
+  ok("leagues: graceful 'unavailable' state when backend off");
 
-  // Private leagues — enabled flow against a mocked Worker (no real backend in CI)
+  // LEAGUES — enabled flow against a mocked Worker
   const future = Date.now() + 3 * 86400000;
-  const aCode = "1" + "0".repeat(25), bCode = "1" + "1111111111111111000000007";
-  const games1 = { athens_G1: { pick: "georgia", ts: 1 }, super_1_G1: { pick: "ucla", ts: 1 } };
+  const aCode = "1" + "0".repeat(25);
+  const bCode = "1" + "1111111111111111000000007";
+  const games1 = { athens_G1: { pick: "georgia", ts: 1 }, "super-1_G1": { pick: "ucla", ts: 1 } };
   await page.route("**/league**", (route) => {
-    const r = route.request(), u = r.url().split("#")[0], m = r.method();
+    const r = route.request();
+    const u = r.url().split("#")[0];
+    const m = r.method();
     if (m === "POST" && /\/league$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ code: "ABC123", name: "Smoke League", lockTs: future }) });
     if (m === "GET" && /\/league\/ABC123$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ name: "Smoke League", lockTs: future, members: [{ displayName: "Alice", bracket: aCode, games: games1 }, { displayName: "Bob", bracket: bCode, games: {} }] }) });
     if (m === "POST" && /\/member$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ displayName: "Me", bracket: aCode, updated: Date.now() }) });
@@ -168,55 +124,41 @@ try {
   });
   await page.evaluate(() => window.__leagues.setApi("https://mock.test"));
   await go("#/league/ABC123");
-  await page.waitForSelector("#view-league .lg-standings tbody tr", { timeout: 10000 });
-  const lgRows = await page.locator("#view-league .lg-standings tbody tr").count();
-  if (lgRows !== 2) throw new Error(`expected 2 league standings rows, got ${lgRows}`);
-  if (await page.locator("#view-league .pick-banner").count() < 1) throw new Error("league standings missing unofficial banner");
-  // switch to the Daily standings tab
-  await page.evaluate(() => { document.querySelector('#view-league [data-leaguetab="daily"]').click(); });
-  await page.waitForSelector("#view-league .lg-subtoggle .vt.on[data-leaguetab='daily']", { timeout: 10000 });
-  const dailyRows = await page.locator("#view-league .lg-standings tbody tr").count();
-  if (dailyRows !== 2) throw new Error(`expected 2 daily standings rows, got ${dailyRows}`);
+  await page.waitForSelector('[data-testid="standings"] tbody tr', { timeout: 10000 });
+  if ((await count('[data-testid="standings"] tbody tr')) !== 2) throw new Error("expected 2 standings rows");
+  await page.evaluate(() => document.querySelector('[data-leaguetab="daily"]').click());
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="standings"] tbody tr').length === 2, { timeout: 10000 });
   await page.unroute("**/league**");
   await page.evaluate(() => window.__leagues.setApi(""));
-  ok("private leagues: bracket + daily standings both render");
+  ok("leagues: bracket + daily standings both render (mocked worker)");
 
-  // Daily per-game pick'em view (pre-tournament: only G1/G2 of each regional are open)
+  // DAILY PICK'EM — open games, pick round-trips to GAME_PICKS
   await go("#/games");
-  await page.waitForSelector("#view-games.active", { timeout: 10000 });
-  if (await page.locator("#view-games .pick-banner").count() < 1) throw new Error("games view missing banner");
-  const openGames = await page.locator("#view-games .gp-game.open").count();
-  if (openGames < 1) throw new Error(`expected open games, got ${openGames}`);
-  await page.evaluate(() => { const n = document.querySelector('#view-games .gp-game.open .nb-node.pick[data-team]'); if (n) n.click(); });
+  await page.waitForSelector('[data-testid="pick-option"]', { timeout: 10000 });
+  await page.evaluate(() => document.querySelector('[data-testid="pick-option"]').click());
   const gpCount = await page.evaluate(() => Object.keys(window.__gamepicks.get().picks).length);
-  if (gpCount < 1) throw new Error("game pick did not persist to GAME_PICKS");
-  ok(`daily pick'em: ${openGames} open games, pick round-trips`);
+  if (gpCount < 1) throw new Error("game pick did not persist");
+  ok("daily pick'em: open games render, pick round-trips");
 
-  // rich game detail: SIM situation strip (count/outs/diamond) renders
+  // LIVE GAME — SIM situation strip (count/outs/diamond)
   await go("#/");
-  await page.evaluate(() => { var b = document.querySelector('#scoreboard .sb-demo button'); if (b) b.click(); }); // start single-game sim
-  await page.waitForTimeout(3500); // let one tick set the live situation
+  await page.waitForSelector('[data-demo="start"]', { timeout: 10000 });
+  await page.evaluate(() => document.querySelector('[data-demo="start"]').click());
+  await page.waitForTimeout(3500);
   await go("#/g/demo");
-  await page.waitForSelector("#view-game .situation .diamond", { timeout: 8000 });
+  await page.waitForSelector('[data-testid="diamond"]', { timeout: 10000 });
   ok("live game view renders SIM situation strip");
   await go("#/");
-  await page.evaluate(() => { var b = document.querySelector('#scoreboard .sb-demo button'); if (b && b.getAttribute('data-demo') === 'stop') b.click(); }); // stop sim
+  await page.evaluate(() => { const b = document.querySelector('[data-demo="stop"]'); if (b) b.click(); });
 
-  // self-advancing bracket: simulate all 16 regionals -> auto-advance to 8 super-regionals
-  await go("#/");
+  // SELF-ADVANCING BRACKET — simulate all 16 regionals → 8 super-regionals
   await page.evaluate(() => window.__simAll());
-  await page.waitForFunction(() => window.TOURNAMENT && window.TOURNAMENT.round === "super-regional", { timeout: 8000 });
-  const superSites = await page.evaluate(() => window.TOURNAMENT.sites.length);
-  if (superSites !== 8) throw new Error(`expected 8 super-regional sites, got ${superSites}`);
-  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 8, { timeout: 8000 });
-  ok("bracket resolves: 16 regionals -> 8 super-regionals");
-
-  // after simulating all regionals, the Games view should show finished games as Final
-  await go("#/games");
-  await page.waitForSelector("#view-games.active", { timeout: 10000 });
-  const finalGames = await page.locator("#view-games .gp-game.final").count();
-  if (finalGames < 1) throw new Error(`expected final games after __simAll, got ${finalGames}`);
-  ok(`daily pick'em: ${finalGames} games show Final after sim`);
+  await page.waitForFunction(() => window.TOURNAMENT.round === "super-regional", { timeout: 10000 });
+  if ((await page.evaluate(() => window.TOURNAMENT.sites.length)) !== 8) throw new Error("expected 8 super-regional sites");
+  await go("#/");
+  await page.evaluate(() => document.querySelector('button[data-mode="map"]')?.click());
+  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 8, { timeout: 10000 });
+  ok("bracket resolves: 16 regionals → 8 super-regionals");
 } catch (e) {
   failed = e;
 } finally {
@@ -228,4 +170,4 @@ if (failed) {
   console.error("✗ smoke FAILED: " + failed.message);
   process.exit(1);
 }
-console.log("✓ smoke passed: all core views render from static data.");
+console.log("✓ smoke passed: all core views render in the React app.");

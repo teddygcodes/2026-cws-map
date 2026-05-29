@@ -1,0 +1,16 @@
+.main {
+  min-height: 60vh;
+  /* room for the mobile bottom tab bar */
+  padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 24px);
+}
+.inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 18px var(--pad-x) 40px;
+}
+
+@media (min-width: 761px) {
+  .main {
+    padding-bottom: 40px;
+  }
+}

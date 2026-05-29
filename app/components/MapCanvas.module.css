@@ -1,0 +1,74 @@
+.map {
+  height: 560px;
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+}
+.map :global(.leaflet-container) {
+  background: #0a0b0f;
+  font-family: var(--font-ui);
+}
+.map :global(.leaflet-bar a) {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--line);
+}
+.map :global(.leaflet-tooltip) {
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  box-shadow: var(--shadow-pop);
+  font-size: 12px;
+}
+.map :global(.leaflet-tooltip-top::before) {
+  border-top-color: var(--line-strong);
+}
+
+.pin {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  border: 2px solid var(--data);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+.champ {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.live {
+  border-color: var(--accent);
+  position: relative;
+}
+.live::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: ping 1.6s var(--ease) infinite;
+}
+@keyframes ping {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .map {
+    height: 420px;
+  }
+}

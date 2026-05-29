@@ -5,25 +5,29 @@
   "type": "module",
   "description": "2026 NCAA Baseball Tournament interactive map. The view logic stays vanilla JS in /public/legacy/; the Next.js shell adds auth + cross-device pick sync.",
   "scripts": {
+    "predev": "node scripts/sync-legacy.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/sync-legacy.mjs",
     "build": "next build",
     "start": "next start",
+    "sync:legacy": "node scripts/sync-legacy.mjs",
     "validate": "node scripts/validate.mjs",
-    "test": "node scripts/test-bracket.mjs && node scripts/test-league.mjs",
+    "test": "node scripts/test-bracket.mjs && node scripts/test-league.mjs && node scripts/test-lib.mjs",
     "refresh": "node scripts/refresh-stats.mjs",
     "refresh:check": "node scripts/refresh-stats.mjs --check",
     "smoke": "node scripts/smoke.mjs",
     "serve": "python3 -m http.server 4173"
   },
   "dependencies": {
-    "next": "14.2.35",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "next-auth": "5.0.0-beta.25",
     "@auth/pg-adapter": "1.7.4",
-    "pg": "8.13.1"
+    "next": "14.2.35",
+    "next-auth": "5.0.0-beta.25",
+    "pg": "8.13.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "playwright": "^1.49.0"
+    "playwright": "^1.49.0",
+    "vercel": "^54.5.1"
   }
 }

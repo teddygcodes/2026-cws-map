@@ -1,0 +1,46 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.heads {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.head b {
+  font-family: var(--font-mono);
+  color: var(--text);
+  font-size: 14px;
+}
+.right {
+  text-align: right;
+}
+.tag {
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+}
+.bar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.segA {
+  background: var(--grad-market);
+  transition: width var(--dur-slow) var(--ease);
+}
+.segB {
+  background: var(--surface-3);
+  transition: width var(--dur-slow) var(--ease);
+}

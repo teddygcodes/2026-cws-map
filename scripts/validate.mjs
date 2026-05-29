@@ -31,11 +31,8 @@ function nodeCheck(label, code) {
 
 const files = ["data.js", "photos.js", "schedule.js", "bracket.js"];
 for (const f of files) nodeCheck(f, readFileSync(join(ROOT, f), "utf8"));
-
-const html = readFileSync(join(ROOT, "index.html"), "utf8");
-const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
-if (!scripts.length) fail("no inline <script> found in index.html");
-else nodeCheck("index.html inline script", scripts[scripts.length - 1][1]);
+// The view layer is now a Next.js/React app (app/ + lib/), type-checked by
+// `next build` and exercised by smoke.mjs — no inline-script parse needed here.
 
 // ---- 2. load data files into a window sandbox -------------------------------
 const ctx = { window: {}, console };

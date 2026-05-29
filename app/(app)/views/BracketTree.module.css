@@ -1,0 +1,202 @@
+.actions {
+  margin: 6px 0 18px;
+}
+.scroll {
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+.cols {
+  display: flex;
+  gap: 28px;
+  min-width: min-content;
+  align-items: stretch;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 240px;
+}
+.colTitle {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+}
+
+/* a pair of regional nodes feeding one super — bracket connector */
+.pairGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  padding-right: 22px;
+}
+.pairGroup::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 22px;
+  bottom: 22px;
+  width: 14px;
+  border: 1px solid var(--line-strong);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+}
+.superSlot {
+  display: flex;
+  align-items: center;
+  min-height: 92px;
+  position: relative;
+  padding-left: 14px;
+}
+.superSlot::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 14px;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--team, var(--line));
+  border-radius: var(--radius-sm);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+a.node:hover {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+.nodeWin {
+  background: var(--up-fill);
+  border-color: color-mix(in srgb, var(--up) 45%, transparent);
+}
+.nodeTbd {
+  color: var(--faint);
+  font-size: 13px;
+  border-style: dashed;
+}
+.nodeMono {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.nodeSeed {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--surface-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.nodeBody {
+  min-width: 0;
+}
+.nodeName {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nodeSub {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.adv {
+  margin-left: auto;
+  color: var(--up);
+  font-size: 11px;
+}
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* super column nodes */
+.superNode {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.superSeed {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--surface-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.superCity {
+  font-weight: 700;
+  font-size: 14px;
+}
+.superFeed {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* CWS column */
+.cwsCol {
+  justify-content: flex-start;
+}
+.cws {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 22px;
+  border-radius: var(--radius);
+  background: radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--gold) 18%, var(--surface-1)), var(--surface-1));
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line));
+  box-shadow: 0 0 40px var(--gold-fill);
+  text-align: center;
+  margin: auto 0;
+}
+.cwsTrophy {
+  font-size: 40px;
+}
+.cwsTitle {
+  font-family: var(--font-display);
+  font-size: 28px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.cwsSub {
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 200px;
+}
