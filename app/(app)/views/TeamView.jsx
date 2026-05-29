@@ -23,7 +23,7 @@ export default function TeamView({ teamId }) {
       navigate("#/");
       return;
     }
-    const crumbs = [{ text: "Map", href: "#/" }];
+    const crumbs = [{ text: "Home", href: "#/" }];
     if (site) crumbs.push({ text: site.city + " " + roundLabel(TOURNAMENT.round), href: "#/r/" + site.id });
     crumbs.push({ text: t.name });
     set(crumbs, site ? "#/r/" + site.id : "#/");

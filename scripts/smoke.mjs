@@ -143,6 +143,13 @@ try {
   if ((await count('[data-testid="rankings"] tbody tr')) !== 16) throw new Error("expected 16 seeded rows");
   ok("rankings: 16 national seeds");
 
+  // SCHEDULE — games grouped by day, Friday's 32 matchups clickable
+  await go("#/schedule");
+  await page.waitForSelector('[data-testid="schedule-row"]', { timeout: 10000 });
+  if ((await count('[data-testid="schedule-day"]')) < 1) throw new Error("expected >=1 day group");
+  if ((await count('[data-testid="schedule-row"]')) < 32) throw new Error("expected >=32 game rows");
+  ok("schedule: games grouped by day, matchups listed");
+
   // LIVE GAME — SIM situation strip (count/outs/diamond)
   await go("#/");
   await page.waitForSelector('[data-demo="start"]', { timeout: 10000 });

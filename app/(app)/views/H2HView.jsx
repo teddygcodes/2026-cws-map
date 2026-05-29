@@ -15,7 +15,7 @@ export default function H2HView({ a, b }) {
   const nm = (id) => (id ? team(id).name : "—");
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "Head-to-Head" }], "#/bracket");
+    set([{ text: "Home", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "Head-to-Head" }], "#/bracket");
   }, [set]);
 
   const pa = decode(a);

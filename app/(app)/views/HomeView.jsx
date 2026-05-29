@@ -25,7 +25,7 @@ export default function HomeView() {
   const team = (id) => TOURNAMENT.teams[id];
 
   useEffect(() => {
-    set([{ text: "Map" }], null);
+    set([{ text: "Home" }], null);
   }, [set]);
 
   return (
@@ -74,11 +74,9 @@ function TodaysGames({ SCHEDULES, live, team }) {
   // full Pick'em slate. Built only from the real feed + published schedule.
   let cards = [];
   let heading;
-  let total = 0;
   const L = live.live;
   if (L.list.length) {
     heading = L.list.some((g) => g.state === "in") ? "Live Now" : "Today's Games";
-    total = L.list.length;
     cards = L.list
       .slice()
       .sort((a, b) => (a.state === "in" ? -1 : 0) - (b.state === "in" ? -1 : 0) || (Date.parse(a.date) || 0) - (Date.parse(b.date) || 0))
@@ -115,7 +113,6 @@ function TodaysGames({ SCHEDULES, live, team }) {
       });
     });
     upcoming.sort((a, b) => a.seed - b.seed); // biggest games first
-    total = upcoming.length;
     cards = upcoming.slice(0, 8);
   }
 
@@ -158,11 +155,9 @@ function TodaysGames({ SCHEDULES, live, team }) {
           >
             {L.demo ? "■ Stop demo" : "▶ Simulate a live game"}
           </button>
-          {total > 8 && (
-            <a className={styles.seeAll} href="#/games">
-              See all →
-            </a>
-          )}
+          <a className={styles.seeAll} href="#/schedule">
+            Full schedule →
+          </a>
         </div>
       </div>
       {cards.length ? (

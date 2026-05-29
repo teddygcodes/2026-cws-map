@@ -12,6 +12,7 @@ import PicksView from "./views/PicksView";
 import H2HView from "./views/H2HView";
 import LeagueView from "./views/LeagueView";
 import RankingsView from "./views/RankingsView";
+import ScheduleView from "./views/ScheduleView";
 
 export default function Routes({ parts }) {
   const [p0, p1, p2] = parts;
@@ -36,6 +37,8 @@ export default function Routes({ parts }) {
       return <GamesView />;
     case "rankings":
       return <RankingsView />;
+    case "schedule":
+      return <ScheduleView />;
     case "league":
       return <LeagueView code={p1 ? decodeURIComponent(p1) : null} />;
     default:

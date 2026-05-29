@@ -21,7 +21,7 @@ export default function GameView({ eventId }) {
   const isDemo = eventId === "demo";
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Game" }], "#/");
+    set([{ text: "Home", href: "#/" }, { text: "Game" }], "#/");
   }, [set]);
 
   // Demo game updates live from the LiveProvider's simulator.

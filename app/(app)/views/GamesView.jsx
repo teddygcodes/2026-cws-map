@@ -18,7 +18,7 @@ export default function GamesView() {
   const [submitMsg, setSubmitMsg] = useState(null);
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Games" }], "#/");
+    set([{ text: "Home", href: "#/" }, { text: "Games" }], "#/");
   }, [set]);
 
   const open = [];

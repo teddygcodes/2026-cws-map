@@ -26,7 +26,7 @@ export default function RankingsView() {
   const [mode, setMode] = useState("seeds");
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Rankings" }], "#/");
+    set([{ text: "Home", href: "#/" }, { text: "Rankings" }], "#/");
   }, [set]);
 
   const rows = useMemo(() => {

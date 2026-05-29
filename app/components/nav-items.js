@@ -4,7 +4,7 @@
 // editable challenge (#/picks) behind one tab, switched in-page. "Pick'em" is
 // the distinct daily-games contest. (No more synonym "Picks" tab.)
 export const NAV_ITEMS = [
-  { key: "map", label: "Map", href: "#/", icon: "map" },
+  { key: "map", label: "Home", href: "#/", icon: "home" },
   { key: "bracket", label: "Bracket", href: "#/bracket", icon: "bracket" },
   { key: "games", label: "Pick'em", href: "#/games", icon: "games" },
   { key: "rankings", label: "Rankings", href: "#/rankings", icon: "rankings" },
@@ -20,6 +20,8 @@ function sectionOf(hash) {
   if (h.indexOf("#/games") === 0) return "games";
   if (h.indexOf("#/rankings") === 0) return "rankings";
   if (h.indexOf("#/league") === 0) return "league";
+  // The full schedule is reached from Home's "See all" — keep Home lit.
+  if (h.indexOf("#/schedule") === 0) return "map";
   if (h === "#/" || h === "") return "map";
   return null; // detail route
 }

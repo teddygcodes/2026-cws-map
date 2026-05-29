@@ -1,0 +1,129 @@
+.day {
+  margin-bottom: var(--space-6);
+}
+.dayHead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  background: linear-gradient(180deg, var(--bg) 70%, transparent);
+  font-family: var(--font-display);
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--data);
+}
+.dayCount {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.row {
+  display: grid;
+  grid-template-columns: 120px 90px 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.click {
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.click:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+}
+.tbd {
+  opacity: 0.62;
+}
+.time {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+.label {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.elim {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--down);
+  border: 1px solid color-mix(in srgb, var(--down) 35%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 1px 6px;
+}
+.match {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: 14px;
+  min-width: 0;
+}
+.tname {
+  font-weight: 700;
+  color: var(--text);
+}
+.tname:hover {
+  color: var(--data);
+}
+.vs {
+  color: var(--faint);
+  font-size: 12px;
+}
+.feeder {
+  color: var(--faint);
+  font-style: italic;
+  font-size: 13px;
+}
+.status {
+  justify-self: end;
+  font-size: 12px;
+}
+.cmp {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  color: var(--data);
+}
+
+@media (max-width: 620px) {
+  .row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "time status" "match match";
+    row-gap: var(--space-2);
+  }
+  .time {
+    grid-area: time;
+  }
+  .status {
+    grid-area: status;
+  }
+  .match {
+    grid-area: match;
+  }
+  .label {
+    display: none;
+  }
+}

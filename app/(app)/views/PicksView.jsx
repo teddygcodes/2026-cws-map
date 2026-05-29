@@ -39,7 +39,7 @@ export default function PicksView({ code }) {
   }, [code]);
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "My Picks" }], "#/bracket");
+    set([{ text: "Home", href: "#/" }, { text: "Bracket", href: "#/bracket" }, { text: "My Picks" }], "#/bracket");
   }, [set]);
 
   // Keep a shareable code in the URL as picks change.

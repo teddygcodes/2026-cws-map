@@ -2,6 +2,12 @@
 export default function NavIcon({ name }) {
   const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true };
   switch (name) {
+    case "home":
+      return (
+        <svg {...common}>
+          <path d="M3 10.5 12 3l9 7.5M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5M9 21v-6h6v6" />
+        </svg>
+      );
     case "map":
       return (
         <svg {...common}>

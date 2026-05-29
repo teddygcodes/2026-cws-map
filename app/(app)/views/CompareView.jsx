@@ -30,7 +30,7 @@ export default function CompareView({ idA, idB }) {
       return;
     }
     const fromGames = prevHash.indexOf("#/games") === 0;
-    const crumbs = [{ text: "Map", href: "#/" }];
+    const crumbs = [{ text: "Home", href: "#/" }];
     let back = "#/";
     if (fromGames) {
       crumbs.push({ text: "Daily Pick'em", href: "#/games" });

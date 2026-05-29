@@ -18,7 +18,7 @@ export default function NationalBracketView() {
   const team = (id) => TOURNAMENT.teams[id];
 
   useEffect(() => {
-    set([{ text: "Map", href: "#/" }, { text: "Bracket" }], "#/");
+    set([{ text: "Home", href: "#/" }, { text: "Bracket" }], "#/");
   }, [set]);
 
   const isSuper = live.round === "super-regional";

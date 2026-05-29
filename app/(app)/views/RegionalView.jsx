@@ -38,7 +38,7 @@ export default function RegionalView({ siteId }) {
       navigate("#/");
       return;
     }
-    set([{ text: "Map", href: "#/" }, { text: site.city + " " + roundLabel(live.round) }], "#/");
+    set([{ text: "Home", href: "#/" }, { text: site.city + " " + roundLabel(live.round) }], "#/");
   }, [site, set, navigate, live.round]);
 
   if (!site) return null;

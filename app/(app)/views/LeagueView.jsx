@@ -22,7 +22,7 @@ export default function LeagueView({ code }) {
   const { set } = useCrumbs();
 
   useEffect(() => {
-    const crumbs = [{ text: "Map", href: "#/" }, { text: "Leagues", href: code ? "#/league" : undefined }];
+    const crumbs = [{ text: "Home", href: "#/" }, { text: "Leagues", href: code ? "#/league" : undefined }];
     if (code) crumbs.push({ text: code.toUpperCase() });
     set(crumbs, code ? "#/league" : "#/");
   }, [set, code]);
