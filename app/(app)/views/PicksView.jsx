@@ -143,6 +143,8 @@ export default function PicksView({ code }) {
                         onClick={() => setRegional(site.id, tid)}
                         data-testid="pick-node"
                         data-team={tid}
+                        aria-pressed={picked}
+                        aria-label={`Pick ${team(tid).name} to win the ${site.city} regional`}
                       >
                         <span className={styles.nodeSeed}>{REG_SEED[site.teams.indexOf(tid)]}</span>
                         <span className={styles.nodeName}>{team(tid).name}</span>
@@ -176,6 +178,8 @@ export default function PicksView({ code }) {
                       key={side}
                       className={`${styles.node} ${styles.pick} ${picked ? styles.picked : ""}`}
                       onClick={() => setSuper(pr.seed, side)}
+                      aria-pressed={picked}
+                      aria-label={`Pick ${team(tid).name} to win super regional ${pr.seed}`}
                     >
                       <span className={styles.nodeSeed}>{seedLabel}</span>
                       <span className={styles.nodeName}>{team(tid).name}</span>
@@ -206,7 +210,13 @@ export default function PicksView({ code }) {
                 );
               const picked = picks.cwsChamp === sd;
               return (
-                <button key={sd} className={`${styles.node} ${styles.pick} ${picked ? styles.pickedGold : ""}`} onClick={() => setChamp(sd)}>
+                <button
+                  key={sd}
+                  className={`${styles.node} ${styles.pick} ${picked ? styles.pickedGold : ""}`}
+                  onClick={() => setChamp(sd)}
+                  aria-pressed={picked}
+                  aria-label={`Pick ${team(w).name} as national champion`}
+                >
                   <span className={styles.nodeSeed}>{picked ? "🏆" : sd}</span>
                   <span className={styles.nodeName}>{team(w).name}</span>
                   {picked && <span className={`${styles.badge} ${styles.pending}`}>CWS not yet played</span>}

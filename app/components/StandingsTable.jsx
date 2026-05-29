@@ -14,12 +14,17 @@ export default function StandingsTable({ rows, valueLabel = "Score", empty = "No
   }
   return (
     <table className={`${styles.table} tnum`} data-testid="standings">
+      <caption className="sr-only">League standings by {valueLabel}</caption>
       <thead>
         <tr>
-          <th className={styles.rank}>#</th>
-          <th className={styles.player}>Player</th>
-          <th>{valueLabel}</th>
-          <th>Win%</th>
+          <th scope="col" className={styles.rank}>
+            #
+          </th>
+          <th scope="col" className={styles.player}>
+            Player
+          </th>
+          <th scope="col">{valueLabel}</th>
+          <th scope="col">Win%</th>
         </tr>
       </thead>
       <tbody>

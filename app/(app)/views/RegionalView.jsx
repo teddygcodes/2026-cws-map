@@ -118,8 +118,31 @@ function pairKey(a, b) {
 }
 
 function GameRow({ num, when, tv, children, live: isLive, tbd, onClick }) {
+  // Guard nested team-link clicks so they don't bubble to the row's nav.
+  const handleClick = onClick
+    ? (e) => {
+        if (e.target.closest("a")) return;
+        onClick(e);
+      }
+    : undefined;
+  const handleKey = onClick
+    ? (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick(e);
+        }
+      }
+    : undefined;
   return (
-    <div className={`${styles.gameRow} ${isLive ? styles.grLive : ""} ${tbd ? styles.grTbd : ""} ${onClick ? styles.grClick : ""}`} onClick={onClick} data-testid="game-row">
+    <div
+      className={`${styles.gameRow} ${isLive ? styles.grLive : ""} ${tbd ? styles.grTbd : ""} ${onClick ? styles.grClick : ""}`}
+      onClick={handleClick}
+      onKeyDown={handleKey}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `Open ${num}` : undefined}
+      data-testid="game-row"
+    >
       <div className={styles.gameNum}>{num}</div>
       <div className={styles.gameMatch}>{children}</div>
       <div className={styles.gameWhen}>
@@ -276,7 +299,15 @@ function GameCard({ slot, d1byPair, team, navigate }) {
   };
 
   return (
-    <div className={`${styles.bgCard} ${ELIM_OF[g] ? styles.bgElim : ""} ${onClick ? styles.grClick : ""}`} onClick={onClick} data-testid="bg-card">
+    <div
+      className={`${styles.bgCard} ${ELIM_OF[g] ? styles.bgElim : ""} ${onClick ? styles.grClick : ""}`}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(e); } } : undefined}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `Open game ${g}` : undefined}
+      data-testid="bg-card"
+    >
       <div className={styles.bgH}>
         G{g}
         {ELIM_OF[g] ? " · Elim" : ""}

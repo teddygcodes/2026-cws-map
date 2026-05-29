@@ -25,12 +25,17 @@ export default function OddsChip({ ml, favorite = false, prevMl = null, size = "
   }, [ml]);
 
   if (ml == null) {
-    return <span className={`${styles.chip} ${styles.none} ${styles[size]}`}>Not posted yet</span>;
+    return (
+      <span className={`${styles.chip} ${styles.none} ${styles[size]}`} aria-label="Moneyline not posted yet">
+        Not posted yet
+      </span>
+    );
   }
   return (
     <span
       className={`${styles.chip} ${styles[size]} ${favorite ? styles.fav : ""} ${flash ? styles["flash-" + flash] : ""} tnum`}
       title={favorite ? "Favorite" : "Underdog"}
+      aria-label={`Moneyline ${String(ml)}${favorite ? ", favorite" : ""}`}
     >
       {favorite && <span className={styles.dot} aria-hidden="true" />}
       {String(ml)}

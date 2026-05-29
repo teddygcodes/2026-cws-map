@@ -118,7 +118,12 @@ export default function CompareView({ idA, idB }) {
 
       {/* Stat comparison */}
       <div className="panel-title">Head-to-Head Stats</div>
-      <div className={`panel ${styles.stats}`} data-testid="cmp-table">
+      <div className={`panel ${styles.stats}`} data-testid="cmp-table" role="table" aria-label="Head-to-head statistics">
+        <div className="sr-only" role="row">
+          <span role="columnheader">{a.name}</span>
+          <span role="columnheader">Statistic</span>
+          <span role="columnheader">{b.name}</span>
+        </div>
         {rows.map((r) => (
           <StatRow key={r.label} label={r.label} a={r.aDisp} b={r.bDisp} better={r.better} aFill={r.aFill} bFill={r.bFill} />
         ))}

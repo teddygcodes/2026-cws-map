@@ -9,13 +9,15 @@ import styles from "./StatRow.module.css";
  */
 export default function StatRow({ label, a, b, better = null, aFill = 0, bFill = 0 }) {
   return (
-    <div className={styles.row}>
-      <div className={`${styles.val} ${styles.left} ${better === "a" ? styles.win : ""} tnum`}>
+    <div className={styles.row} role="row">
+      <div className={`${styles.val} ${styles.left} ${better === "a" ? styles.win : ""} tnum`} role="cell">
         <span className={styles.fill} style={{ width: pct(aFill) }} />
         <span className={styles.num}>{a}</span>
       </div>
-      <div className={styles.label}>{label}</div>
-      <div className={`${styles.val} ${styles.right} ${better === "b" ? styles.win : ""} tnum`}>
+      <div className={styles.label} role="rowheader">
+        {label}
+      </div>
+      <div className={`${styles.val} ${styles.right} ${better === "b" ? styles.win : ""} tnum`} role="cell">
         <span className={styles.fill} style={{ width: pct(bFill) }} />
         <span className={styles.num}>{b}</span>
       </div>
