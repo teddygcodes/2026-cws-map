@@ -44,7 +44,9 @@ export default function HomeView() {
         <Segmented options={HOME_MODES} value={mode} onChange={setMode} ariaLabel="Home layout" />
       </div>
 
-      {mode === "map" && <MapCanvas />}
+      {/* Kept mounted (lazy-inits on first show) so toggling away and back
+          doesn't re-initialize Leaflet. */}
+      <MapCanvas visible={mode === "map"} />
 
       {mode === "list" && <SiteList sites={sortSites(live.sites, team)} team={team} live={live} />}
 

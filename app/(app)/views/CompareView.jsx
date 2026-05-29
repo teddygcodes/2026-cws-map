@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useData } from "../providers/DataProvider";
 import { useLive } from "../providers/LiveProvider";
 import { useCrumbs } from "../CrumbsContext";
@@ -43,6 +43,10 @@ export default function CompareView({ idA, idB }) {
     set(crumbs, back);
   }, [a, b, site, prevHash, set, navigate, TOURNAMENT.round]);
 
+  // Memoized so the 8-row build doesn't recompute on every 30s live re-render.
+  // (Declared before the early return to satisfy rules-of-hooks.)
+  const rows = useMemo(() => (a && b ? buildRows(a, b) : []), [a, b]);
+
   if (!a || !b) return null;
 
   const od = live.oddsForPair(idA, idB);
@@ -59,7 +63,6 @@ export default function CompareView({ idA, idB }) {
     });
   }
 
-  const rows = buildRows(a, b);
   const ia = od ? impliedProbFromMoneyline(od.byTeam[idA]) : null;
   const ib = od ? impliedProbFromMoneyline(od.byTeam[idB]) : null;
   const probs = ia != null && ib != null && ia + ib > 0 ? { a: ia / (ia + ib), b: ib / (ia + ib) } : null;

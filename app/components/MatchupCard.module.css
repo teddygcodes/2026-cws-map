@@ -11,6 +11,8 @@
 }
 .card:hover {
   border-color: var(--line-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--elev-3);
 }
 .cardLive {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));

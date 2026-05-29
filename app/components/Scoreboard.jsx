@@ -5,6 +5,7 @@ import { useLive } from "../(app)/providers/LiveProvider";
 import { useRoute } from "../(app)/RouteContext";
 import { dateLabel, timeAgo } from "@/lib/format";
 import Skeleton from "./Skeleton";
+import CountUp from "./CountUp";
 import styles from "./Scoreboard.module.css";
 
 /** Premium live-scores ticker: auto-advancing score cards, LIVE pulses,
@@ -77,7 +78,7 @@ export default function Scoreboard() {
                   return (
                     <div key={i} className={`${styles.team} ${lead ? styles.teamLead : ""}`}>
                       <span className={styles.tn}>{teamName(c)}</span>
-                      <span className={`${styles.sc} tnum`}>{show && c.score != null ? c.score : ""}</span>
+                      <CountUp value={show ? c.score : null} className={`${styles.sc} tnum`} />
                     </div>
                   );
                 })}

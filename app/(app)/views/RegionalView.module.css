@@ -13,12 +13,14 @@
   border: 1px solid var(--line);
   border-left: 3px solid var(--team);
   border-radius: var(--radius);
-  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 .teamCard:hover {
   background: var(--surface-2);
   border-color: var(--line-strong);
   border-left-color: var(--team);
+  transform: translateY(-2px);
+  box-shadow: var(--elev-2);
 }
 .tcMono {
   width: 42px;

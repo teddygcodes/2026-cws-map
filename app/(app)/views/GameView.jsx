@@ -8,6 +8,7 @@ import { parseSummary } from "@/lib/live-parse";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
 import Tbd from "../../components/Tbd";
 import Skeleton from "../../components/Skeleton";
+import CountUp from "../../components/CountUp";
 import styles from "./GameView.module.css";
 
 export default function GameView({ eventId }) {
@@ -256,7 +257,7 @@ function ScoreSide({ team, name, lead, right }) {
       <div className={styles.bugInfo}>
         <span className={styles.bugName}>{name}</span>
       </div>
-      <span className={`${styles.bugScore} tnum ${lead ? styles.bugLead : ""}`}>{team.score == null ? "–" : team.score}</span>
+      <CountUp value={team.score} blank="–" className={`${styles.bugScore} tnum ${lead ? styles.bugLead : ""}`} />
     </div>
   );
 }

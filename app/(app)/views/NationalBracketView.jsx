@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useData } from "../providers/DataProvider";
 import { useLive } from "../providers/LiveProvider";
 import { useCrumbs } from "../CrumbsContext";
@@ -21,6 +21,14 @@ export default function NationalBracketView() {
 
   const isSuper = live.round === "super-regional";
   const cwsTeams = [];
+
+  // Recompute the regional pairings only when the live feed changes, not on
+  // every unrelated re-render.
+  const regionalPairs = useMemo(
+    () => (isSuper ? [] : superPairings(live.sites, TOURNAMENT.teams, live.live.bySite, resolveBracket)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isSuper, live.version, TOURNAMENT, resolveBracket]
+  );
 
   let content;
   if (isSuper) {
@@ -47,7 +55,7 @@ export default function NationalBracketView() {
       </div>
     );
   } else {
-    const pairs = superPairings(live.sites, TOURNAMENT.teams, live.live.bySite, resolveBracket);
+    const pairs = regionalPairs;
     content = (
       <div className={styles.cols}>
         <div className={styles.col}>

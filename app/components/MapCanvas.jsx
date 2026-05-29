@@ -30,7 +30,7 @@ function loadLeaflet() {
   return leafletPromise;
 }
 
-export default function MapCanvas() {
+export default function MapCanvas({ visible = true }) {
   const { TOURNAMENT } = useData();
   const live = useLive();
   const { navigate } = useRoute();
@@ -40,8 +40,19 @@ export default function MapCanvas() {
   const navRef = useRef(navigate);
   navRef.current = navigate;
 
-  // Init once.
+  // Lazy-init on first show, then KEEP the map across Home toggles (no Leaflet
+  // re-init flash). When shown again, just re-measure + refit.
   useEffect(() => {
+    if (!visible) return;
+    if (mapRef.current) {
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+          renderMarkers();
+        }
+      }, 60);
+      return;
+    }
     let cancelled = false;
     loadLeaflet().then((L) => {
       if (cancelled || !elRef.current || mapRef.current) return;
@@ -57,12 +68,18 @@ export default function MapCanvas() {
     });
     return () => {
       cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  // Destroy Leaflet only when the component truly unmounts (leaving Home).
+  useEffect(() => {
+    return () => {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Re-render markers when sites / live state change.
@@ -103,7 +120,7 @@ export default function MapCanvas() {
     if (bounds.length) mapRef.current.fitBounds(bounds, { padding: [50, 50] });
   }
 
-  return <div ref={elRef} className={styles.map} data-testid="map" />;
+  return <div ref={elRef} className={styles.map} data-testid="map" style={visible ? undefined : { display: "none" }} />;
 }
 
 function esc(s) {
