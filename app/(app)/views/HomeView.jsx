@@ -74,13 +74,15 @@ function Hero({ SCHEDULES, live, team }) {
   // seed so the biggest games lead). Built only from real feed + published data.
   let cards = [];
   let heading;
+  let total = 0;
   const L = live.live;
   if (L.list.length) {
     heading = L.list.some((g) => g.state === "in") ? "Live now" : "Today's games";
+    total = L.list.length;
     cards = L.list
       .slice()
       .sort((a, b) => (a.state === "in" ? -1 : 0) - (b.state === "in" ? -1 : 0) || (Date.parse(a.date) || 0) - (Date.parse(b.date) || 0))
-      .slice(0, 6)
+      .slice(0, 8)
       .map((g) => ({
         a: g.comps[0].id,
         b: g.comps[1].id,
@@ -114,13 +116,23 @@ function Hero({ SCHEDULES, live, team }) {
     });
     // biggest games first: lower host seed, then earlier game number
     upcoming.sort((a, b) => a.seed - b.seed);
-    cards = upcoming.slice(0, 6);
+    total = upcoming.length;
+    cards = upcoming.slice(0, 8);
   }
   if (!cards.length) return null;
 
   return (
     <>
-      <div className="panel-title">{heading}</div>
+      <div className={styles.heroHead}>
+        <span className="panel-title" style={{ margin: 0 }}>
+          {heading}
+        </span>
+        {total > cards.length && (
+          <a className={styles.seeAll} href="#/games">
+            See all {total} →
+          </a>
+        )}
+      </div>
       <div className={styles.heroStrip}>
         {cards.map((c, i) => (
           <div key={i} className={styles.heroCard}>

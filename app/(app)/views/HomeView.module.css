@@ -2,11 +2,38 @@
   margin-bottom: var(--space-5);
 }
 
+.heroHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 var(--space-3);
+}
+.seeAll {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--data);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.seeAll:hover {
+  text-decoration: underline;
+}
+/* Side-scroll rail of the featured matchups (full list lives in Pick'em). */
 .heroStrip {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 12px;
-  margin-bottom: 8px;
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.heroStrip > * {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
 }
 
 .grid {
