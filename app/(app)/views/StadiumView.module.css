@@ -12,11 +12,12 @@
   background: var(--surface-1);
   box-shadow: var(--shadow-card);
 }
-.photo img {
-  display: block;
+.frame {
+  position: relative;
   width: 100%;
-  height: auto;
   aspect-ratio: 16 / 10;
+}
+.img {
   object-fit: cover;
 }
 .photo figcaption {

@@ -70,7 +70,7 @@ export default function RegionalView({ siteId }) {
               <div className={styles.tcBody}>
                 <div className={styles.tcName}>
                   {t.name}
-                  {id === site.hostTeamId ? <span className={styles.hostStar} title="Host">★</span> : null}
+                  {id === site.hostTeamId ? <span className={styles.hostStar} title="Host" aria-label="Host team" role="img">★</span> : null}
                 </div>
                 <div className={styles.tcMeta}>{t.conference}</div>
                 <div className={styles.tcSeed}>
@@ -97,6 +97,7 @@ export default function RegionalView({ siteId }) {
         <button
           className={styles.simBtn}
           onClick={() => (simming ? live.stopRegionalSim() : live.startRegionalSim(site.id))}
+          aria-label={simming ? "Stop the simulated result for this regional" : "Simulate a result for this regional"}
         >
           {simming ? "■ Stop sim" : "▶ Simulate this regional"}
         </button>
@@ -258,7 +259,7 @@ function RegionalSchedule({ site, games, team, SCHEDULES, resolveBracket, simmin
 
   return (
     <>
-      <div className="panel-title">Regional Schedule — Double Elimination</div>
+      <h2 className="panel-title">Regional Schedule — Double Elimination</h2>
       <div className={styles.schedNote}>
         {simming ? "Simulated regional · not a real result" : "Friday matchups, times (ET) & TV as published · live scores update automatically"}
       </div>
@@ -396,7 +397,7 @@ function SuperSchedule({ site, games, team, simming }) {
           {simming && <span className={styles.simTag}>Simulated</span>}
         </div>
       )}
-      <div className="panel-title">Super Regional — Best of 3</div>
+      <h2 className="panel-title">Super Regional — Best of 3</h2>
       <div className={styles.schedNote}>
         {team(a).name} <span className="tnum">{wins[a]}</span> – <span className="tnum">{wins[b]}</span> {team(b).name}
         {simming ? " · simulated" : " · first to two wins advances"}

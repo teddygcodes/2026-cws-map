@@ -72,6 +72,7 @@ export default function MatchupCard({
           data-testid="pick-option"
           data-team={id}
           aria-pressed={isPicked}
+          aria-label={t ? `Pick ${t.name}` : "Pick this team"}
         >
           {inner}
           {isPicked && <span className={styles.check} aria-hidden="true">✓</span>}

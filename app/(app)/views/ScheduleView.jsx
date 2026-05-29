@@ -9,6 +9,7 @@ import { useRoute } from "../RouteContext";
 import PageHeader from "../../components/PageHeader";
 import LiveBadge from "../../components/LiveBadge";
 import OddsChip from "../../components/OddsChip";
+import { gameNum, defaultDayKey } from "@/lib/schedule";
 import styles from "./ScheduleView.module.css";
 
 // The tournament's fixed first weekend. Each day owns the regional double-elim
@@ -22,11 +23,6 @@ const DAY_DEFS = [
 const SUPER_DAY = { key: "super", weekday: "Supers", date: "Super Regionals", full: "Super Regionals", m: null, d: null };
 const FEEDER = { 3: ["G1 loser", "G2 loser"], 4: ["G1 winner", "G2 winner"], 5: ["G3 winner", "G4 loser"], 6: ["G4 winner", "G5 winner"], 7: ["G6 rematch", "if necessary"] };
 const ELIM = { 3: true, 5: true };
-
-function gameNum(key) {
-  const m = key.match(/_G(\d+)$/);
-  return m ? parseInt(m[1], 10) : 0;
-}
 
 export default function ScheduleView() {
   const { TOURNAMENT, SCHEDULES } = useData();
@@ -56,13 +52,12 @@ export default function ScheduleView() {
     count: byDay[d.key].length,
   }));
 
-  const [selected, setSelected] = useState(() => defaultDayKey(days));
+  const todayMs = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
+  const [selected, setSelected] = useState(() => defaultDayKey(days, todayMs, Date.now()));
   const day = days.find((d) => d.key === selected) || days[0];
 
   // Selected day's games, ordered by first pitch (undetermined/no-time last).
   const list = byDay[day.key].slice().sort((a, b) => (a.startMs ?? Infinity) - (b.startMs ?? Infinity));
-
-  const todayMs = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
 
   // The published day-1 schedule entry for a game (real time + TV network).
   const schedEntry = (g) => {
@@ -123,19 +118,6 @@ export default function ScheduleView() {
       )}
     </section>
   );
-}
-
-// Default to today's day; else the most recent past day; else the first.
-function defaultDayKey(days) {
-  const now = Date.now();
-  const todayMs = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
-  const exact = days.find((d) => d.dateMs === todayMs);
-  if (exact) return exact.key;
-  let last = null;
-  days.forEach((d) => {
-    if (d.dateMs != null && d.dateMs <= now) last = d;
-  });
-  return (last || days[0]).key;
 }
 
 function ScheduleRow({ g, team, navigate, time, tv, odds }) {

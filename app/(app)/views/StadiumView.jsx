@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { useData } from "../providers/DataProvider";
 import { useCrumbs } from "../CrumbsContext";
 import { useRoute } from "../RouteContext";
@@ -40,8 +41,15 @@ export default function StadiumView({ teamId }) {
         <div>
           {photo ? (
             <figure className={`${styles.photo} stadium-photo`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.file} alt={st.name} loading="lazy" />
+              <div className={styles.frame}>
+                <Image
+                  src={"/" + photo.file}
+                  alt={`${st.name}, home of ${t.name}`}
+                  fill
+                  sizes="(max-width: 760px) 100vw, 640px"
+                  className={styles.img}
+                />
+              </div>
               <figcaption>
                 Photo: {photo.by}
                 {photo.license && (
