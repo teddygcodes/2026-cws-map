@@ -1,7 +1,9 @@
 name: CI
 
-# Runs checks on every push/PR, and deploys to GitHub Pages ONLY when the
-# checks pass on main — so the live site can never go out broken.
+# Runs checks on every push/PR: data integrity + unit tests, then a production
+# build served by `next start` and exercised with Playwright. Deploys are handled
+# by Vercel's Git integration (the app is a Next.js build, not a static artifact),
+# so there is no deploy job here.
 # Note: no untrusted github.event.* input is used in any run step (only trusted
 # context fields and action outputs), so there is no workflow-injection surface.
 
@@ -14,12 +16,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   validate:
@@ -46,27 +42,13 @@ jobs:
           node-version: 20
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
+      - run: npm run build
       - name: Serve and run smoke test
         run: |
-          python3 -m http.server 4173 >/dev/null 2>&1 &
+          npm run start >/dev/null 2>&1 &
           echo "SERVER_PID=$!" >> "$GITHUB_ENV"
-          for i in $(seq 1 30); do curl -sf http://localhost:4173/ >/dev/null && break; sleep 0.5; done
-          npm run smoke
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/ >/dev/null && break; sleep 0.5; done
+          BASE=http://localhost:3000 npm run smoke
       - name: Stop server
         if: always()
         run: kill "$SERVER_PID" 2>/dev/null || true
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: [validate, smoke]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: github-pages
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - id: deployment
-        uses: actions/deploy-pages@v4

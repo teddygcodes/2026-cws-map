@@ -1,9 +1,8 @@
 import { auth } from "@/auth";
-import LegacyApp from "./LegacyApp";
+import AppShell from "./(app)/AppShell";
 
-// Resolve the session server-side and hand it to the (client) legacy app,
-// which both renders the auth control in the masthead and exposes
-// window.__session for the vanilla sync shim.
+// Resolve the session server-side and hand it to the client app (AppShell),
+// which owns hash routing + the provider stack.
 export default async function Page() {
   let session = null;
   try {
@@ -12,5 +11,5 @@ export default async function Page() {
     // No DB / env yet — render anonymously. The app works fully signed-out.
     if (process.env.NODE_ENV !== "production") console.warn("[auth] unavailable:", e?.message);
   }
-  return <LegacyApp session={session} />;
+  return <AppShell session={session} />;
 }

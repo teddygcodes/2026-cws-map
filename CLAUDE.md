@@ -4,73 +4,148 @@ Guidance for Claude (and other AI agents) working in this repository.
 
 ## What this is
 
-A single‑page, **no‑build, no‑backend** interactive map of the 2026 NCAA Baseball Tournament. Open `index.html` in a browser and it runs. Plain HTML/CSS/JS + Leaflet (CDN). Live scores come from ESPN's public API, polled client‑side.
+A **Next.js 14 (App Router) + React** interactive app for the 2026 NCAA Baseball
+Tournament — a broadcast-grade prediction surface (ESPN stage × FanDuel action ×
+Kalshi data craft; see `DESIGN_BRIEF.md`). It deploys on **Vercel**. Auth.js (Google +
+Postgres) adds optional sign-in for cross-device pick sync; the app works fully
+signed-out. Live scores come from ESPN's public API, polled client-side. Build/run with
+`npm run dev` / `npm run build` (this is a real build now — not the old static site).
+
+> Migration note: this was previously a single no-build `index.html` IIFE. All view logic
+> is now React under `app/(app)/`. The hash routes, ESPN polling, honesty rule, the
+> `window.__*` test hooks, the `data.js` serializer contract, and the private-league
+> backend are all preserved.
 
 ## The one rule that matters most: never fabricate data
 
-This project's whole premise is honest data. **Do not invent stats, records, scores, dates, or coordinates and present them as real.**
+This project's whole premise is honest data. **Do not invent stats, records, scores,
+dates, odds, or coordinates and present them as real.**
 
-- Real values come from sources (official athletics sites, WarrenNolan, TheBaseballCube, D1Baseball, the published bracket, ESPN, Wikimedia). 
-- Anything not verified must render as a visible `TBD` placeholder via the `fmt()` helper (which turns `null`/`""`/`"TODO*"` into a `TBD` badge). Use `null` in the data, not a guess.
-- The demo/simulation is allowed **only because it is clearly labeled** ("SIM" badge, "Simulated — not a real result"). Keep that labeling if you touch it.
-- If asked to "fill in stats," fetch them live (web tools) and cite/keep them verifiable; leave gaps as `TBD`.
+- Real values come from sources (official athletics sites, WarrenNolan, TheBaseballCube,
+  D1Baseball, the published bracket, ESPN, Wikimedia).
+- Anything not verified renders as a visible `TBD` / "—" / "Not posted yet" via the
+  `<Tbd>` component (`app/components/Tbd.jsx`) + `isMissing()` in `lib/format.js` (treats
+  `null`/`""`/`"TODO*"` as missing). Use `null` in the data, not a guess.
+- Odds: any "OFF"/null line is dropped (`parseOdds` in `lib/live-parse.js`); absent odds
+  render "Not posted yet". Implied win-probability is labeled "implied".
+- The demo/simulation is allowed **only because it is clearly labeled** ("SIM" badge,
+  "Simulated — not a real result"). Keep that labeling if you touch it.
+- Team brand colors (`lib/team-colors.js`) are public facts used only for visual identity
+  (no copyrighted logos); a missing team falls back to a neutral accent — never invented.
 
 ## Architecture (where things live)
 
-- **`index.html`** — everything: markup for the views, the theme CSS, and the entire app inside one IIFE `<script>`. Key pieces, in order: `render()` (safe HTML insert), helpers (`esc`, `fmt`, `fmtRecord`, `seedChip`, `team`, `siteById`, `findSiteForTeam`), `showView()` + the `VIEWS` array, the per‑view renderers (`showMap`, `showRegional`, `showTeam`, `showStadium`, `showGame`, `showCompare`), `renderSchedule()`, the **LIVE** module (ESPN polling, scoreboard, demo), and the hash `router()`.
-- **`data.js`** — the static `TOURNAMENT` object: `sites` (16) and `teams` (64). The single source of truth for names/seeds/conference/record/rpi/stats/players, plus `stadium {name, city, state, lat, lng, capacity, opened, blurb}` (blurb = verified history; `city/state` drive the stadium page's Location — NOT the regional host city) and `seasonNote` (a verified 2026 note, or `null`). The team/stadium pages also derive an honest season summary (`seasonSummary()` in `index.html`) purely from the verified stats — it invents nothing.
-- **`photos.js`** — `STADIUM_PHOTOS[teamId]` → `{ file, by, license, licenseUrl, source }`. Attribution is required by the CC licenses; keep it when rendering a photo.
-- **`schedule.js`** — `SCHEDULES[siteId]` → the two real Friday games `{ g, time, tv, a:[teamId,seed], b:[teamId,seed] }`. Games 3–7 are generated structurally in `index.html` (`LATER_GAMES`).
-- **`images/`** — downloaded stadium photos (so the app works offline).
-- **`bracket.js`** — pure `resolveBracket(teams, games)` double‑elimination resolver (regional → champion → super‑regional), unit‑tested by `scripts/test-bracket.mjs`.
-- **`scripts/`** — dev/CI only (the app ships zero runtime deps): `validate.mjs` (data integrity + JS parse), `test-bracket.mjs` (resolver fixtures), `smoke.mjs` (Playwright render check), `refresh-stats.mjs` (see below).
-- **`.github/workflows/`** — `ci.yml` (validate → smoke → deploy to Pages, gated) and `refresh.yml` (nightly ESPN record refresh → validate → commit to `main`).
-- **`worker/`** — optional private-league backend (Cloudflare Worker + KV): `worker.js`, `wrangler.toml`, `README.md`. Deployed separately to the owner's Cloudflare account; ships to Pages harmlessly but is never served as app code. Its pure validators are unit-tested by `scripts/test-league.mjs` (part of `npm test`).
+- **`app/page.jsx`** — server component; resolves the Auth.js session, renders `<AppShell>`.
+- **`app/layout.jsx`** — loads `app/styles/tokens.css` (the design system) + `global.css`,
+  and the fonts via `next/font` (Anton display, Inter UI, JetBrains Mono numerics).
+- **`app/(app)/AppShell.jsx`** — client root: mounts the provider stack (outer→inner:
+  `DataProvider → SessionProvider → LiveProvider → PicksProvider → GamePicksProvider →
+  LeaguesProvider`), the masthead + mobile bottom tab bar, and the hash-routed view tree.
+- **`app/hooks/useHashRoute.js`** — hash routing + `prevHash` (context-aware back).
+  **`app/(app)/Routes.jsx`** — 1:1 hash→view switch.
+- **`app/(app)/providers/`** — `DataProvider` (loads the static data globals, see below),
+  `LiveProvider` (30s ESPN polling, demo + regional sim, super-regional advance, odds),
+  `PicksProvider` (bracket picks + localStorage + `/api/picks` sync), `GamePicksProvider`
+  (daily picks + results cache), `LeaguesProvider` (`LEAGUE_API` gate + Worker wrapper).
+- **`app/(app)/views/`** — the 11 page views (HomeView, RegionalView, TeamView,
+  StadiumView, GameView, CompareView, NationalBracketView, PicksView, H2HView, GamesView,
+  LeagueView). **`app/components/`** — the shared component library (TeamToken, OddsChip,
+  ProbBar, SeedBadge, LiveBadge, MatchupCard, StatRow, PickTray, StandingsTable,
+  Scoreboard, MapCanvas, Tbd, masthead/nav). Each is `*.jsx` + `*.module.css`.
+- **`lib/`** — pure, framework-free logic (Node-testable): `format.js`, `picks.js`
+  (encode/decode/score), `games.js` (enumerate/score), `live-parse.js` (ESPN parse +
+  bracket helpers), `team-colors.js`. Plus `db.js` + `pick-validators.js` (server).
+- **`data.js`** — the canonical static `TOURNAMENT` object: `sites` (16) and `teams` (64)
+  — names/seeds/conference/record/rpi/stats/players, plus `stadium {name, city, state,
+  lat, lng, capacity, opened, blurb}` (`city/state` drive the stadium Location — NOT the
+  regional host city) and `seasonNote`. `seasonSummary()` (`lib/format.js`) derives an
+  honest narrative purely from these verified fields.
+- **`photos.js`** — `STADIUM_PHOTOS[teamId]` (CC attribution required; keep it).
+  **`schedule.js`** — `SCHEDULES[siteId]` real Friday games. **`bracket.js`** — pure
+  `resolveBracket(teams, games)` double-elim resolver. These four are loaded at runtime by
+  `DataProvider` from `public/legacy/` (synced from root by `scripts/sync-legacy.mjs`).
+- **`scripts/`** — `validate.mjs`, `test-bracket.mjs`, `test-league.mjs`, `test-lib.mjs`
+  (unit tests for `lib/`), `smoke.mjs` (Playwright, runs against the Next server),
+  `refresh-stats.mjs` (nightly ESPN record refresh), `sync-legacy.mjs` (predev/prebuild).
+- **`.github/workflows/`** — `ci.yml` (validate → build+smoke) and `refresh.yml`
+  (nightly record refresh → validate → commit). **NOTE:** CI no longer deploys — the old
+  GitHub Pages `deploy` job was removed (it uploaded the repo as a static artifact, which
+  can't serve a Next.js build). Vercel's Git integration handles deploys; treat Vercel as
+  the source of truth.
+- **`worker/`** — optional private-league backend (Cloudflare Worker + KV), deployed
+  separately to the owner's account; pure validators unit-tested by `test-league.mjs`.
 
 ## Conventions & gotchas
 
-- **No build, no deps, no frameworks.** Keep it vanilla. Don't add npm/bundlers.
-- **DOM rendering** goes through `render(el, html)` (uses `insertAdjacentHTML` after clearing) and **all interpolated values are escaped with `esc()`**. Keep doing this — a hook flags raw `innerHTML`, and escaping prevents issues even though the data is developer‑authored.
-- **Event handling for re‑rendered elements uses delegation** (see `wireScoreboard()`), because the polling/demo loops re‑render the scoreboard frequently. If you add clickable elements that live inside a re‑rendered container, delegate rather than attaching per‑node listeners.
-- **`showView()` only resets scroll on an actual view change** so the 30s live refresh doesn't yank the page. Don't reintroduce an unconditional `scrollTo`.
-- **Map view has a `Map · List · Bracket` toggle** (top of `#view-map`, mirrored in `showBracket`). State is `mapMode` (`"map"`|`"list"`); `showMap()` swaps `#map` ↔ `#siteList` and `renderSiteList()` renders all 16 host sites as rows (count‑agnostic, reuses `seedChip`/`fmtRecord`). Map pins are small circular `divIcon`s; `siteIsLive(s)` adds a pulsing live dot. The toggle + site rows use a single delegated handler (`wireMapNav()`), so they survive the live re‑renders that call `renderMarkers()`/`renderSiteList()`.
-- **Cache‑busting:** local scripts are included as `data.js?v=...`, `photos.js?v=...`, `schedule.js?v=...`. If you change those files and need a guaranteed reload during testing, bump the `?v=` token in `index.html` (or hard‑navigate with a `?cb=Date.now()` query).
-- **Routing** is hash‑based: `#/`, `#/r/:site`, `#/t/:team`, `#/s/:team`, `#/vs/:a/:b`, `#/g/:eventId`, `#/bracket`, `#/picks` + `#/picks/:code`, `#/h2h/:a/:b`. The router runs on `hashchange` and on `load`.
-- **Private leagues** (the `#/league` + `#/league/:code` views, Session 14) are the one feature with a backend: a tiny **Cloudflare Worker + KV** in `worker/` (deployed separately to the owner's Cloudflare account; the app stays on Pages). The Worker is a *dumb store* of `league → members` — it never fetches ESPN or scores; **all scoring is client‑side** via `scoreBracketCode()` (reuses the bracket resolver). It's gated by `LEAGUE_API` near the top of the script: **empty string = feature off** (the committed default, so CI/Pages are unaffected), set to the deployed Worker URL to enable. Persistence is `localStorage["cws-leagues-v1"]`; a random `memberId` is the honor‑system "edit your own entry" token (not real auth). Lock is server‑authoritative at `LOCK_TS` (first pitch). `window.__leagues.setApi()` is a smoke‑test hook. Don't hard‑code a real Worker URL in commits unless leagues are meant to be live. See `worker/README.md`.
-- **Daily per-game pick'em** (the `#/games` view, Session 15) is the second contest, sharing the same private leagues (the league page has a **Bracket | Daily** sub-toggle). `enumerateGames()` lists every game with a stable key (`siteId_G#` regionals from the `PICK_SITES` snapshot, `super-<sd>_G#` supers) classified OPEN/LOCKED/UPCOMING; picks persist to `localStorage["cws-gamepicks-v1"]` (`GAME_PICKS = {v,picks{gameKey:teamId}}`) and submit to the Worker's `POST /league/<code>/games` (which stamps a server `ts` per pick, **not** lock-gated). **Fairness without a schedule on the server:** `scoreGames()` counts a pick a win only if `ts < gameStartMs && pick === winner` — the client knows real first-pitch times from the live feed. An append-only `RESULTS_CACHE` (`localStorage["cws-results-v1"]`) keeps decided games scored after they age out of the 30s poll window. Scope = regionals + super-regionals (CWS/Omaha not modeled). `window.__gamepicks` is the smoke hook. The Games view renders a two-column **matchup-card grid** (`fmtGameTime` for first pitch, a per-card "Compare ›" link → `#/vs/:a/:b`); each open card also shows a **moneyline odds chip** (`mlChip`, favorite highlighted).
-- **Betting odds** are pulled live from ESPN: `parseEvent()` attaches `odds = parseOdds(comp.odds, comps)`, which maps ESPN's home/away moneylines to **our** `teamId`s (`{provider, byTeam{teamId:ml}, favoriteId, spread, overUnder, hasAny}`). The comparison page (`showCompare`) renders a MONEYLINE panel from `LIVE.byPair[...].odds` with DraftKings-via-ESPN attribution + a responsible-gambling note. **Honesty rule applies to odds too:** "OFF"/null lines are dropped and absent odds render "Not posted yet" — never fabricate a line.
-- **Bracket Challenge pick'em** (the `#/picks` view) is fully client‑side. `PICKS = {v,reg{siteId},sup{seed:0|1},cwsChamp:seed}` persists to `localStorage["cws-picks-v1"]` and encodes to a stable, versioned 26‑char URL code (`encodePicks`/`decodePicks` — leading `"1"`, 16 regional digits in national‑seed order, 8 super digits, 1 champion digit; bump the version char if the `data.js` site/team ordering ever changes). It snapshots the original 16 sites at load (`snapshotPickSites`, before any super‑flip) and scores regional picks via `resolveBracket` on `LIVE.bySite[originalId]` — robust after `maybeAdvanceToSuperRegionals()` replaces `T.sites`. **The CWS champion can't be auto‑scored** (Omaha isn't modeled); it stays a labeled "pending" prediction until a one‑line `T.omahaChampion` is set. A persistent unofficial‑predictions banner is required on `#/picks` and `#/h2h` (honesty rule). `window.__picks` exposes encode/decode/get/set for the smoke test.
-- **ESPN matching:** `matchTeamId()` maps ESPN team names to our `teamId`s by normalized substring. All 64 teams currently match; if you add/rename teams, re‑verify.
-- **`data.js` is canonical (machine‑maintained).** `scripts/refresh-stats.mjs` re‑serializes the whole file deterministically; `npm run refresh:check` asserts byte‑for‑byte canonical form and runs in CI. So **don't hand‑edit `data.js`'s formatting** — change values, then run `npm run refresh` (or, for a no‑network reformat, edit `serialize()`/values and run `node scripts/refresh-stats.mjs` against a local source). Only the `record` field is auto‑refreshed nightly from ESPN; everything else (rpi/sos/stats/players) is the verified snapshot and is preserved untouched. A team whose record can't be fetched **keeps its existing value** — never null it; never invent one.
+- **It's a build now.** Next.js + React, CSS Modules + a design-token layer
+  (`app/styles/tokens.css`), `next/font`. Leaflet is loaded on demand by `MapCanvas`. Keep
+  dependencies lean; don't add a CSS framework — the bespoke token system is the design.
+- **React renders the DOM** — no more `render()`/`insertAdjacentHTML`/manual escaping/event
+  delegation. JSX auto-escapes; use the `<Tbd>` honesty gate for any value that may be
+  missing.
+- **Data access** is via `useData()` (`TOURNAMENT`, `SCHEDULES`, `STADIUM_PHOTOS`,
+  `resolveBracket`). Components never touch `window.*` directly.
+- **`data.js` is canonical (machine-maintained).** `refresh-stats.mjs` re-serializes it
+  byte-for-byte; `npm run refresh:check` asserts that form in CI and `refresh.yml` rewrites
+  it nightly. **Never hand-edit `data.js`'s formatting** — change values then run
+  `npm run refresh`. Only `record` is auto-refreshed; a team whose record can't be fetched
+  keeps its existing value (never null/invent). `predev`/`prebuild` run `sync-legacy.mjs`
+  to copy the four data files into `public/legacy/` for `DataProvider`.
+- **Hash routing** (preserved): `#/`, `#/r/:site`, `#/t/:team`, `#/s/:team`, `#/vs/:a/:b`,
+  `#/g/:eventId`, `#/bracket`, `#/picks` + `#/picks/:code`, `#/h2h/:a/:b`, `#/games`,
+  `#/league` + `#/league/:code`. Primary nav is the desktop tab row + mobile bottom tab bar.
+- **Live module** (`LiveProvider`): 30s ESPN poll (paused on `document.hidden`), `byPair`/
+  `bySite`/`odds`, demo simulator, and `maybeAdvance` (computes 8 super-regionals once all
+  16 regional champions resolve). It mirrors `round`/`sites` back to `window.TOURNAMENT` so
+  test hooks keep working. Odds-chip flashes on line move via `prevOdds`.
+- **Test hooks (smoke depends on these):** `window.__picks` (encode/decode/get/set),
+  `window.__gamepicks` (get/set/enumerate/score), `window.__leagues` (setApi/get),
+  `window.__simAll`/`__simRegional`/`__stopSim`, and the `window.TOURNAMENT` mirror. Views
+  expose stable `data-testid`s (e.g. `scoreboard`, `regional-card`, `regional-team`,
+  `game-row`, `bg-card`, `cmp-table`, `reg-node`, `pick-reg`, `pick-node`, `pick-option`,
+  `standings`, `diamond`). Keep these when refactoring or update `smoke.mjs` in lockstep.
+- **Private leagues** (`#/league`): the Cloudflare Worker is a *dumb store* of
+  `league → members` — **all scoring is client-side** (`scoreBracketCode`/`scoreGames`).
+  Gated by `LEAGUE_API` in `LeaguesProvider`; `window.__leagues.setApi()` overrides it at
+  runtime (smoke flips it). Lock is server-authoritative at `lockTs` (first pitch).
+- **Daily pick'em** (`#/games`): `enumerateGames` (`lib/games.js`) lists every game with a
+  stable key (`siteId_G#`, `super-<sd>_G#`); fairness = a pick wins only if
+  `ts < gameStartMs && pick === winner`. `RESULTS_CACHE` (`localStorage["cws-results-v1"]`)
+  keeps decided games scored after they age out of the poll window.
+- **Bracket Challenge** (`#/picks`): `PICKS` → `localStorage["cws-picks-v1"]`, encoded to a
+  stable 26-char URL code (`lib/picks.js`; bump the version char if `data.js` ordering
+  changes). Snapshots the original 16 sites at mount so regional scoring survives the
+  super-flip. CWS champion stays a labeled "pending" prediction until `T.omahaChampion` is
+  set. A persistent unofficial-predictions banner is required on `#/picks` and `#/h2h`.
 
 ## Running & verifying
 
 ```bash
-python3 -m http.server 4173   # then open http://localhost:4173
+npm run dev            # Next dev server on http://localhost:3000 (syncs data first)
 ```
 
-When verifying changes, actually exercise the flow in a browser (the map renders pins, drill‑down works, scoreboard loads upcoming games, comparison/box‑score open). Re‑check the JavaScript parses after edits, e.g.:
+Exercise the flow in a browser (map renders pins, drill-down works, scoreboard loads,
+compare/box-score open, picks save + share). Then run the CI checks:
 
 ```bash
-node -e 'const fs=require("fs");const h=fs.readFileSync("index.html","utf8");const m=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)];fs.writeFileSync("/tmp/app.js",m[m.length-1][1])' && node --check /tmp/app.js
-node --check data.js && node --check photos.js && node --check schedule.js
-```
-
-Or use the CI scripts directly (what the GitHub Actions run):
-
-```bash
-npm run validate        # data integrity + JS parse (16 sites, 64 teams, seeds, refs, photos/schedule keys)
-npm run refresh:check   # assert data.js is in canonical (auto-refresh) form — fails if hand-edited
-npm test                # bracket resolver fixtures
-npm run smoke           # Playwright: core views render from static data (ESPN-independent)
+npm run validate        # data integrity (16 sites, 64 teams, seeds, refs, photos/schedule)
+npm run refresh:check   # assert data.js is canonical (fails if hand-edited)
+npm test                # bracket + league + lib/ unit tests
+npm run build           # production build (also runs the data sync)
+npm run smoke           # Playwright vs the Next server (BASE=http://localhost:3000)
 npm run refresh         # fetch live records from ESPN and rewrite data.js (network)
 ```
 
-## Super‑regional upgrade (≈ June 2)
+For smoke locally: `npm run build && npm run start &` then `npm run smoke` (or point
+`BASE` at a running `npm run dev`).
 
-When regionals finish and 8 super‑regionals are set, search for `// SUPER_REGIONAL_UPGRADE`. The change is data‑only:
-1. `TOURNAMENT.round` → `"super-regional"`.
-2. Replace the 16 `sites` with 8 (each `teams` array goes 4 → 2 IDs; host = higher seed).
-3. Swap `SCHEDULES` for the super‑regional (best‑of‑3) games; extend `TOURNEY_DATES` in the live module.
+## Super-regional upgrade (≈ June 2)
 
-The renderers (`renderTeamList`, schedule, scoreboard) are count‑agnostic and read labels from `roundLabel()`, so no UI rewrite is needed.
+This is now **automatic**: when all 16 regional champions resolve from real finals,
+`LiveProvider`'s `maybeAdvance` (via `computeSuperRegionals` in `lib/live-parse.js`) builds
+the 8 super-regionals (host = higher seed) and flips `round` to `"super-regional"` in
+provider state (mirrored to `window.TOURNAMENT`). Views read sites/round from `LiveProvider`
+and are count-agnostic, so no UI change is needed. To hard-code the final field instead,
+set `TOURNAMENT.round`/`sites` in `data.js` (then `npm run refresh`). Extend `TOURNEY_DATES`
+in `LiveProvider` when super-regional dates are known. Set `TOURNAMENT.omahaChampion` once
+Omaha is decided to score the CWS champion pick.

@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "cws-next",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
       "name": "cws-map",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4173"],
