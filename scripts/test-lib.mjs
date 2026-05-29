@@ -22,6 +22,8 @@ import {
 import { enumerateGames, gameClass, gamesTruth, scoreGames, scoreLocalGames } from "../lib/games.js";
 import { impliedProbFromMoneyline, formatRecord, isMissing } from "../lib/format.js";
 import { fieldRanks } from "../lib/ranks.js";
+import { gameNum, parseClockToMins, firstPitchMs, defaultDayKey } from "../lib/schedule.js";
+import { isValidBracketCode, isValidGameKey, isValidTeamId } from "../lib/pick-validators.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 function loadInSandbox(file) {
@@ -135,6 +137,40 @@ const runTeams = teamsArr.filter(([, t]) => t.stats && t.stats.runs != null);
 const maxRuns = Math.max(...runTeams.map(([, t]) => t.stats.runs));
 const runLeader = teamsArr.find(([id]) => ranks[id].runs && ranks[id].runs.rank === 1);
 ok("runs rank #1 has the most runs", runLeader && TOURNAMENT.teams[runLeader[0]].stats.runs === maxRuns);
+
+// ---- schedule helpers (Schedule view + Home cold-open) ----
+eq("gameNum parses regional key", gameNum("athens_G3"), 3);
+eq("gameNum parses super key", gameNum("super-1_G2"), 2);
+eq("gameNum of junk is 0", gameNum("nope"), 0);
+eq("parseClockToMins noon", parseClockToMins("12:00 PM"), 720);
+eq("parseClockToMins midnight-ish 12:30 AM", parseClockToMins("12:30 AM"), 30);
+eq("parseClockToMins 6:05 PM", parseClockToMins("6:05 PM"), 1085);
+eq("parseClockToMins junk -> null", parseClockToMins("soon"), null);
+// firstPitchMs picks the earliest published time on the opening Friday.
+const fp = firstPitchMs({ a: [{ time: "3:00 PM" }, { time: "12:00 PM" }], b: [{ time: "6:00 PM" }] });
+eq("firstPitchMs = 12:00 PM ET = 16:00Z", fp, Date.parse("2026-05-29T12:00:00-04:00"));
+eq("firstPitchMs empty -> null", firstPitchMs({}), null);
+eq("firstPitchMs all-unparseable -> null", firstPitchMs({ a: [{ time: "TBD" }] }), null);
+// defaultDayKey: exact today, else most-recent past, else first.
+const days = [
+  { key: "fri", dateMs: 100 },
+  { key: "sat", dateMs: 200 },
+  { key: "sun", dateMs: 300 },
+];
+eq("defaultDayKey exact today", defaultDayKey(days, 200, 250), "sat");
+eq("defaultDayKey most-recent past", defaultDayKey(days, 999, 250), "sat");
+eq("defaultDayKey before first -> first", defaultDayKey(days, 50, 50), "fri");
+eq("defaultDayKey empty -> null", defaultDayKey([], 1, 1), null);
+
+// ---- pick validators (mirror of the worker store; gate /api/picks) ----
+ok("valid bracket code accepted", isValidBracketCode("1" + "4".repeat(16) + "2".repeat(8) + "8"));
+ok("short bracket code rejected", !isValidBracketCode("1234"));
+ok("non-digit bracket code rejected", !isValidBracketCode("x".repeat(26)));
+ok("regional game key valid", isValidGameKey("athens_G3"));
+ok("super game key valid", isValidGameKey("super-1_G2"));
+ok("bad game key rejected", !isValidGameKey("athens_G9") && !isValidGameKey("../etc"));
+ok("team id valid", isValidTeamId("georgia-tech"));
+ok("team id rejects junk/too-long", !isValidTeamId("UPPER") && !isValidTeamId("x".repeat(60)));
 
 console.log(`\n${fail ? "✗" : "✓"} lib modules: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
