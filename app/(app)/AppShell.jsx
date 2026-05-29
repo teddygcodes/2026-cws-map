@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataProvider } from "./providers/DataProvider";
 import { SessionProvider } from "./providers/SessionProvider";
 import { LiveProvider } from "./providers/LiveProvider";
@@ -50,16 +50,28 @@ function Shell({ session }) {
   }, []);
   const crumbValue = useMemo(() => ({ ...crumbState, set }), [crumbState, set]);
 
+  // Flow: on an actual navigation (hash change — NOT the in-place 30s live
+  // re-render, which never changes the hash), reset scroll and move focus to the
+  // view's heading so keyboard/screen-reader users land on the new page.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    const id = requestAnimationFrame(() => {
+      const h = document.querySelector("[data-view-heading]");
+      if (h && typeof h.focus === "function") h.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [hash]);
+
   return (
     <RouteContext.Provider value={route}>
       <CrumbsContext.Provider value={crumbValue}>
-        <Masthead session={session} hash={hash} />
+        <Masthead session={session} hash={hash} prevHash={route.prevHash} />
         <main className={styles.main}>
           <div className={styles.inner}>
             <Routes parts={parts} />
           </div>
         </main>
-        <BottomTabBar hash={hash} />
+        <BottomTabBar hash={hash} prevHash={route.prevHash} />
       </CrumbsContext.Provider>
     </RouteContext.Provider>
   );

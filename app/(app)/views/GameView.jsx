@@ -72,6 +72,8 @@ export default function GameView({ eventId }) {
   const nInn = Math.max(a.innings.length, b.innings.length, 9);
   const hasInn = a.innings.concat(b.innings).some((v) => v != null);
   const teamName = (t) => (t.id && TOURNAMENT.teams[t.id] ? TOURNAMENT.teams[t.id].name : t.name);
+  const regionalSite =
+    a.id && b.id ? TOURNAMENT.sites.find((s) => s.teams.indexOf(a.id) >= 0 && s.teams.indexOf(b.id) >= 0) : null;
 
   return (
     <section className="view">
@@ -207,6 +209,21 @@ export default function GameView({ eventId }) {
         {game.demo ? "Simulated game for preview — not a real result." : "Live box score via ESPN · updates while you watch."}
       </p>
       <div className="btn-row">
+        {a.id && TOURNAMENT.teams[a.id] && (
+          <a className="btn" href={"#/t/" + a.id}>
+            {teamName(a)}
+          </a>
+        )}
+        {b.id && TOURNAMENT.teams[b.id] && (
+          <a className="btn" href={"#/t/" + b.id}>
+            {teamName(b)}
+          </a>
+        )}
+        {regionalSite && (
+          <a className="btn" href={"#/r/" + regionalSite.id}>
+            {regionalSite.city} Regional
+          </a>
+        )}
         <a className="btn" href="#/">
           ← Back to scores
         </a>

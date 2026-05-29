@@ -5,8 +5,8 @@ import NavIcon from "./NavIcon";
 import styles from "./BottomTabBar.module.css";
 
 /** Mobile app-grade bottom tab bar (thumb-reachable). Hidden on desktop. */
-export default function BottomTabBar({ hash }) {
-  const active = activeNavKey(hash);
+export default function BottomTabBar({ hash, prevHash }) {
+  const active = activeNavKey(hash, prevHash);
   return (
     <nav className={styles.bar} aria-label="Primary">
       {NAV_ITEMS.map((it) => (
