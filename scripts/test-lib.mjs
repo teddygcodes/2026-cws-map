@@ -24,6 +24,7 @@ import { impliedProbFromMoneyline, formatRecord, isMissing } from "../lib/format
 import { fieldRanks } from "../lib/ranks.js";
 import { gameNum, parseClockToMins, firstPitchMs, defaultDayKey } from "../lib/schedule.js";
 import { isValidBracketCode, isValidGameKey, isValidTeamId } from "../lib/pick-validators.js";
+import { cleanLeaguesPayload, mergeLeagues, leaguesEqual } from "../lib/leagues-sync.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 function loadInSandbox(file) {
@@ -171,6 +172,22 @@ ok("super game key valid", isValidGameKey("super-1_G2"));
 ok("bad game key rejected", !isValidGameKey("athens_G9") && !isValidGameKey("../etc"));
 ok("team id valid", isValidTeamId("georgia-tech"));
 ok("team id rejects junk/too-long", !isValidTeamId("UPPER") && !isValidTeamId("x".repeat(60)));
+
+// ---- leagues account-sync helpers ----
+const goodEntry = { code: "abc123", memberId: "member-000001", displayName: "Tyler" };
+eq("cleanLeaguesPayload uppercases code + keeps valid entry", cleanLeaguesPayload([goodEntry]), [{ code: "ABC123", memberId: "member-000001", displayName: "Tyler" }]);
+eq("cleanLeaguesPayload drops bad entries", cleanLeaguesPayload([{ code: "!!", memberId: "x", displayName: "" }, null, 5]), []);
+eq("cleanLeaguesPayload de-dupes by code (first wins)", cleanLeaguesPayload([goodEntry, { ...goodEntry, displayName: "Other" }]).length, 1);
+eq("cleanLeaguesPayload non-array → []", cleanLeaguesPayload("nope"), []);
+// merge: server wins on shared code; local-only kept
+const localL = [{ code: "AAA111", memberId: "local-aaaaaa", displayName: "Me" }, { code: "BBB222", memberId: "local-bbbbbb", displayName: "Me" }];
+const serverL = [{ code: "AAA111", memberId: "server-aaaaa", displayName: "Me2" }, { code: "CCC333", memberId: "server-ccccc", displayName: "Me3" }];
+const merged = mergeLeagues(localL, serverL);
+eq("merge has all three codes", merged.map((l) => l.code).sort().join(","), "AAA111,BBB222,CCC333");
+eq("merge: server memberId wins on shared code", merged.find((l) => l.code === "AAA111").memberId, "server-aaaaa");
+eq("merge: local-only league kept", !!merged.find((l) => l.code === "BBB222"), true);
+ok("leaguesEqual ignores order", leaguesEqual(localL, [localL[1], localL[0]]));
+ok("leaguesEqual detects difference", !leaguesEqual(localL, serverL));
 
 console.log(`\n${fail ? "✗" : "✓"} lib modules: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
