@@ -12,6 +12,7 @@ import { RouteContext } from "./RouteContext";
 import { useHashRoute } from "../hooks/useHashRoute";
 import Masthead from "../components/Masthead";
 import BottomTabBar from "../components/BottomTabBar";
+import ErrorBoundary from "../components/ErrorBoundary";
 import Routes from "./Routes";
 import styles from "./AppShell.module.css";
 
@@ -68,7 +69,9 @@ function Shell({ session }) {
         <Masthead session={session} hash={hash} prevHash={route.prevHash} />
         <main className={styles.main}>
           <div className={styles.inner}>
-            <Routes parts={parts} />
+            <ErrorBoundary routeKey={hash}>
+              <Routes parts={parts} />
+            </ErrorBoundary>
           </div>
         </main>
         <BottomTabBar hash={hash} prevHash={route.prevHash} />

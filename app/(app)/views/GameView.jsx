@@ -7,6 +7,7 @@ import { useCrumbs } from "../CrumbsContext";
 import { parseSummary } from "@/lib/live-parse";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
 import Tbd from "../../components/Tbd";
+import Skeleton from "../../components/Skeleton";
 import styles from "./GameView.module.css";
 
 export default function GameView({ eventId }) {
@@ -62,8 +63,21 @@ export default function GameView({ eventId }) {
   if (!game || game.teams.length < 2) {
     return (
       <section className="view">
-        <h1 className="section-head">Game</h1>
-        <p className={styles.note}>{isDemo ? "No simulated game running." : "Loading box score…"}</p>
+        <h1 className="section-head" tabIndex={-1} data-view-heading>
+          Game
+        </h1>
+        {isDemo ? (
+          <p className={styles.note}>No simulated game running.</p>
+        ) : (
+          <div className={styles.loading} aria-busy="true" aria-label="Loading box score">
+            <div className={styles.loadBug}>
+              <Skeleton w={48} h={48} r={11} />
+              <Skeleton w="40%" h={26} />
+              <Skeleton w={56} h={40} style={{ marginLeft: "auto" }} />
+            </div>
+            <Skeleton w="100%" h={140} r={14} style={{ marginTop: "var(--space-4)" }} />
+          </div>
+        )}
       </section>
     );
   }

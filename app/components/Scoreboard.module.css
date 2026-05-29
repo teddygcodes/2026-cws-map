@@ -147,3 +147,10 @@
   font-size: 13px;
   padding: 12px 4px;
 }
+.skelCard {
+  flex: 0 0 200px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}

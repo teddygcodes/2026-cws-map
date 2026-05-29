@@ -4,6 +4,7 @@ import { useData } from "../(app)/providers/DataProvider";
 import { useLive } from "../(app)/providers/LiveProvider";
 import { useRoute } from "../(app)/RouteContext";
 import { dateLabel, timeAgo } from "@/lib/format";
+import Skeleton from "./Skeleton";
 import styles from "./Scoreboard.module.css";
 
 /** Premium live-scores ticker: auto-advancing score cards, LIVE pulses,
@@ -84,9 +85,17 @@ export default function Scoreboard() {
             );
           })}
         </div>
+      ) : L.updated ? (
+        <div className={styles.empty}>No games yet — first pitch Friday, May 29. Scores appear here automatically.</div>
       ) : (
-        <div className={styles.empty}>
-          {L.updated ? "No games yet — first pitch Friday, May 29. Scores appear here automatically." : "Loading scores…"}
+        <div className={styles.rail} aria-busy="true" aria-label="Loading scores">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className={styles.skelCard}>
+              <Skeleton w="55%" h={11} />
+              <Skeleton w="80%" h={16} style={{ marginTop: "var(--space-2)" }} />
+              <Skeleton w="70%" h={16} style={{ marginTop: "var(--space-2)" }} />
+            </div>
+          ))}
         </div>
       )}
     </div>

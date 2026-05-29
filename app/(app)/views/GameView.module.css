@@ -299,7 +299,19 @@
 .note {
   color: var(--faint);
   font-size: 13px;
-  margin-top: 18px;
+  margin-top: var(--space-5);
+}
+.loading {
+  margin-top: var(--space-4);
+}
+.loadBug {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
 @media (max-width: 560px) {

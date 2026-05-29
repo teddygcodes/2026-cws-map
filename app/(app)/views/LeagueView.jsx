@@ -9,6 +9,7 @@ import { useRoute } from "../RouteContext";
 import StandingsTable from "../../components/StandingsTable";
 import PageHeader from "../../components/PageHeader";
 import Segmented from "../../components/Segmented";
+import Skeleton from "../../components/Skeleton";
 import styles from "./LeagueView.module.css";
 
 const LEAGUE_TABS = [
@@ -146,8 +147,17 @@ function Standings({ code }) {
   if (status === "loading") {
     return (
       <section className="view">
-        <h1 className="section-head">League {code}</h1>
-        <div className={styles.empty}>Loading standings…</div>
+        <PageHeader title={"League " + code} sub="Loading standings…" />
+        <div className={styles.skel} aria-busy="true" aria-label="Loading standings">
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className={styles.skelRow}>
+              <Skeleton w={24} h={24} r={6} />
+              <Skeleton w="45%" h={14} />
+              <Skeleton w={40} h={14} style={{ marginLeft: "auto" }} />
+              <Skeleton w={40} h={14} />
+            </div>
+          ))}
+        </div>
       </section>
     );
   }
