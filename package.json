@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "2026 NCAA Baseball Tournament interactive map. The view logic stays vanilla JS in /public/legacy/; the Next.js shell adds auth + cross-device pick sync.",
+  "description": "2026 NCAA Baseball Tournament interactive map — a Next.js + React broadcast-styled app (live ESPN scores/odds, schedule, brackets, pick'em). Static data files are synced to /public/legacy/ for runtime load; optional Auth.js sign-in adds cross-device pick sync.",
   "scripts": {
     "predev": "node scripts/sync-legacy.mjs",
     "dev": "next dev",
@@ -16,7 +16,7 @@
     "refresh": "node scripts/refresh-stats.mjs",
     "refresh:check": "node scripts/refresh-stats.mjs --check",
     "smoke": "node scripts/smoke.mjs",
-    "serve": "python3 -m http.server 4173"
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@auth/pg-adapter": "1.7.4",
