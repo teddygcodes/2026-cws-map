@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useData } from "../providers/DataProvider";
 import { useLive } from "../providers/LiveProvider";
 import { useCrumbs } from "../CrumbsContext";
-import { roundLabel, formatRecord } from "@/lib/format";
+import { roundLabel, formatRecord, dateLabel, timeAgo } from "@/lib/format";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
-import Scoreboard from "../../components/Scoreboard";
 import MatchupCard from "../../components/MatchupCard";
 import MapCanvas from "../../components/MapCanvas";
 import PageHeader from "../../components/PageHeader";
@@ -36,7 +35,8 @@ export default function HomeView() {
         sub={`${live.sites.length} ${roundLabel(live.round).toLowerCase()}s · double-elimination · May 29 – June 1`}
       />
 
-      <Scoreboard />
+      {/* Single games strip (replaces the old separate scoreboard ticker). */}
+      <TodaysGames SCHEDULES={SCHEDULES} live={live} team={team} />
 
       <div className={styles.toggleRow}>
         <Segmented options={HOME_MODES} value={mode} onChange={setMode} ariaLabel="Home layout" />
@@ -48,7 +48,6 @@ export default function HomeView() {
 
       {mode === "hub" && (
         <>
-          <Hero SCHEDULES={SCHEDULES} live={live} team={team} />
           <div className="panel-title">{roundLabel(live.round)} Sites</div>
           <div className={styles.grid}>
             {sortSites(live.sites, team).map((s) => (
@@ -69,15 +68,16 @@ function sortSites(sites, team) {
   });
 }
 
-function Hero({ SCHEDULES, live, team }) {
-  // Live games first; otherwise the marquee Friday matchups (ranked by host
-  // seed so the biggest games lead). Built only from real feed + published data.
+function TodaysGames({ SCHEDULES, live, team }) {
+  // The single games strip: live/today's games (or the marquee Friday matchups
+  // pre-tournament), the live heartbeat, the Simulate control, and a link to the
+  // full Pick'em slate. Built only from the real feed + published schedule.
   let cards = [];
   let heading;
   let total = 0;
   const L = live.live;
   if (L.list.length) {
-    heading = L.list.some((g) => g.state === "in") ? "Live now" : "Today's games";
+    heading = L.list.some((g) => g.state === "in") ? "Live Now" : "Today's Games";
     total = L.list.length;
     cards = L.list
       .slice()
@@ -114,46 +114,82 @@ function Hero({ SCHEDULES, live, team }) {
         });
       });
     });
-    // biggest games first: lower host seed, then earlier game number
-    upcoming.sort((a, b) => a.seed - b.seed);
+    upcoming.sort((a, b) => a.seed - b.seed); // biggest games first
     total = upcoming.length;
     cards = upcoming.slice(0, 8);
   }
-  if (!cards.length) return null;
+
+  // Surface the clearly-labeled SIM game alongside the real ones when running.
+  if (L.demo) {
+    cards = [
+      {
+        a: L.demo.comps[0].id,
+        b: L.demo.comps[1].id,
+        state: L.demo.state,
+        detail: L.demo.detail,
+        scoreA: L.demo.comps[0].score,
+        scoreB: L.demo.comps[1].score,
+        label: "SIM",
+      },
+      ...cards,
+    ];
+  }
+
+  const liveCount = L.list.filter((g) => g.state === "in").length + (L.demo ? 1 : 0);
+  const meta = !L.updated
+    ? "Loading scores…"
+    : `${L.activeDate ? dateLabel(L.activeDate) : ""}${liveCount ? " · " + liveCount + " live" : ""} · updated ${timeAgo(L.updated)}`;
 
   return (
-    <>
-      <div className={styles.heroHead}>
-        <span className="panel-title" style={{ margin: 0 }}>
-          {heading}
-        </span>
-        {total > cards.length && (
-          <a className={styles.seeAll} href="#/games">
-            See all →
-          </a>
-        )}
+    <div className={styles.games} data-testid="scoreboard">
+      <div className={styles.gamesHead}>
+        <div className={styles.gamesHeadL}>
+          <span className={styles.gamesTitle}>
+            {liveCount > 0 && <span className={styles.dot} />}
+            {heading}
+          </span>
+          <span className={styles.gamesMeta}>{meta}</span>
+        </div>
+        <div className={styles.gamesHeadR}>
+          <button
+            className={styles.simBtn}
+            onClick={() => (L.demo ? live.stopDemo() : live.startDemo())}
+            data-demo={L.demo ? "stop" : "start"}
+          >
+            {L.demo ? "■ Stop demo" : "▶ Simulate a live game"}
+          </button>
+          {total > 8 && (
+            <a className={styles.seeAll} href="#/games">
+              See all →
+            </a>
+          )}
+        </div>
       </div>
-      <div className={styles.heroStrip}>
-        {cards.map((c, i) => (
-          <div key={i} className={styles.heroCard}>
-            <MatchupCard
-              a={c.a}
-              b={c.b}
-              aSeed={c.aSeed}
-              bSeed={c.bSeed}
-              label={c.label}
-              state={c.state}
-              detail={c.detail}
-              startMs={c.startMs}
-              scoreA={c.scoreA}
-              scoreB={c.scoreB}
-              odds={c.odds}
-              compareHref={"#/vs/" + c.a + "/" + c.b}
-            />
-          </div>
-        ))}
-      </div>
-    </>
+      {cards.length ? (
+        <div className={styles.heroStrip}>
+          {cards.map((c, i) => (
+            <div key={i} className={styles.heroCard}>
+              <MatchupCard
+                a={c.a}
+                b={c.b}
+                aSeed={c.aSeed}
+                bSeed={c.bSeed}
+                label={c.label}
+                state={c.state}
+                detail={c.detail}
+                startMs={c.startMs}
+                scoreA={c.scoreA}
+                scoreB={c.scoreB}
+                odds={c.odds}
+                compareHref={"#/vs/" + c.a + "/" + c.b}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className={styles.gamesEmpty}>No games yet — first pitch Friday, May 29. Scores appear here automatically.</div>
+      )}
+    </div>
   );
 }
 
