@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useData } from "../providers/DataProvider";
 import { useGamePicks } from "../providers/GamePicksProvider";
+import { useLive } from "../providers/LiveProvider";
 import { useCrumbs } from "../CrumbsContext";
 import { useRoute } from "../RouteContext";
 import PageHeader from "../../components/PageHeader";
 import LiveBadge from "../../components/LiveBadge";
+import OddsChip from "../../components/OddsChip";
 import styles from "./ScheduleView.module.css";
 
 // The tournament's fixed first weekend. Each day owns the regional double-elim
@@ -29,6 +31,7 @@ function gameNum(key) {
 export default function ScheduleView() {
   const { TOURNAMENT, SCHEDULES } = useData();
   const { games } = useGamePicks();
+  const live = useLive();
   const { set } = useCrumbs();
   const { navigate } = useRoute();
   const team = (id) => TOURNAMENT.teams[id];
@@ -61,12 +64,12 @@ export default function ScheduleView() {
 
   const todayMs = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
 
-  const fridayTime = (g) => {
+  // The published day-1 schedule entry for a game (real time + TV network).
+  const schedEntry = (g) => {
     const sid = g.key.split("_G")[0];
-    const m = (SCHEDULES[sid] || []).find(
+    return (SCHEDULES[sid] || []).find(
       (x) => (x.a[0] === g.teamA && x.b[0] === g.teamB) || (x.a[0] === g.teamB && x.b[0] === g.teamA)
     );
-    return m ? m.time + " ET" : null;
   };
   // Time only — the day is already chosen, so no weekday prefix.
   const clock = (ms) => {
@@ -76,7 +79,9 @@ export default function ScheduleView() {
       return null;
     }
   };
-  const timeFor = (g) => (g.startMs ? clock(g.startMs) || "TBD" : fridayTime(g) || "TBD");
+  const timeFor = (g, entry) => (g.startMs ? clock(g.startMs) || "TBD" : entry ? entry.time + " ET" : "TBD");
+  // Odds from the live feed (event-level, else the pair index). Never invented.
+  const oddsFor = (g) => g.odds || (g.teamA && g.teamB ? live.oddsForPair(g.teamA, g.teamB) : null);
 
   return (
     <section className="view">
@@ -108,9 +113,10 @@ export default function ScheduleView() {
 
       {list.length ? (
         <div className={styles.rows} data-testid="schedule-day">
-          {list.map((g) => (
-            <ScheduleRow key={g.key} g={g} team={team} navigate={navigate} time={timeFor(g)} />
-          ))}
+          {list.map((g) => {
+            const entry = schedEntry(g);
+            return <ScheduleRow key={g.key} g={g} team={team} navigate={navigate} time={timeFor(g, entry)} tv={entry ? entry.tv : null} odds={oddsFor(g)} />;
+          })}
         </div>
       ) : (
         <p className={styles.empty}>No games scheduled for this day yet.</p>
@@ -132,13 +138,16 @@ function defaultDayKey(days) {
   return (last || days[0]).key;
 }
 
-function ScheduleRow({ g, team, navigate, time }) {
+function ScheduleRow({ g, team, navigate, time, tv, odds }) {
   const determined = !!(g.teamA && g.teamB);
   const n = gameNum(g.key);
   const elim = ELIM[n];
   const open = determined ? () => navigate("#/vs/" + g.teamA + "/" + g.teamB) : null;
   const decided = g.state === "post" || g.state === "in";
   const showScore = decided && g.scoreA != null && g.scoreB != null;
+  // Show moneylines only pre-game (once it's decided, the score is what matters).
+  const ml = !decided && odds && odds.byTeam ? odds.byTeam : null;
+  const favId = odds ? odds.favoriteId : null;
 
   const onClick = open
     ? (e) => {
@@ -165,13 +174,16 @@ function ScheduleRow({ g, team, navigate, time }) {
       aria-label={open ? `Compare ${team(g.teamA).name} vs ${team(g.teamB).name}` : undefined}
       data-testid="schedule-row"
     >
-      <span className={`${styles.time} tnum`}>{time}</span>
+      <span className={styles.when}>
+        <span className={`${styles.time} tnum`}>{time}</span>
+        {tv && <span className={styles.tv}>{tv}</span>}
+      </span>
 
       <div className={styles.match}>
         {determined ? (
           <>
-            <TeamLine team={team(g.teamA)} score={showScore ? g.scoreA : null} win={g.winner === g.teamA} decided={decided} />
-            <TeamLine team={team(g.teamB)} score={showScore ? g.scoreB : null} win={g.winner === g.teamB} decided={decided} />
+            <TeamLine team={team(g.teamA)} score={showScore ? g.scoreA : null} win={g.winner === g.teamA} decided={decided} ml={ml ? ml[g.teamA] : null} fav={favId === g.teamA} />
+            <TeamLine team={team(g.teamB)} score={showScore ? g.scoreB : null} win={g.winner === g.teamB} decided={decided} ml={ml ? ml[g.teamB] : null} fav={favId === g.teamB} />
           </>
         ) : (
           <span className={styles.feeder}>
@@ -188,13 +200,17 @@ function ScheduleRow({ g, team, navigate, time }) {
   );
 }
 
-function TeamLine({ team, score, win, decided }) {
+function TeamLine({ team, score, win, decided, ml, fav }) {
   return (
     <div className={`${styles.tl} ${decided && win ? styles.win : ""} ${decided && !win ? styles.lose : ""}`}>
       <a href={"#/t/" + team.id} className={styles.tname}>
         {team.name}
       </a>
-      {score != null && <span className={`${styles.sc} tnum`}>{score}</span>}
+      {score != null ? (
+        <span className={`${styles.sc} tnum`}>{score}</span>
+      ) : ml != null ? (
+        <OddsChip ml={ml} favorite={fav} size="sm" />
+      ) : null}
     </div>
   );
 }
