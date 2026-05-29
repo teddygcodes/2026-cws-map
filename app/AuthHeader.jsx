@@ -23,6 +23,22 @@ function GoogleG() {
 export default function AuthHeader({ session }) {
   const signedIn = !!session?.user;
 
+  // Sign-out = "forget me on this device": clear all local app state (joined
+  // leagues, bracket picks, daily pick'em, results cache) before ending the
+  // session, so nothing personal lingers after sign-out. Bracket picks restore
+  // from the account on next sign-in; anonymous league memberships aren't
+  // synced, so those are rejoined fresh. signOut() then reloads "/".
+  const handleSignOut = () => {
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.indexOf("cws-") === 0)
+        .forEach((k) => localStorage.removeItem(k));
+    } catch (e) {
+      /* localStorage unavailable — nothing to clear */
+    }
+    signOut({ callbackUrl: "/" });
+  };
+
   return (
     <div className="auth">
       {signedIn ? (
@@ -32,7 +48,7 @@ export default function AuthHeader({ session }) {
             <img src={session.user.image} alt="" className="auth-av" referrerPolicy="no-referrer" />
           ) : null}
           <span className="auth-nm">{session.user.name || session.user.email}</span>
-          <button type="button" className="auth-pill" onClick={() => signOut({ callbackUrl: "/" })}>
+          <button type="button" className="auth-pill" onClick={handleSignOut}>
             Sign out
           </button>
         </>

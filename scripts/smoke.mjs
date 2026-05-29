@@ -104,32 +104,72 @@ try {
   if (pageErrors.length !== errsBefore) throw new Error("league disabled produced errors: " + pageErrors.slice(errsBefore).join("; "));
   ok("leagues: graceful 'unavailable' state when backend off");
 
-  // LEAGUES — enabled flow against a mocked Worker
+  // LEAGUES — full flow against a STATEFUL mocked Worker: view → join →
+  // submit DAILY pick'em → it saves → multiple entries show in standings.
   const future = Date.now() + 3 * 86400000;
   const aCode = "1" + "0".repeat(25);
   const bCode = "1" + "1111111111111111000000007";
-  const games1 = { athens_G1: { pick: "georgia", ts: 1 }, "super-1_G1": { pick: "ucla", ts: 1 } };
+  const aliceGames = { athens_G1: { pick: "georgia", ts: 1 }, "super-1_G1": { pick: "ucla", ts: 1 } };
+  // In-memory league store keyed by memberId (mirrors the real Worker).
+  const members = {
+    alice00000000: { displayName: "Alice", bracket: aCode, games: aliceGames, updated: 1 },
+    bob0000000000: { displayName: "Bob", bracket: bCode, games: {}, updated: 1 },
+  };
+  let lastGamesPost = null;
+  const memberList = () => Object.keys(members).map((id) => ({ displayName: members[id].displayName, bracket: members[id].bracket, games: members[id].games || {}, updated: members[id].updated }));
   await page.route("**/league**", (route) => {
     const r = route.request();
     const u = r.url().split("#")[0];
     const m = r.method();
-    if (m === "POST" && /\/league$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ code: "ABC123", name: "Smoke League", lockTs: future }) });
-    if (m === "GET" && /\/league\/ABC123$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ name: "Smoke League", lockTs: future, members: [{ displayName: "Alice", bracket: aCode, games: games1 }, { displayName: "Bob", bracket: bCode, games: {} }] }) });
-    if (m === "POST" && /\/member$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ displayName: "Me", bracket: aCode, updated: Date.now() }) });
-    if (m === "POST" && /\/games$/.test(u)) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ games: games1, updated: Date.now() }) });
+    let body = {};
+    try { body = JSON.parse(r.postData() || "{}"); } catch (e) { body = {}; }
+    const reply = (obj) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(obj) });
+    if (m === "POST" && /\/league$/.test(u)) return reply({ code: "ABC123", name: "Smoke League", lockTs: future });
+    if (m === "GET" && /\/league\/ABC123$/.test(u)) return reply({ name: "Smoke League", lockTs: future, members: memberList() });
+    if (m === "POST" && /\/member$/.test(u)) {
+      if (body.memberId) members[body.memberId] = { displayName: body.displayName || "Player", bracket: body.bracket, games: (members[body.memberId] || {}).games || {}, updated: Date.now() };
+      return reply({ displayName: body.displayName, bracket: body.bracket, updated: Date.now() });
+    }
+    if (m === "POST" && /\/games$/.test(u)) {
+      lastGamesPost = body;
+      if (body.memberId) members[body.memberId] = { displayName: body.displayName || "Player", bracket: (members[body.memberId] || {}).bracket || "", games: body.picks || {}, updated: Date.now() };
+      return reply({ games: body.picks, updated: Date.now() });
+    }
     return route.continue();
   });
-  // Point at the real Worker origin (allowlisted by the app's CSP connect-src);
-  // page.route intercepts it, so no real network call is made.
+  // Real Worker origin (allowlisted by the app's CSP connect-src); page.route
+  // intercepts it, so no real network call leaves the browser.
   await page.evaluate(() => window.__leagues.setApi("https://cws-map-leagues.tyler-696.workers.dev"));
+  // Seed a local daily pick so "Submit my picks" has something to save.
+  await page.evaluate(() => window.__gamepicks.set({ picks: { athens_G1: { pick: "boston-college", ts: 1 } } }));
+
+  // View standings before joining → the two existing members.
   await go("#/league/ABC123");
   await page.waitForSelector('[data-testid="standings"] tbody tr', { timeout: 10000 });
-  if ((await count('[data-testid="standings"] tbody tr')) !== 2) throw new Error("expected 2 standings rows");
+  if ((await count('[data-testid="standings"] tbody tr')) !== 2) throw new Error("expected 2 standings rows before join");
+
+  // Join the league (records membership locally; you appear in standings only
+  // after you submit), then submit your bracket → a third entry persists.
+  await page.getByRole("button", { name: "Join this league" }).click();
+  await page.getByRole("button", { name: "Submit my bracket" }).click();
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="standings"] tbody tr').length === 3, { timeout: 10000 });
+  ok("leagues: join + submit bracket adds a third entry");
+
+  // Daily tab → submit my pick'em → it POSTs my picks and the entry saves.
   await page.evaluate(() => document.querySelector('[data-seg="daily"]').click());
-  await page.waitForFunction(() => document.querySelectorAll('[data-testid="standings"] tbody tr').length === 2, { timeout: 10000 });
+  await page.getByRole("button", { name: "Submit my picks" }).click();
+  // Wait (Node-side) for the mocked Worker to receive the games POST, then
+  // confirm the submit carried the local daily pick through to the league.
+  for (let i = 0; i < 40 && !lastGamesPost; i++) await page.waitForTimeout(100);
+  if (!lastGamesPost || !lastGamesPost.picks || ((lastGamesPost.picks.athens_G1 || {}).pick) !== "boston-college") {
+    throw new Error("daily pick'em did not save through the league (POST /games body: " + JSON.stringify(lastGamesPost) + ")");
+  }
+  // All three members still render in the daily standings (allows other entries).
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="standings"] tbody tr').length === 3, { timeout: 10000 });
+  ok("leagues: daily pick'em saves through the league + all 3 entries show");
+
   await page.unroute("**/league**");
   await page.evaluate(() => window.__leagues.setApi(""));
-  ok("leagues: bracket + daily standings both render (mocked worker)");
 
   // DAILY PICK'EM — open games, pick round-trips to GAME_PICKS
   await go("#/games");
