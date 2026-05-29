@@ -1,0 +1,50 @@
+.chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-family: var(--font-display);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 10px;
+}
+.chip small {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.md {
+  width: 38px;
+  height: 38px;
+  font-size: 18px;
+}
+.sm {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+.lg {
+  width: 48px;
+  height: 48px;
+  font-size: 23px;
+}
+.gold {
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 35%, transparent), 0 0 14px var(--gold-fill);
+}
+.gold small {
+  color: color-mix(in srgb, var(--gold) 75%, var(--muted));
+}
+.regional {
+  background: var(--surface-2);
+}
+.none {
+  color: var(--faint);
+}
