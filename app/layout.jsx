@@ -1,6 +1,13 @@
-// Root layout. Auth chrome + session wiring live inside <LegacyApp> (rendered
-// by app/page.jsx) so the sign-in control sits in the app's masthead rather
-// than floating over the page.
+// Root layout. Loads the design-token layer + the broadcast/UI/mono fonts via
+// next/font (self-hosted, no CDN, good CLS), then renders the app.
+import { Anton, Inter, JetBrains_Mono } from "next/font/google";
+import "./styles/tokens.css";
+import "./styles/global.css";
+
+const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton", display: "swap" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono-jb", display: "swap" });
+
 export const metadata = {
   title: "2026 NCAA Baseball Tournament — Interactive Map",
   description:
@@ -24,10 +31,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="stylesheet" href="/legacy/app.css" />
-      </head>
+    <html lang="en" className={`${anton.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body>{children}</body>
     </html>
   );
