@@ -7,6 +7,7 @@ import { useLeagues } from "../providers/LeaguesProvider";
 import { useCrumbs } from "../CrumbsContext";
 import MatchupCard from "../../components/MatchupCard";
 import PickTray from "../../components/PickTray";
+import PageHeader from "../../components/PageHeader";
 import styles from "./GamesView.module.css";
 
 export default function GamesView() {
@@ -44,8 +45,7 @@ export default function GamesView() {
 
   return (
     <section className="view">
-      <h1 className="section-head">Daily Pick&apos;em</h1>
-      <div className="section-sub">Pick every game as it unlocks · build a W–L record · locked at first pitch</div>
+      <PageHeader kicker="Daily" title="Pick'em" sub="Pick every game as it unlocks · build a W–L record · locked at first pitch" />
       <div className="unofficial-banner">⚠ Predictions only — unofficial. Picks lock at each game&apos;s first pitch.</div>
 
       <div className={styles.layout}>

@@ -75,6 +75,9 @@ export default function GameView({ eventId }) {
 
   return (
     <section className="view">
+      <h1 className="sr-only" tabIndex={-1} data-view-heading>
+        {teamName(a)} vs {teamName(b)} — {game.detail || (game.state === "post" ? "Final" : game.state === "in" ? "Live" : "Upcoming")}
+      </h1>
       {/* Broadcast scorebug */}
       <div className={`${styles.bug} ${game.state === "in" ? styles.bugLive : ""}`}>
         <ScoreSide team={a} name={teamName(a)} lead={a.score != null && b.score != null && a.score > b.score} />

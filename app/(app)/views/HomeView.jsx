@@ -10,7 +10,15 @@ import Scoreboard from "../../components/Scoreboard";
 import MatchupCard from "../../components/MatchupCard";
 import MapCanvas from "../../components/MapCanvas";
 import SeedBadge from "../../components/SeedBadge";
+import PageHeader from "../../components/PageHeader";
+import Segmented from "../../components/Segmented";
 import styles from "./HomeView.module.css";
+
+const HOME_MODES = [
+  { value: "hub", label: "Hub" },
+  { value: "map", label: "Map" },
+  { value: "list", label: "List" },
+];
 
 export default function HomeView() {
   const { TOURNAMENT, SCHEDULES } = useData();
@@ -25,19 +33,15 @@ export default function HomeView() {
 
   return (
     <section className="view">
-      <h1 className="section-head">Road to Omaha</h1>
-      <div className="section-sub">
-        {live.sites.length} {roundLabel(live.round).toLowerCase()}s · double-elimination · May 29 – June 1
-      </div>
+      <PageHeader
+        title="Road to Omaha"
+        sub={`${live.sites.length} ${roundLabel(live.round).toLowerCase()}s · double-elimination · May 29 – June 1`}
+      />
 
       <Scoreboard />
 
-      <div className={styles.toggle}>
-        {["hub", "map", "list"].map((m) => (
-          <button key={m} className={`${styles.vt} ${mode === m ? styles.vtOn : ""}`} onClick={() => setMode(m)} data-mode={m}>
-            {m === "hub" ? "Hub" : m === "map" ? "Map" : "List"}
-          </button>
-        ))}
+      <div className={styles.toggleRow}>
+        <Segmented options={HOME_MODES} value={mode} onChange={setMode} ariaLabel="Home layout" />
       </div>
 
       {mode === "map" && <MapCanvas />}

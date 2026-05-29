@@ -7,7 +7,14 @@ import { useLeagues } from "../providers/LeaguesProvider";
 import { useCrumbs } from "../CrumbsContext";
 import { useRoute } from "../RouteContext";
 import StandingsTable from "../../components/StandingsTable";
+import PageHeader from "../../components/PageHeader";
+import Segmented from "../../components/Segmented";
 import styles from "./LeagueView.module.css";
+
+const LEAGUE_TABS = [
+  { value: "bracket", label: "Bracket" },
+  { value: "daily", label: "Daily" },
+];
 
 export default function LeagueView({ code }) {
   const leagues = useLeagues();
@@ -22,7 +29,7 @@ export default function LeagueView({ code }) {
   if (!leagues.enabled) {
     return (
       <section className="view">
-        <h1 className="section-head">Private Leagues</h1>
+        <PageHeader title="Private Leagues" />
         <div className={styles.unavailable} data-testid="lg-unavailable">
           <div className={styles.uTitle}>Leagues aren&apos;t turned on yet</div>
           <p>
@@ -64,8 +71,7 @@ function Hub() {
 
   return (
     <section className="view">
-      <h1 className="section-head">Private Leagues</h1>
-      <div className="section-sub">Compete with friends on your bracket · one code, everyone joins</div>
+      <PageHeader title="Private Leagues" sub="Compete with friends on your bracket · one code, everyone joins" />
       <div className="unofficial-banner">⚠ Friendly competition only — league standings are unofficial predictions, not real results.</div>
 
       <div className={styles.cards}>
@@ -213,21 +219,20 @@ function Standings({ code }) {
 
   return (
     <section className="view">
-      <h1 className="section-head">{data.name || "League " + code}</h1>
-      <div className="section-sub">
-        Code <b>{code}</b> · share it to invite friends
-      </div>
+      <PageHeader
+        title={data.name || "League " + code}
+        sub={
+          <>
+            Code <b>{code}</b> · share it to invite friends
+          </>
+        }
+      />
       <div className="unofficial-banner" data-testid="lg-banner">
         ⚠ Standings are unofficial predictions — not real results.
       </div>
 
       <div className={styles.subToggle}>
-        <button className={`${styles.vt} ${!daily ? styles.vtOn : ""}`} onClick={() => setTab("bracket")} data-leaguetab="bracket">
-          Bracket
-        </button>
-        <button className={`${styles.vt} ${daily ? styles.vtOn : ""}`} onClick={() => setTab("daily")} data-leaguetab="daily">
-          Daily
-        </button>
+        <Segmented options={LEAGUE_TABS} value={tab} onChange={setTab} ariaLabel="Standings type" />
       </div>
 
       <div className={styles.bar}>

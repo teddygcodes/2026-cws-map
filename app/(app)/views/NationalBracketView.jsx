@@ -6,6 +6,7 @@ import { useLive } from "../providers/LiveProvider";
 import { useCrumbs } from "../CrumbsContext";
 import { superPairings } from "@/lib/live-parse";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
+import PageHeader from "../../components/PageHeader";
 import styles from "./BracketTree.module.css";
 
 export default function NationalBracketView() {
@@ -82,15 +83,16 @@ export default function NationalBracketView() {
 
   return (
     <section className="view">
-      <h1 className="section-head">Road to Omaha</h1>
-      <div className="section-sub">
-        {isSuper ? "Super Regionals" : "16 regionals"} → 8 super regionals → College World Series
-      </div>
-      <div className={styles.actions}>
-        <a className="btn primary" href="#/picks">
-          📋 Make Your Picks →
-        </a>
-      </div>
+      <PageHeader
+        kicker="National Bracket"
+        title="Road to Omaha"
+        sub={`${isSuper ? "Super Regionals" : "16 regionals"} → 8 super regionals → College World Series`}
+        actions={
+          <a className="btn primary" href="#/picks">
+            📋 Make Your Picks →
+          </a>
+        }
+      />
       <div className={styles.scroll}>{content}</div>
     </section>
   );

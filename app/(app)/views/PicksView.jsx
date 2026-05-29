@@ -9,6 +9,7 @@ import { useRoute } from "../RouteContext";
 import { REG_SEED } from "@/lib/picks";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
 import PickTray from "../../components/PickTray";
+import PageHeader from "../../components/PageHeader";
 import styles from "./PicksView.module.css";
 
 export default function PicksView({ code }) {
@@ -112,8 +113,7 @@ export default function PicksView({ code }) {
 
   return (
     <section className="view">
-      <h1 className="section-head">Bracket Challenge</h1>
-      <div className="section-sub">Predict the Road to Omaha · your picks save to this page &amp; share link</div>
+      <PageHeader kicker="Bracket Challenge" title="Predict the Field" sub="Predict the Road to Omaha · your picks save to this page & share link" />
       <div className="unofficial-banner" data-testid="picks-banner">
         ⚠ Predictions only — unofficial, not real results. Saved in your browser and in the share link.
       </div>

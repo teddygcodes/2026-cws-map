@@ -11,6 +11,7 @@ import OddsChip from "../../components/OddsChip";
 import ProbBar from "../../components/ProbBar";
 import StatRow from "../../components/StatRow";
 import Tbd from "../../components/Tbd";
+import PageHeader from "../../components/PageHeader";
 import styles from "./CompareView.module.css";
 
 export default function CompareView({ idA, idB }) {
@@ -65,13 +66,15 @@ export default function CompareView({ idA, idB }) {
 
   return (
     <section className="view">
-      <h1 className="section-head">
-        {a.name} <span className={styles.vsWord}>vs</span> {b.name}
-      </h1>
-      <div className="section-sub">
-        {site ? site.city + " " + roundLabel(TOURNAMENT.round) : "Head-to-head"}
-        {gctx}
-      </div>
+      <PageHeader
+        kicker="Matchup"
+        title={
+          <>
+            {a.name} <span className={styles.vsWord}>vs</span> {b.name}
+          </>
+        }
+        sub={(site ? site.city + " " + roundLabel(TOURNAMENT.round) : "Head-to-head") + gctx}
+      />
 
       {/* Head-to-head hero */}
       <div className={styles.hero}>

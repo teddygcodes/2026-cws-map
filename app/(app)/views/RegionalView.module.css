@@ -88,31 +88,6 @@
   margin: 18px 0 14px;
   flex-wrap: wrap;
 }
-.toggle {
-  display: inline-flex;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-  padding: 3px;
-}
-.vt {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 7px 16px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
-}
-.vtOn {
-  background: var(--surface-3);
-  color: var(--text);
-}
 .simBtn {
   background: var(--surface-2);
   border: 1px solid var(--line);

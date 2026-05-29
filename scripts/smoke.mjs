@@ -34,10 +34,10 @@ try {
   // HOME — hub: 16 regional cards; list: 16 rows; map: 16 markers
   await page.waitForSelector('[data-testid="regional-card"]', { timeout: 10000 });
   if ((await count('[data-testid="regional-card"]')) !== 16) throw new Error("expected 16 regional cards");
-  await page.evaluate(() => document.querySelector('button[data-mode="list"]').click());
+  await page.evaluate(() => document.querySelector('[data-seg="list"]').click());
   await page.waitForSelector('[data-testid="site-row"]', { timeout: 10000 });
   if ((await count('[data-testid="site-row"]')) !== 16) throw new Error("expected 16 site rows");
-  await page.evaluate(() => document.querySelector('button[data-mode="map"]').click());
+  await page.evaluate(() => document.querySelector('[data-seg="map"]').click());
   await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 16, { timeout: 15000 });
   ok("home: 16 regional cards, 16 list rows, 16 map markers");
 
@@ -126,7 +126,7 @@ try {
   await go("#/league/ABC123");
   await page.waitForSelector('[data-testid="standings"] tbody tr', { timeout: 10000 });
   if ((await count('[data-testid="standings"] tbody tr')) !== 2) throw new Error("expected 2 standings rows");
-  await page.evaluate(() => document.querySelector('[data-leaguetab="daily"]').click());
+  await page.evaluate(() => document.querySelector('[data-seg="daily"]').click());
   await page.waitForFunction(() => document.querySelectorAll('[data-testid="standings"] tbody tr').length === 2, { timeout: 10000 });
   await page.unroute("**/league**");
   await page.evaluate(() => window.__leagues.setApi(""));
@@ -156,7 +156,7 @@ try {
   await page.waitForFunction(() => window.TOURNAMENT.round === "super-regional", { timeout: 10000 });
   if ((await page.evaluate(() => window.TOURNAMENT.sites.length)) !== 8) throw new Error("expected 8 super-regional sites");
   await go("#/");
-  await page.evaluate(() => document.querySelector('button[data-mode="map"]')?.click());
+  await page.evaluate(() => document.querySelector('[data-seg="map"]')?.click());
   await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 8, { timeout: 10000 });
   ok("bracket resolves: 16 regionals → 8 super-regionals");
 } catch (e) {

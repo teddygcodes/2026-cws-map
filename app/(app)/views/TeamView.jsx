@@ -48,7 +48,9 @@ export default function TeamView({ teamId }) {
         <div className={styles.heroAccent} aria-hidden="true" />
         <SeedBadge national={t.seed != null ? t.seed : undefined} size="lg" />
         <div className={styles.heroBody}>
-          <h1 className={styles.name}>{t.name}</h1>
+          <h1 className={styles.name} tabIndex={-1} data-view-heading>
+            {t.name}
+          </h1>
           <div className={styles.sub}>
             {t.conference}
             {site ? " · " + site.city + " " + roundLabel(TOURNAMENT.round) : ""}
