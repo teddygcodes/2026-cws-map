@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect } from "react";
+import AuthHeader from "./AuthHeader";
 
 /**
  * Mounts the legacy single-page app inside the Next.js shell. The legacy body
@@ -14,19 +14,17 @@ import { useEffect } from "react";
  *   3. app.js runs; reads window.__session for the sync shim, attaches to the
  *      DOM ids below, and starts the existing load-event boot sequence.
  *
- * We expose window.__session synchronously from the hidden input that
- * layout.jsx renders (React safely escapes attribute values).
+ * window.__session is set synchronously during client render (this runs at
+ * hydration, before the afterInteractive app.js executes), so the sync shim's
+ * SIGNED_IN flag is correct at boot.
  */
-export default function LegacyApp() {
-  useEffect(() => {
-    try {
-      const el = document.getElementById("__session");
-      if (el && el.value) window.__session = JSON.parse(el.value);
-      else window.__session = { signedIn: false };
-    } catch (e) {
-      window.__session = { signedIn: false };
-    }
-  }, []);
+export default function LegacyApp({ session }) {
+  const sessionForClient = session?.user
+    ? { signedIn: true, user: { email: session.user.email, name: session.user.name } }
+    : { signedIn: false };
+  if (typeof window !== "undefined") {
+    window.__session = sessionForClient;
+  }
 
   return (
     <>
@@ -49,11 +47,14 @@ export default function LegacyApp() {
 
       {/* ===== Legacy body markup (was index.html lines 566-633) ===== */}
       <header className="masthead">
-        <div className="brand">
-          <span className="kicker">Road to Omaha</span>
-          <h1>
-            <span className="yr">2026</span> NCAA Baseball Tournament
-          </h1>
+        <div className="masthead-top">
+          <div className="brand">
+            <span className="kicker">Road to Omaha</span>
+            <h1>
+              <span className="yr">2026</span> NCAA Baseball Tournament
+            </h1>
+          </div>
+          <AuthHeader session={session} />
         </div>
         <div className="navbar">
           <button id="backBtn" hidden>
