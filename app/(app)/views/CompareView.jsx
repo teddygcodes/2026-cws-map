@@ -200,16 +200,21 @@ function buildRows(a, b) {
     ["Strength of Sched.", a.stats.sos, b.stats.sos, num(a.stats.sos), num(b.stats.sos), "low"],
   ];
   return defs.map(([label, aRaw, bRaw, aN, bN, dir]) => {
+    // National Seed is a label, not a magnitude — highlight the higher seed but
+    // draw no proportional bar (a bar for "No.1 vs No.8" is misleading).
+    const noBar = label === "National Seed";
     let better = null;
     let aFill = 0;
     let bFill = 0;
     if (aN != null && bN != null) {
       if (aN !== bN) better = (dir === "high" ? aN > bN : aN < bN) ? "a" : "b";
-      const mn = Math.min(Math.abs(aN), Math.abs(bN));
-      const mx = Math.max(Math.abs(aN), Math.abs(bN)) || 1;
-      const r = mn / mx;
-      aFill = better === "a" ? 1 : better === "b" ? r : 0.6;
-      bFill = better === "b" ? 1 : better === "a" ? r : 0.6;
+      if (!noBar) {
+        const mn = Math.min(Math.abs(aN), Math.abs(bN));
+        const mx = Math.max(Math.abs(aN), Math.abs(bN)) || 1;
+        const r = mn / mx;
+        aFill = better === "a" ? 1 : better === "b" ? r : 0.6;
+        bFill = better === "b" ? 1 : better === "a" ? r : 0.6;
+      }
     }
     return {
       label,

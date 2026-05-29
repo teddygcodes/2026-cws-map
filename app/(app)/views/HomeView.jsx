@@ -9,7 +9,6 @@ import { teamColor, teamMonogram } from "@/lib/team-colors";
 import Scoreboard from "../../components/Scoreboard";
 import MatchupCard from "../../components/MatchupCard";
 import MapCanvas from "../../components/MapCanvas";
-import SeedBadge from "../../components/SeedBadge";
 import PageHeader from "../../components/PageHeader";
 import Segmented from "../../components/Segmented";
 import styles from "./HomeView.module.css";
@@ -17,7 +16,6 @@ import styles from "./HomeView.module.css";
 const HOME_MODES = [
   { value: "hub", label: "Hub" },
   { value: "map", label: "Map" },
-  { value: "list", label: "List" },
 ];
 
 export default function HomeView() {
@@ -48,11 +46,9 @@ export default function HomeView() {
           doesn't re-initialize Leaflet. */}
       <MapCanvas visible={mode === "map"} />
 
-      {mode === "list" && <SiteList sites={sortSites(live.sites, team)} team={team} live={live} />}
-
       {mode === "hub" && (
         <>
-          <Hero SCHEDULES={SCHEDULES} live={live} />
+          <Hero SCHEDULES={SCHEDULES} live={live} team={team} />
           <div className="panel-title">{roundLabel(live.round)} Sites</div>
           <div className={styles.grid}>
             {sortSites(live.sites, team).map((s) => (
@@ -73,32 +69,41 @@ function sortSites(sites, team) {
   });
 }
 
-function Hero({ SCHEDULES, live }) {
-  // Live games first; otherwise the next scheduled Friday matchups so the front
-  // door always feels alive. Built only from real feed + published schedule.
+function Hero({ SCHEDULES, live, team }) {
+  // Live games first; otherwise the marquee Friday matchups (ranked by host
+  // seed so the biggest games lead). Built only from real feed + published data.
   let cards = [];
+  let heading;
   const L = live.live;
   if (L.list.length) {
-    cards = L.list.slice(0, 6).map((g) => ({
-      a: g.comps[0].id,
-      b: g.comps[1].id,
-      state: g.state,
-      detail: g.detail,
-      startMs: Date.parse(g.date) || null,
-      scoreA: g.comps[0].score,
-      scoreB: g.comps[1].score,
-      odds: g.odds,
-      label: "Live",
-    }));
+    heading = L.list.some((g) => g.state === "in") ? "Live now" : "Today's games";
+    cards = L.list
+      .slice()
+      .sort((a, b) => (a.state === "in" ? -1 : 0) - (b.state === "in" ? -1 : 0) || (Date.parse(a.date) || 0) - (Date.parse(b.date) || 0))
+      .slice(0, 6)
+      .map((g) => ({
+        a: g.comps[0].id,
+        b: g.comps[1].id,
+        state: g.state,
+        detail: g.detail,
+        startMs: Date.parse(g.date) || null,
+        scoreA: g.comps[0].score,
+        scoreB: g.comps[1].score,
+        odds: g.odds,
+        label: "Live",
+      }));
   } else {
+    heading = "Featured Friday Matchups";
     const upcoming = [];
     live.sites.forEach((s) => {
+      const seed = team(s.hostTeamId).seed == null ? 99 : team(s.hostTeamId).seed;
       (SCHEDULES[s.id] || []).forEach((gm) => {
         upcoming.push({
           a: gm.a[0],
           b: gm.b[0],
           aSeed: gm.a[1],
           bSeed: gm.b[1],
+          seed,
           state: "pre",
           detail: "Fri " + gm.time + " ET",
           tv: gm.tv,
@@ -107,13 +112,15 @@ function Hero({ SCHEDULES, live }) {
         });
       });
     });
+    // biggest games first: lower host seed, then earlier game number
+    upcoming.sort((a, b) => a.seed - b.seed);
     cards = upcoming.slice(0, 6);
   }
   if (!cards.length) return null;
 
   return (
     <>
-      <div className="panel-title">Today on the Road to Omaha</div>
+      <div className="panel-title">{heading}</div>
       <div className={styles.heroStrip}>
         {cards.map((c, i) => (
           <div key={i} className={styles.heroCard}>
@@ -157,7 +164,7 @@ function RegionalCard({ site, team, live }) {
         )}
       </div>
       <div className={styles.cardHost}>
-        {host.name} · {host.conference}
+        {host.name} · {host.conference} · <span className="tnum">{formatRecord(host.record) || "TBD"}</span>
       </div>
       <div className={styles.monos}>
         {site.teams.map((id) => {
@@ -170,37 +177,5 @@ function RegionalCard({ site, team, live }) {
         })}
       </div>
     </a>
-  );
-}
-
-function SiteList({ sites, team, live }) {
-  return (
-    <div className={styles.siteList} data-testid="site-list">
-      {sites.map((s) => {
-        const host = team(s.hostTeamId);
-        const champId = live.siteChampion(s);
-        const isLive = live.siteIsLive(s);
-        return (
-          <a key={s.id} className={styles.siteRow} href={"#/r/" + s.id} data-testid="site-row">
-            <SeedBadge national={host.seed != null ? host.seed : undefined} size="sm" />
-            <div className={styles.srMain}>
-              <div className={styles.srCity}>
-                {s.city}
-                {champId && <span className={styles.srChamp}>★</span>}
-              </div>
-              <div className={styles.srHost}>
-                {host.name} · {host.conference}
-              </div>
-            </div>
-            {isLive && (
-              <span className={styles.srLive}>
-                <span className={styles.dot} /> Live
-              </span>
-            )}
-            <span className={`${styles.srRec} tnum`}>{formatRecord(host.record) || "TBD"}</span>
-          </a>
-        );
-      })}
-    </div>
   );
 }

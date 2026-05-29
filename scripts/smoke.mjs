@@ -31,15 +31,12 @@ try {
   await page.waitForSelector('[data-testid="scoreboard"]', { timeout: 20000 });
   ok("TOURNAMENT data loaded (64 teams) + app boots");
 
-  // HOME — hub: 16 regional cards; list: 16 rows; map: 16 markers
+  // HOME — hub: 16 regional cards; map: 16 markers
   await page.waitForSelector('[data-testid="regional-card"]', { timeout: 10000 });
   if ((await count('[data-testid="regional-card"]')) !== 16) throw new Error("expected 16 regional cards");
-  await page.evaluate(() => document.querySelector('[data-seg="list"]').click());
-  await page.waitForSelector('[data-testid="site-row"]', { timeout: 10000 });
-  if ((await count('[data-testid="site-row"]')) !== 16) throw new Error("expected 16 site rows");
   await page.evaluate(() => document.querySelector('[data-seg="map"]').click());
   await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 16, { timeout: 15000 });
-  ok("home: 16 regional cards, 16 list rows, 16 map markers");
+  ok("home: 16 regional cards + 16 map markers");
 
   // REGIONAL — 4 teams, >=7 schedule rows, bracket diagram >=7 cards
   await go("#/r/athens");
