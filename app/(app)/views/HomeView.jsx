@@ -10,6 +10,8 @@ import MatchupCard from "../../components/MatchupCard";
 import MapCanvas from "../../components/MapCanvas";
 import PageHeader from "../../components/PageHeader";
 import Segmented from "../../components/Segmented";
+import CountdownBanner from "../../components/CountdownBanner";
+import { firstPitchMs } from "@/lib/schedule";
 import styles from "./HomeView.module.css";
 
 const HOME_MODES = [
@@ -35,6 +37,11 @@ export default function HomeView() {
         sub={`${live.sites.length} ${roundLabel(live.round).toLowerCase()}s · double-elimination · May 29 – June 1`}
       />
 
+      {/* Cold open: countdown to first pitch, only until real games go live. */}
+      {!live.live.list.length && (
+        <CountdownBanner target={firstPitchMs(SCHEDULES)} label="Friday, May 29 — 64 teams, 16 regionals, one trophy." />
+      )}
+
       {/* Single games strip (replaces the old separate scoreboard ticker). */}
       <TodaysGames SCHEDULES={SCHEDULES} live={live} team={team} />
 
@@ -48,7 +55,7 @@ export default function HomeView() {
 
       {mode === "hub" && (
         <>
-          <div className="panel-title">{roundLabel(live.round)} Sites</div>
+          <h2 className="panel-title">{roundLabel(live.round)} Sites</h2>
           <div className={styles.grid}>
             {sortSites(live.sites, team).map((s) => (
               <RegionalCard key={s.id} site={s} team={team} live={live} />
@@ -72,6 +79,13 @@ function TodaysGames({ SCHEDULES, live, team }) {
   // The single games strip: live/today's games (or the marquee Friday matchups
   // pre-tournament), the live heartbeat, the Simulate control, and a link to the
   // full Pick'em slate. Built only from the real feed + published schedule.
+  // A slow local tick keeps the "updated Xs ago" heartbeat (and the stale flag)
+  // honest between 30s polls without forcing a network call.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 15000);
+    return () => clearInterval(id);
+  }, []);
   let cards = [];
   let heading;
   const L = live.live;
@@ -133,6 +147,9 @@ function TodaysGames({ SCHEDULES, live, team }) {
   }
 
   const liveCount = L.list.filter((g) => g.state === "in").length + (L.demo ? 1 : 0);
+  // Stale = no fresh data in well over two poll cycles (poll is 30s); usually means
+  // the tab was backgrounded or ESPN is unreachable. Surface it instead of pretending.
+  const stale = L.updated ? Date.now() - L.updated.getTime() > 90000 : false;
   const meta = !L.updated
     ? "Loading scores…"
     : `${L.activeDate ? dateLabel(L.activeDate) : ""}${liveCount ? " · " + liveCount + " live" : ""} · updated ${timeAgo(L.updated)}`;
@@ -142,16 +159,20 @@ function TodaysGames({ SCHEDULES, live, team }) {
       <div className={styles.gamesHead}>
         <div className={styles.gamesHeadL}>
           <span className={styles.gamesTitle}>
-            {liveCount > 0 && <span className={styles.dot} />}
+            {liveCount > 0 && <span className={styles.dot} aria-hidden="true" />}
             {heading}
           </span>
-          <span className={styles.gamesMeta}>{meta}</span>
+          <span className={`${styles.gamesMeta} ${stale ? styles.gamesMetaStale : ""}`}>
+            {meta}
+            {stale && <span className={styles.staleTag} role="status"> · reconnecting…</span>}
+          </span>
         </div>
         <div className={styles.gamesHeadR}>
           <button
             className={styles.simBtn}
             onClick={() => (L.demo ? live.stopDemo() : live.startDemo())}
             data-demo={L.demo ? "stop" : "start"}
+            aria-label={L.demo ? "Stop the simulated demo game" : "Start a simulated demo game"}
           >
             {L.demo ? "■ Stop demo" : "▶ Simulate a live game"}
           </button>
@@ -198,7 +219,7 @@ function RegionalCard({ site, team, live }) {
         <div className={styles.cardCity}>{site.city}</div>
         {isLive ? (
           <span className={styles.cardLive}>
-            <span className={styles.dot} /> Live
+            <span className={styles.dot} aria-hidden="true" /> Live
           </span>
         ) : champId ? (
           <span className={styles.cardChamp}>🏆</span>
