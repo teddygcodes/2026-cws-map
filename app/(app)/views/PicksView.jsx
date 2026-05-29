@@ -10,6 +10,8 @@ import { REG_SEED } from "@/lib/picks";
 import { teamColor, teamMonogram } from "@/lib/team-colors";
 import PickTray from "../../components/PickTray";
 import PageHeader from "../../components/PageHeader";
+import BracketShell from "../../components/BracketShell";
+import BracketModeToggle from "../../components/BracketModeToggle";
 import styles from "./PicksView.module.css";
 
 export default function PicksView({ code }) {
@@ -114,116 +116,135 @@ export default function PicksView({ code }) {
   return (
     <section className="view">
       <PageHeader kicker="Bracket Challenge" title="Predict the Field" sub="Predict the Road to Omaha · your picks save to this page & share link" />
+      <BracketModeToggle active="mine" />
       <div className="unofficial-banner" data-testid="picks-banner">
         ⚠ Predictions only — unofficial, not real results. Saved in your browser and in the share link.
       </div>
 
       <div className={styles.layout}>
-        <div className={styles.cols} data-testid="picks-cols">
-          {/* Regionals */}
-          <div className={styles.col}>
-            <div className={styles.colTitle}>Regionals — pick 16 champions</div>
-            {Array.from({ length: 16 }, (_, i) => i + 1).map((sd) => {
-              const site = snap.bySeed[sd];
-              if (!site) return null;
-              return (
-                <div key={site.id} className={styles.regCard} data-testid="pick-reg">
-                  <div className={styles.regHead}>
-                    <span className={styles.nseed}>{sd}</span>
-                    {site.city}
-                  </div>
-                  {site.teams.map((tid) => {
-                    const picked = picks.reg[site.id] === tid;
-                    const c = teamColor(tid);
-                    return (
-                      <button
-                        key={tid}
-                        className={`${styles.node} ${styles.pick} ${picked ? styles.picked : ""}`}
-                        style={{ "--team": c.primary }}
-                        onClick={() => setRegional(site.id, tid)}
-                        data-testid="pick-node"
-                        data-team={tid}
-                        aria-pressed={picked}
-                        aria-label={`Pick ${team(tid).name} to win the ${site.city} regional`}
-                      >
-                        <span className={styles.nodeSeed}>{REG_SEED[site.teams.indexOf(tid)]}</span>
-                        <span className={styles.nodeName}>{team(tid).name}</span>
-                        {picked && regBadge(site.id)}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Super Regionals */}
-          <div className={styles.col}>
-            <div className={styles.colTitle}>Super Regionals — pick 8 winners</div>
-            {supersFor(picks).map((pr) => (
-              <div key={pr.seed} className={styles.pair}>
-                {[0, 1].map((side) => {
-                  const tid = pr.teams[side];
-                  const seedLabel = side === 0 ? pr.seed : 17 - pr.seed;
-                  if (!tid)
-                    return (
-                      <div key={side} className={`${styles.node} ${styles.disabled}`}>
-                        <span className={styles.nodeSeed}>{seedLabel}</span>
-                        <span className={styles.nodeName}>Pick Regional {seedLabel} first</span>
+        <div data-testid="picks-cols">
+          <BracketShell
+            initial="regionals"
+            stages={[
+              {
+                key: "regionals",
+                title: "Regionals — pick 16 champions",
+                short: "Regionals",
+                content: (
+                  <>
+                    {Array.from({ length: 16 }, (_, i) => i + 1).map((sd) => {
+                      const site = snap.bySeed[sd];
+                      if (!site) return null;
+                      return (
+                        <div key={site.id} className={styles.regCard} data-testid="pick-reg">
+                          <div className={styles.regHead}>
+                            <span className={styles.nseed}>{sd}</span>
+                            {site.city}
+                          </div>
+                          {site.teams.map((tid) => {
+                            const picked = picks.reg[site.id] === tid;
+                            const c = teamColor(tid);
+                            return (
+                              <button
+                                key={tid}
+                                className={`${styles.node} ${styles.pick} ${picked ? styles.picked : ""}`}
+                                style={{ "--team": c.primary }}
+                                onClick={() => setRegional(site.id, tid)}
+                                data-testid="pick-node"
+                                data-team={tid}
+                                aria-pressed={picked}
+                                aria-label={`Pick ${team(tid).name} to win the ${site.city} regional`}
+                              >
+                                <span className={styles.nodeSeed}>{REG_SEED[site.teams.indexOf(tid)]}</span>
+                                <span className={styles.nodeName}>{team(tid).name}</span>
+                                {picked && regBadge(site.id)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </>
+                ),
+              },
+              {
+                key: "supers",
+                title: "Super Regionals — pick 8 winners",
+                short: "Supers",
+                content: (
+                  <>
+                    {supersFor(picks).map((pr) => (
+                      <div key={pr.seed} className={styles.pair}>
+                        {[0, 1].map((side) => {
+                          const tid = pr.teams[side];
+                          const seedLabel = side === 0 ? pr.seed : 17 - pr.seed;
+                          if (!tid)
+                            return (
+                              <div key={side} className={`${styles.node} ${styles.disabled}`}>
+                                <span className={styles.nodeSeed}>{seedLabel}</span>
+                                <span className={styles.nodeName}>Pick Regional {seedLabel} first</span>
+                              </div>
+                            );
+                          const picked = picks.sup[pr.seed] === side;
+                          return (
+                            <button
+                              key={side}
+                              className={`${styles.node} ${styles.pick} ${picked ? styles.picked : ""}`}
+                              onClick={() => setSuper(pr.seed, side)}
+                              aria-pressed={picked}
+                              aria-label={`Pick ${team(tid).name} to win super regional ${pr.seed}`}
+                            >
+                              <span className={styles.nodeSeed}>{seedLabel}</span>
+                              <span className={styles.nodeName}>{team(tid).name}</span>
+                              {picked && supBadge(pr.seed)}
+                            </button>
+                          );
+                        })}
                       </div>
-                    );
-                  const picked = picks.sup[pr.seed] === side;
-                  return (
-                    <button
-                      key={side}
-                      className={`${styles.node} ${styles.pick} ${picked ? styles.picked : ""}`}
-                      onClick={() => setSuper(pr.seed, side)}
-                      aria-pressed={picked}
-                      aria-label={`Pick ${team(tid).name} to win super regional ${pr.seed}`}
-                    >
-                      <span className={styles.nodeSeed}>{seedLabel}</span>
-                      <span className={styles.nodeName}>{team(tid).name}</span>
-                      {picked && supBadge(pr.seed)}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-
-          {/* CWS Champion */}
-          <div className={styles.col}>
-            <div className={styles.colTitle}>CWS Champion</div>
-            <div className={styles.cws}>
-              <div className={styles.cwsTrophy}>🏆</div>
-              <div className={styles.cwsTitle}>Omaha</div>
-              <div className={styles.cwsSub}>{champTeam ? "🏆 " + team(champTeam).name : "Pick your champion below"}</div>
-            </div>
-            {Array.from({ length: 8 }, (_, i) => i + 1).map((sd) => {
-              const w = supWinnerFor(picks, sd);
-              if (!w)
-                return (
-                  <div key={sd} className={`${styles.node} ${styles.disabled}`}>
-                    <span className={styles.nodeSeed}>{sd}</span>
-                    <span className={styles.nodeName}>Pick Super {sd} first</span>
-                  </div>
-                );
-              const picked = picks.cwsChamp === sd;
-              return (
-                <button
-                  key={sd}
-                  className={`${styles.node} ${styles.pick} ${picked ? styles.pickedGold : ""}`}
-                  onClick={() => setChamp(sd)}
-                  aria-pressed={picked}
-                  aria-label={`Pick ${team(w).name} as national champion`}
-                >
-                  <span className={styles.nodeSeed}>{picked ? "🏆" : sd}</span>
-                  <span className={styles.nodeName}>{team(w).name}</span>
-                  {picked && <span className={`${styles.badge} ${styles.pending}`}>CWS not yet played</span>}
-                </button>
-              );
-            })}
-          </div>
+                    ))}
+                  </>
+                ),
+              },
+              {
+                key: "cws",
+                title: "CWS Champion",
+                short: "CWS",
+                content: (
+                  <>
+                    <div className={styles.cws}>
+                      <div className={styles.cwsTrophy}>🏆</div>
+                      <div className={styles.cwsTitle}>Omaha</div>
+                      <div className={styles.cwsSub}>{champTeam ? "🏆 " + team(champTeam).name : "Pick your champion below"}</div>
+                    </div>
+                    {Array.from({ length: 8 }, (_, i) => i + 1).map((sd) => {
+                      const w = supWinnerFor(picks, sd);
+                      if (!w)
+                        return (
+                          <div key={sd} className={`${styles.node} ${styles.disabled}`}>
+                            <span className={styles.nodeSeed}>{sd}</span>
+                            <span className={styles.nodeName}>Pick Super {sd} first</span>
+                          </div>
+                        );
+                      const picked = picks.cwsChamp === sd;
+                      return (
+                        <button
+                          key={sd}
+                          className={`${styles.node} ${styles.pick} ${picked ? styles.pickedGold : ""}`}
+                          onClick={() => setChamp(sd)}
+                          aria-pressed={picked}
+                          aria-label={`Pick ${team(w).name} as national champion`}
+                        >
+                          <span className={styles.nodeSeed}>{picked ? "🏆" : sd}</span>
+                          <span className={styles.nodeName}>{team(w).name}</span>
+                          {picked && <span className={`${styles.badge} ${styles.pending}`}>CWS not yet played</span>}
+                        </button>
+                      );
+                    })}
+                  </>
+                ),
+              },
+            ]}
+          />
         </div>
 
         <div className={styles.side}>

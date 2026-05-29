@@ -1,0 +1,51 @@
+.stepper {
+  display: none;
+  margin-bottom: var(--space-4);
+}
+.scroll {
+  padding-bottom: var(--space-3);
+}
+.cols {
+  display: flex;
+  gap: var(--space-7);
+  align-items: stretch;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 240px;
+}
+.colTitle {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Desktop: connected columns, panning only if it genuinely overflows. */
+@media (min-width: 761px) {
+  .scroll {
+    overflow-x: auto;
+  }
+  .cols {
+    min-width: min-content;
+  }
+}
+
+/* Mobile: a round stepper; show one stage at a time (no horizontal clip). */
+@media (max-width: 760px) {
+  .stepper {
+    display: flex;
+    justify-content: center;
+  }
+  .col {
+    display: none;
+    min-width: 0;
+  }
+  .colActive {
+    display: flex;
+  }
+}
