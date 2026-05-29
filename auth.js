@@ -21,6 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [Google],
   session: { strategy: "database" },
   trustHost: true, // Vercel terminates TLS; trust the forwarded host.
+  pages: { error: "/auth-error" }, // branded error page with a way back (not a dead-end)
   callbacks: {
     // Ensure the integer user id (from the pg adapter) is on session.user.id
     // so /api/picks can key rows by it.
