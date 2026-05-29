@@ -137,6 +137,12 @@ try {
   if (gpCount < 1) throw new Error("game pick did not persist");
   ok("daily pick'em: open games render, pick round-trips");
 
+  // RANKINGS — the 16 national seeds
+  await go("#/rankings");
+  await page.waitForSelector('[data-testid="rankings"] tbody tr', { timeout: 10000 });
+  if ((await count('[data-testid="rankings"] tbody tr')) !== 16) throw new Error("expected 16 seeded rows");
+  ok("rankings: 16 national seeds");
+
   // LIVE GAME — SIM situation strip (count/outs/diamond)
   await go("#/");
   await page.waitForSelector('[data-demo="start"]', { timeout: 10000 });
