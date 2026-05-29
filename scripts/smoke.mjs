@@ -35,7 +35,7 @@ try {
   await page.waitForSelector('[data-testid="regional-card"]', { timeout: 10000 });
   if ((await count('[data-testid="regional-card"]')) !== 16) throw new Error("expected 16 regional cards");
   await page.evaluate(() => document.querySelector('[data-seg="map"]').click());
-  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 16, { timeout: 15000 });
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="map-pin"]').length === 16, { timeout: 15000 });
   ok("home: 16 regional cards + 16 map markers");
 
   // REGIONAL — 4 teams, >=7 schedule rows, bracket diagram >=7 cards
@@ -160,7 +160,7 @@ try {
   if ((await page.evaluate(() => window.TOURNAMENT.sites.length)) !== 8) throw new Error("expected 8 super-regional sites");
   await go("#/");
   await page.evaluate(() => document.querySelector('[data-seg="map"]')?.click());
-  await page.waitForFunction(() => document.querySelectorAll(".leaflet-marker-icon").length === 8, { timeout: 10000 });
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="map-pin"]').length === 8, { timeout: 10000 });
   ok("bracket resolves: 16 regionals → 8 super-regionals");
 } catch (e) {
   failed = e;
