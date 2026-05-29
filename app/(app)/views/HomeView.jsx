@@ -129,7 +129,7 @@ function Hero({ SCHEDULES, live, team }) {
         </span>
         {total > cards.length && (
           <a className={styles.seeAll} href="#/games">
-            See all {total} →
+            See all →
           </a>
         )}
       </div>
