@@ -1,0 +1,337 @@
+.field {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.teamCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--team);
+  border-radius: var(--radius);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.teamCard:hover {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  border-left-color: var(--team);
+}
+.tcMono {
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.tcBody {
+  flex: 1;
+  min-width: 0;
+}
+.tcName {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hostStar {
+  color: var(--gold);
+  font-size: 13px;
+}
+.tcMeta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.tcSeed {
+  font-size: 12px;
+  color: var(--faint);
+  margin-top: 2px;
+}
+.champBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold-fill);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 15px;
+  margin-bottom: 16px;
+}
+.trophy {
+  font-size: 18px;
+}
+.simTag {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+  margin-left: 4px;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 14px;
+  flex-wrap: wrap;
+}
+.toggle {
+  display: inline-flex;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+}
+.vt {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.vtOn {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.simBtn {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease);
+}
+.simBtn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.schedNote {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.schedDay {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--data);
+  margin: 16px 0 8px;
+}
+.sched {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gameRow {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.grLive {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+.grTbd {
+  opacity: 0.7;
+}
+.grClick {
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.grClick:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+}
+.gameNum {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--muted);
+}
+.gameMatch {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.gameMatch a:hover {
+  color: var(--data);
+}
+.sd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--faint);
+}
+.vsx {
+  color: var(--faint);
+  font-size: 12px;
+}
+.elim {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--down);
+  border: 1px solid color-mix(in srgb, var(--down) 35%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+}
+.cmpHint {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--data);
+}
+.gameWhen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  justify-self: end;
+  text-align: right;
+}
+.whenScore {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.score {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text);
+  font-size: 15px;
+}
+.tv {
+  font-size: 11px;
+  color: var(--faint);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* bracket diagram */
+.bracket {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.bkSec {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.bkTitle {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.bkRounds {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  overflow-x: auto;
+}
+.bkCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 200px;
+}
+.bkMid {
+  justify-content: center;
+}
+.bgCard {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  min-width: 190px;
+}
+.bgElim {
+  border-color: color-mix(in srgb, var(--down) 25%, var(--line));
+}
+.bgH {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--faint);
+  margin-bottom: 6px;
+}
+.bgTeam {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.feeder {
+  color: var(--faint);
+  font-style: italic;
+}
+.bgWin {
+  background: var(--up-fill);
+  color: var(--up);
+  font-weight: 700;
+}
+.bn {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.bgStatus {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.bkNote {
+  font-size: 12px;
+  color: var(--faint);
+  text-align: center;
+  padding: 10px;
+}
+
+@media (max-width: 620px) {
+  .field {
+    grid-template-columns: 1fr;
+  }
+}

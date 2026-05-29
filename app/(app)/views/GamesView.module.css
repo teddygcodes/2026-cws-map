@@ -1,0 +1,99 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  align-items: start;
+}
+.feed {
+  min-width: 0;
+}
+.sec {
+  margin-bottom: 24px;
+}
+.secHead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  background: linear-gradient(180deg, var(--bg) 70%, transparent);
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.count {
+  background: var(--surface-3);
+  color: var(--text);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+  font-size: 11px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.tbdCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--surface-1);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+}
+.tbdLabel {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.tbdMatch {
+  color: var(--faint);
+  font-size: 13px;
+}
+.badge {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+.badgeOk {
+  background: var(--up-fill);
+  color: var(--up);
+}
+.badgeNo {
+  background: color-mix(in srgb, var(--down) 16%, transparent);
+  color: var(--down);
+}
+.badgePending {
+  background: var(--surface-3);
+  color: var(--muted);
+}
+.empty {
+  color: var(--muted);
+  padding: 20px;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  /* leave room for the fixed bottom tray + tab bar */
+  .feed {
+    padding-bottom: 120px;
+  }
+}
