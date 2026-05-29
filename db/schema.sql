@@ -54,6 +54,11 @@ CREATE TABLE IF NOT EXISTS user_picks (
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Account-synced league memberships: [{ code, memberId, displayName }]. Lets a
+-- signed-in user see/edit the same league entries on every device. Idempotent —
+-- upgrades the table in place for databases created before this migration.
+ALTER TABLE user_picks ADD COLUMN IF NOT EXISTS leagues JSONB NOT NULL DEFAULT '[]'::jsonb;
+
 -- Integrity + performance hardening (idempotent; upgrades pre-existing tables
 -- too, since CREATE TABLE IF NOT EXISTS above won't alter them).
 -- Foreign keys so deleting a user cleans up their accounts/sessions; indexes on

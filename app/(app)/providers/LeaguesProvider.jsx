@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useSession } from "./SessionProvider";
+import { mergeLeagues, leaguesEqual } from "@/lib/leagues-sync";
 
 const LEAGUES_KEY = "cws-leagues-v1";
 // Private-league backend (Cloudflare Worker). Empty string = feature OFF. The
@@ -38,19 +40,83 @@ export function lockState(lockTs) {
 }
 
 export function LeaguesProvider({ children }) {
+  const { signedIn } = useSession();
   const [api, setApiState] = useState(DEFAULT_LEAGUE_API);
   const [leagues, setLeagues] = useState(() => (typeof window === "undefined" ? { v: 1, joined: [] } : loadLeagues()));
 
   const enabled = !!api;
 
-  const save = useCallback((next) => {
-    setLeagues(next);
-    try {
-      localStorage.setItem(LEAGUES_KEY, JSON.stringify(next));
-    } catch (e) {
-      /* ignore */
-    }
-  }, []);
+  // Account sync (signed-in only): the joined list — { code, memberId,
+  // displayName } — is mirrored to the user's row via /api/leagues so it follows
+  // them across devices. The memberId travels with it, so a second device edits
+  // the SAME league entry rather than creating a duplicate. Signed-out stays
+  // purely device-local. (This is separate from the Worker, which stores the
+  // actual standings; here we only sync *which* leagues you belong to.)
+  const applyingRemote = useRef(false);
+  const syncTimer = useRef(null);
+
+  const pushLeaguesNow = useCallback(
+    (joined) => {
+      if (!signedIn) return;
+      const payload = (joined || []).map((j) => ({ code: j.code, memberId: j.memberId, displayName: j.displayName }));
+      fetch("/api/leagues", {
+        method: "PUT",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagues: payload }),
+      }).catch(() => {});
+    },
+    [signedIn]
+  );
+  const syncPushLeagues = useCallback(
+    (joined) => {
+      if (!signedIn || applyingRemote.current) return;
+      clearTimeout(syncTimer.current);
+      syncTimer.current = setTimeout(() => pushLeaguesNow(joined), 600);
+    },
+    [signedIn, pushLeaguesNow]
+  );
+
+  const save = useCallback(
+    (next) => {
+      setLeagues(next);
+      try {
+        localStorage.setItem(LEAGUES_KEY, JSON.stringify(next));
+      } catch (e) {
+        /* ignore */
+      }
+      syncPushLeagues(next.joined);
+    },
+    [syncPushLeagues]
+  );
+
+  // On sign-in: pull the account's leagues, merge with whatever's local (server
+  // wins on shared codes so devices converge on one memberId), apply locally,
+  // and push the merged set back if this device contributed any new leagues.
+  useEffect(() => {
+    if (!signedIn) return;
+    fetch("/api/leagues", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((srv) => {
+        if (!srv) return;
+        const serverLeagues = srv.leagues || [];
+        const merged = mergeLeagues(leagues.joined, serverLeagues);
+        if (!leaguesEqual(merged, leagues.joined)) {
+          applyingRemote.current = true;
+          const next = { v: 1, joined: merged };
+          setLeagues(next);
+          try {
+            localStorage.setItem(LEAGUES_KEY, JSON.stringify(next));
+          } catch (e) {
+            /* ignore */
+          }
+          applyingRemote.current = false;
+        }
+        if (!leaguesEqual(merged, serverLeagues)) pushLeaguesNow(merged);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn]);
 
   const request = useCallback(
     (method, path, body) => {
