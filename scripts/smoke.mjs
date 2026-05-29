@@ -148,12 +148,11 @@ try {
   await page.waitForSelector('[data-testid="standings"] tbody tr', { timeout: 10000 });
   if ((await count('[data-testid="standings"] tbody tr')) !== 2) throw new Error("expected 2 standings rows before join");
 
-  // Join the league (records membership locally; you appear in standings only
-  // after you submit), then submit your bracket → a third entry persists.
+  // Join the league → you register server-side immediately (no separate submit),
+  // so a third entry shows up in standings on its own.
   await page.getByRole("button", { name: "Join this league" }).click();
-  await page.getByRole("button", { name: "Submit my bracket" }).click();
   await page.waitForFunction(() => document.querySelectorAll('[data-testid="standings"] tbody tr').length === 3, { timeout: 10000 });
-  ok("leagues: join + submit bracket adds a third entry");
+  ok("leagues: joining immediately adds your entry to standings");
 
   // Daily tab → submit my pick'em → it POSTs my picks and the entry saves.
   await page.evaluate(() => document.querySelector('[data-seg="daily"]').click());

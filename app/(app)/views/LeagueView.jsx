@@ -55,19 +55,21 @@ export default function LeagueView({ code }) {
 
 function Hub() {
   const leagues = useLeagues();
+  const picks = usePicks();
   const { navigate } = useRoute();
   const [cName, setCName] = useState("");
   const [lName, setLName] = useState("");
   const [jCode, setJCode] = useState("");
   const [jName, setJName] = useState("");
 
+  const myBracket = () => picks.encode(picks.picks);
   const create = () => {
     if (!cName.trim()) return alert("Enter a display name.");
-    leagues.create(lName.trim(), cName.trim()).then((c) => navigate("#/league/" + c), leagueErr);
+    leagues.create(lName.trim(), cName.trim(), myBracket()).then((c) => navigate("#/league/" + c), leagueErr);
   };
   const join = () => {
     if (!jCode.trim() || !jName.trim()) return alert("Enter a league code and display name.");
-    leagues.join(jCode.trim().toUpperCase(), jName.trim()).then((c) => navigate("#/league/" + c), leagueErr);
+    leagues.join(jCode.trim().toUpperCase(), jName.trim(), myBracket()).then((c) => navigate("#/league/" + c), leagueErr);
   };
 
   return (
@@ -129,19 +131,36 @@ function Standings({ code }) {
   const [tab, setTab] = useState("bracket");
   const [copied, setCopied] = useState(false);
 
-  const load = useCallback(() => {
-    setStatus("loading");
-    leagues.getStandings(code).then(
-      (d) => {
-        setData(d);
-        setStatus("ok");
-      },
-      (e) => setStatus(e && e.status === 404 ? "notfound" : "error")
-    );
-  }, [leagues, code]);
+  // `silent` refreshes the data without flashing the skeleton — used by the
+  // poll + focus listeners so members who join/submit after you opened the page
+  // show up on their own (within ~20s, or instantly when you refocus the tab).
+  const load = useCallback(
+    (silent) => {
+      if (!silent) setStatus("loading");
+      leagues.getStandings(code).then(
+        (d) => {
+          setData(d);
+          setStatus("ok");
+        },
+        (e) => {
+          if (!silent) setStatus(e && e.status === 404 ? "notfound" : "error");
+        }
+      );
+    },
+    [leagues, code]
+  );
 
   useEffect(() => {
     load();
+    const iv = setInterval(() => load(true), 20000);
+    const onFocus = () => load(true);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      clearInterval(iv);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
   }, [load]);
 
   if (status === "loading") {
@@ -249,7 +268,7 @@ function Standings({ code }) {
         <span className={`${styles.lock} ${ls.locked ? styles.locked : ""}`}>{daily ? "Daily — picks open all tournament" : ls.text}</span>
         <span className={styles.actions}>
           {!mine && (
-            <button className="btn primary" onClick={() => leagues.join(code, mine?.displayName || "Player").then(load, leagueErr)}>
+            <button className="btn primary" onClick={() => leagues.join(code, "Player", picks.encode(picks.picks)).then(() => load(), leagueErr)}>
               Join this league
             </button>
           )}
