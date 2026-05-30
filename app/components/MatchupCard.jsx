@@ -38,6 +38,10 @@ export default function MatchupCard({
   const ta = a ? TOURNAMENT.teams[a] : null;
   const tb = b ? TOURNAMENT.teams[b] : null;
   const showScore = state === "in" || state === "post";
+  // Pregame game with no posted moneyline: surface the honest "Not posted yet"
+  // state once in the footer instead of leaving the card blank (which reads as a
+  // loading glitch). Suppressed once live/final. Never a fabricated number.
+  const noLine = !showScore && (!odds || !odds.byTeam || Object.keys(odds.byTeam).length === 0);
 
   const side = (id, t, seed, score, lead) => {
     const c = teamColor(id);
@@ -103,6 +107,7 @@ export default function MatchupCard({
 
       <footer className={styles.foot}>
         <span className={styles.footTime}>{!showScore && <span className="tnum">{fmtGameTime(startMs)}</span>}</span>
+        {noLine && <OddsChip ml={null} size="sm" />}
         {resultBadge}
         {compareHref && (
           <a className={styles.compare} href={compareHref}>
