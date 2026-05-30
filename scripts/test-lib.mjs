@@ -25,6 +25,7 @@ import { fieldRanks } from "../lib/ranks.js";
 import { gameNum, parseClockToMins, firstPitchMs, defaultDayKey } from "../lib/schedule.js";
 import { isValidBracketCode, isValidGameKey, isValidTeamId } from "../lib/pick-validators.js";
 import { cleanLeaguesPayload, mergeLeagues, leaguesEqual } from "../lib/leagues-sync.js";
+import { tourneyDates } from "../lib/live-parse.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 function loadInSandbox(file) {
@@ -188,6 +189,16 @@ eq("merge: server memberId wins on shared code", merged.find((l) => l.code === "
 eq("merge: local-only league kept", !!merged.find((l) => l.code === "BBB222"), true);
 ok("leaguesEqual ignores order", leaguesEqual(localL, [localL[1], localL[0]]));
 ok("leaguesEqual detects difference", !leaguesEqual(localL, serverL));
+
+// ---- tourneyDates rolling window (ESPN poll coverage) ----
+// Mid-tournament: window includes yesterday..+6, clamped to the tourney span.
+eq("tourneyDates includes today + neighbors (May 30, -1..+6)", tourneyDates(new Date(2026, 4, 30)).join(","), "20260529,20260530,20260531,20260601,20260602,20260603,20260604,20260605");
+ok("tourneyDates clamps to start (May 29 has no May 28)", !tourneyDates(new Date(2026, 4, 29)).includes("20260528"));
+// The original bug: past June 1, the static array stopped covering games.
+ok("tourneyDates still covers super-regional dates (June 6)", tourneyDates(new Date(2026, 5, 6)).includes("20260606") && tourneyDates(new Date(2026, 5, 6)).includes("20260608"));
+ok("tourneyDates never exceeds the tournament end backstop", tourneyDates(new Date(2026, 5, 22)).every((d) => d <= "20260623"));
+ok("tourneyDates after the tournament → empty", tourneyDates(new Date(2026, 6, 1)).length === 0);
+ok("tourneyDates before the tournament → opening day", tourneyDates(new Date(2026, 4, 1)).join(",") === "20260529");
 
 console.log(`\n${fail ? "✗" : "✓"} lib modules: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
