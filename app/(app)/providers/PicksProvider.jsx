@@ -19,6 +19,12 @@ import {
 
 const PICKS_KEY = "cws-picks-v1";
 const PICKS_UPDATED_KEY = "cws-picks-updated-v1";
+// Set once this browser has successfully pushed its picks to the cloud. Lets the
+// initial sign-in sync tell "local edits that were never cloud-synced" (a brand
+// new / anonymous device — server should win) apart from "local edits this
+// account made here" (local may legitimately be newer). Prevents anonymous
+// clicking on a 2nd device from clobbering the account's saved bracket.
+const PICKS_SYNCED_KEY = "cws-picks-synced-v1";
 
 const PicksContext = createContext(null);
 
@@ -97,7 +103,20 @@ export function PicksProvider({ children }) {
           gamePicks: readGamePicks(),
           updatedAt: localUpdatedAt() || Date.now(),
         }),
-      }).catch(() => {});
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((res) => {
+          if (!res || res.error) return; // not-migrated / server-error: stay local-only
+          // Adopt the server's authoritative timestamp so future comparisons use
+          // one clock (not this device's), and record that we've synced at least once.
+          try {
+            if (res.updatedAt) localStorage.setItem(PICKS_UPDATED_KEY, String(res.updatedAt));
+            localStorage.setItem(PICKS_SYNCED_KEY, "1");
+          } catch (e) {
+            /* ignore */
+          }
+        })
+        .catch(() => {});
     } catch (e) {
       /* ignore */
     }
@@ -121,8 +140,14 @@ export function PicksProvider({ children }) {
           return;
         }
         if (serverEmpty) return;
+        // Server has this account's picks. Apply them unless THIS device has
+        // previously synced AND its local copy is strictly newer — otherwise a
+        // fresh/anonymous device (which never pushed) would clobber the account's
+        // saved bracket with whatever was clicked locally before signing in.
         const srvTs = srv.updatedAt || 0;
-        if (srvTs >= localUpdatedAt()) {
+        const everSynced = localStorage.getItem(PICKS_SYNCED_KEY) === "1";
+        const localIsNewer = everSynced && srvTs < localUpdatedAt();
+        if (!localIsNewer) {
           applyingRemote.current = true;
           try {
             if (srv.bracketCode) {
@@ -134,6 +159,7 @@ export function PicksProvider({ children }) {
             }
             window.dispatchEvent(new CustomEvent("cws-remote-gamepicks", { detail: srv.gamePicks || {} }));
             localStorage.setItem(PICKS_UPDATED_KEY, String(srvTs || Date.now()));
+            localStorage.setItem(PICKS_SYNCED_KEY, "1");
           } finally {
             applyingRemote.current = false;
           }
