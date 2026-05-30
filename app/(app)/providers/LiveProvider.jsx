@@ -10,13 +10,15 @@ import {
   siteChampion as champOf,
   computeSuperRegionals,
   eventWinner,
+  tourneyDates,
 } from "@/lib/live-parse";
 import { ordinal } from "@/lib/format";
 
 const ESPN = "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball";
 const POLL_MS = 30000;
-// SUPER_REGIONAL_UPGRADE: extend these when the super-regional dates are known.
-const TOURNEY_DATES = ["20260529", "20260530", "20260531", "20260601"];
+// Dates to poll are computed per-refresh as a rolling window (tourneyDates),
+// so coverage follows the calendar through super-regionals + the CWS with no
+// hardcoded end date to maintain.
 
 const LiveContext = createContext(null);
 
@@ -79,7 +81,7 @@ export function LiveProvider({ children }) {
     if (L.loading) return;
     L.loading = true;
     Promise.all(
-      TOURNEY_DATES.map((d) =>
+      tourneyDates().map((d) =>
         fetch(ESPN + "/scoreboard?dates=" + d + "&limit=400", { cache: "no-store" })
           .then((r) => {
             if (!r.ok) throw new Error("sb " + r.status);
