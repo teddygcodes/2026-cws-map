@@ -11,6 +11,7 @@
     "build": "next build",
     "start": "next start",
     "sync:legacy": "node scripts/sync-legacy.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs",
     "validate": "node scripts/validate.mjs",
     "test": "node scripts/test-bracket.mjs && node scripts/test-league.mjs && node scripts/test-lib.mjs && vitest run",
     "test:components": "vitest run",

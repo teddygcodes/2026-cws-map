@@ -12,6 +12,10 @@ export const runtime = "nodejs"; // pg pool needs Node runtime, not Edge.
 
 const MAX_BODY_BYTES = 8192;
 const UNDEFINED_COLUMN = "42703"; // Postgres: column does not exist (pre-migration)
+const UNDEFINED_TABLE = "42P01"; // Postgres: relation does not exist (un-migrated DB)
+// A DB that hasn't had db/schema.sql applied is missing either the user_picks
+// table OR the leagues column; both mean "leagues sync unavailable", not an error.
+const isNotMigrated = (e) => e && (e.code === UNDEFINED_COLUMN || e.code === UNDEFINED_TABLE);
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -27,7 +31,7 @@ export async function GET() {
     const { rows } = await pool.query("SELECT leagues FROM user_picks WHERE user_id=$1", [userId]);
     return jsonResponse({ leagues: cleanLeaguesPayload(rows[0] ? rows[0].leagues : []) });
   } catch (e) {
-    if (e && e.code === UNDEFINED_COLUMN) return jsonResponse({ leagues: [] });
+    if (isNotMigrated(e)) return jsonResponse({ leagues: [] });
     return jsonResponse({ error: "server-error" }, 500);
   }
 }
@@ -56,7 +60,7 @@ export async function PUT(req) {
     );
     return jsonResponse({ leagues });
   } catch (e) {
-    if (e && e.code === UNDEFINED_COLUMN) return jsonResponse({ leagues: [], skipped: "not-migrated" });
+    if (isNotMigrated(e)) return jsonResponse({ leagues: [], skipped: "not-migrated" });
     return jsonResponse({ error: "server-error" }, 500);
   }
 }

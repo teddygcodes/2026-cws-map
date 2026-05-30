@@ -16,6 +16,14 @@ export const runtime = "nodejs"; // pg pool needs Node runtime, not Edge.
 const MAX_BODY_BYTES = 8192;
 const MAX_GAMES_TOTAL = 160;
 
+// Postgres error codes for a database that hasn't had db/schema.sql applied yet.
+// Mirrors the resilience already in app/api/leagues/route.js so a missing
+// user_picks table surfaces as a clear, observable response instead of an opaque
+// 500 that the client silently swallows (which presents as "picks don't sync").
+const UNDEFINED_TABLE = "42P01"; // relation does not exist
+const UNDEFINED_COLUMN = "42703"; // column does not exist
+const isNotMigrated = (e) => e && (e.code === UNDEFINED_TABLE || e.code === UNDEFINED_COLUMN);
+
 async function readJson(req) {
   // Enforce a body-size cap before parsing.
   const text = await req.text();
@@ -43,20 +51,27 @@ export async function GET() {
   const userId = session.user.id;
   if (!userId) return jsonResponse({ error: "no-user-id" }, 500);
 
-  const { rows } = await pool.query(
-    "SELECT bracket_code, game_picks, updated_at FROM user_picks WHERE user_id=$1",
-    [userId]
-  );
-  const row = rows[0];
-  return jsonResponse(
-    row
-      ? {
-          bracketCode: row.bracket_code || null,
-          gamePicks: row.game_picks || {},
-          updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : null,
-        }
-      : { bracketCode: null, gamePicks: {}, updatedAt: null }
-  );
+  try {
+    const { rows } = await pool.query(
+      "SELECT bracket_code, game_picks, updated_at FROM user_picks WHERE user_id=$1",
+      [userId]
+    );
+    const row = rows[0];
+    return jsonResponse(
+      row
+        ? {
+            bracketCode: row.bracket_code || null,
+            gamePicks: row.game_picks || {},
+            updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : null,
+          }
+        : { bracketCode: null, gamePicks: {}, updatedAt: null }
+    );
+  } catch (e) {
+    // DB not migrated (user_picks table/column missing): the app still works
+    // offline, but cross-device sync is unavailable until db/schema.sql is run.
+    if (isNotMigrated(e)) return jsonResponse({ error: "not-migrated" }, 503);
+    return jsonResponse({ error: "server-error" }, 500);
+  }
 }
 
 export async function PUT(req) {
@@ -92,15 +107,20 @@ export async function PUT(req) {
   }
 
   const now = new Date();
-  await pool.query(
-    `INSERT INTO user_picks (user_id, bracket_code, game_picks, updated_at)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (user_id) DO UPDATE
-       SET bracket_code = EXCLUDED.bracket_code,
-           game_picks   = EXCLUDED.game_picks,
-           updated_at   = EXCLUDED.updated_at`,
-    [userId, bracketCode, JSON.stringify(cleanGames), now]
-  );
+  try {
+    await pool.query(
+      `INSERT INTO user_picks (user_id, bracket_code, game_picks, updated_at)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (user_id) DO UPDATE
+         SET bracket_code = EXCLUDED.bracket_code,
+             game_picks   = EXCLUDED.game_picks,
+             updated_at   = EXCLUDED.updated_at`,
+      [userId, bracketCode, JSON.stringify(cleanGames), now]
+    );
+  } catch (e) {
+    if (isNotMigrated(e)) return jsonResponse({ error: "not-migrated" }, 503);
+    return jsonResponse({ error: "server-error" }, 500);
+  }
 
   return jsonResponse({ updatedAt: now.getTime() });
 }
