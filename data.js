@@ -95,7 +95,7 @@ const TOURNAMENT = {
     },
     "cal-poly": {
       id: "cal-poly", name: "Cal Poly", seed: null, conference: "Big West",
-      record: { w: 39, l: 22 }, rpi: 73,
+      record: { w: 38, l: 22 }, rpi: 73,
       stats: { runs: 379, runsAllowed: 310, battingAvg: ".304", era: 4.84, sos: 121 },
       stadium: { name: "Baggett Stadium", city: "San Luis Obispo", state: "CA", lat: 35.2998, lng: -120.658, capacity: 3138, opened: 2001,
         blurb: "Baggett Stadium opened in January 2001 with a 12-inning win over No. 11 Stanford before 3,110 fans. Named for former Cal Poly player and donor Robin Baggett, added seating and netting by 2018 brought capacity to about 3,138." },
@@ -408,7 +408,7 @@ const TOURNAMENT = {
     // ---- Tuscaloosa, AL Regional --------------------------------------
     "alabama": {
       id: "alabama", name: "Alabama", seed: 7, conference: "SEC",
-      record: { w: 40, l: 19 }, rpi: 6,
+      record: { w: 39, l: 19 }, rpi: 6,
       stats: { runs: 355, runsAllowed: 278, battingAvg: ".253", era: 4.28, sos: 3 },
       stadium: { name: "Sewell–Thomas Stadium", city: "Tuscaloosa", state: "AL", lat: 33.2092, lng: -87.5372, capacity: 5790, opened: 1948,
         blurb: "Opened in 1948 as Thomas Field for ex-Alabama coach Frank Thomas, it was renamed Sewell–Thomas Stadium in 1978 to add Hall of Famer Joe Sewell. A $30M-plus rebuild completed for 2016 raised capacity to about 5,800." },
@@ -764,7 +764,7 @@ const TOURNAMENT = {
     },
     "ole-miss": {
       id: "ole-miss", name: "Ole Miss", seed: null, conference: "SEC",
-      record: { w: 39, l: 21 }, rpi: 16,
+      record: { w: 37, l: 21 }, rpi: 16,
       stats: { runs: 393, runsAllowed: 278, battingAvg: ".266", era: 4.45, sos: 4 },
       stadium: { name: "Swayze Field", city: "Oxford", state: "MS", lat: 34.364, lng: -89.534, capacity: 11477, opened: 1989,
         blurb: "Swayze Field opened in 1989, named for former Ole Miss player and coach Tom Swayze. A roughly $18.5M expansion completed for 2009 raised seating to about 6,000, with total capacity exceeding 8,500." },
@@ -778,7 +778,7 @@ const TOURNAMENT = {
     },
     "arizona-state": {
       id: "arizona-state", name: "Arizona State", seed: null, conference: "Big 12",
-      record: { w: 39, l: 21 }, rpi: 44,
+      record: { w: 38, l: 20 }, rpi: 44,
       stats: { runs: 467, runsAllowed: 322, battingAvg: ".320", era: 5.44, sos: 74 },
       stadium: { name: "Phoenix Municipal Stadium", city: "Phoenix", state: "AZ", lat: 33.457, lng: -111.987, capacity: 8775, opened: 1964,
         blurb: "\"Muni\" opened in 1964 as a Cactus League spring home (the Giants, later the A's through 2014) and has been Arizona State's home since 2015. Its light poles famously came from New York's Polo Grounds; capacity is about 8,775." },
