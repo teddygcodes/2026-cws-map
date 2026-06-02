@@ -95,7 +95,7 @@ const TOURNAMENT = {
     },
     "cal-poly": {
       id: "cal-poly", name: "Cal Poly", seed: null, conference: "Big West",
-      record: { w: 38, l: 22 }, rpi: 73,
+      record: { w: 39, l: 22 }, rpi: 73,
       stats: { runs: 379, runsAllowed: 310, battingAvg: ".304", era: 4.84, sos: 121 },
       stadium: { name: "Baggett Stadium", city: "San Luis Obispo", state: "CA", lat: 35.2998, lng: -120.658, capacity: 3138, opened: 2001,
         blurb: "Baggett Stadium opened in January 2001 with a 12-inning win over No. 11 Stanford before 3,110 fans. Named for former Cal Poly player and donor Robin Baggett, added seating and netting by 2018 brought capacity to about 3,138." },
@@ -124,7 +124,7 @@ const TOURNAMENT = {
     // ---- Atlanta, GA Regional -----------------------------------------
     "georgia-tech": {
       id: "georgia-tech", name: "Georgia Tech", seed: 2, conference: "ACC",
-      record: { w: 50, l: 10 }, rpi: 2,
+      record: { w: 50, l: 11 }, rpi: 2,
       stats: { runs: 616, runsAllowed: 274, battingAvg: ".358", era: 4.66, sos: 15 },
       stadium: { name: "Russ Chandler Stadium", city: "Atlanta", state: "GA", lat: 33.7768, lng: -84.3925, capacity: 4157, opened: 2002,
         blurb: "The current stadium opened in 2002 on a site that has hosted Tech baseball since 1930. It is named for alumnus Russ Chandler, whose gift funded a new grandstand in 1985; capacity is about 3,194 and it frequently hosts NCAA regionals." },
@@ -138,7 +138,7 @@ const TOURNAMENT = {
     },
     "oklahoma": {
       id: "oklahoma", name: "Oklahoma", seed: null, conference: "SEC",
-      record: { w: 35, l: 22 }, rpi: 24,
+      record: { w: 36, l: 22 }, rpi: 24,
       stats: { runs: 351, runsAllowed: 296, battingAvg: ".280", era: 5.29, sos: 6 },
       stadium: { name: "Kimrey Family Stadium", city: "Norman", state: "OK", lat: 35.201, lng: -97.442, capacity: 3180, opened: 1982,
         blurb: "Dedicated in 1982 as L. Dale Mitchell Park — named for the 1940s Sooner star and OU batting record-holder — the ballpark was later renamed Kimrey Family Stadium after a gift from donors Brian and Kim Kimrey. Its concourse, press box and clubhouse have been modernized repeatedly." },
@@ -237,7 +237,7 @@ const TOURNAMENT = {
     // ---- Auburn, AL Regional ------------------------------------------
     "auburn": {
       id: "auburn", name: "Auburn", seed: 4, conference: "SEC",
-      record: { w: 41, l: 20 }, rpi: 3,
+      record: { w: 42, l: 20 }, rpi: 3,
       stats: { runs: 387, runsAllowed: 212, battingAvg: ".297", era: 3.47, sos: 1 },
       stadium: { name: "Plainsman Park", city: "Auburn", state: "AL", lat: 32.5935, lng: -85.4858, capacity: 4096, opened: 1950,
         blurb: "Plainsman Park has been Auburn's home since 1950 and was rated the nation's best college venue by Baseball America in 2003. Overhauls in 1996, 2001 and again for 2025 expanded it, and it is famous for the 37-foot \"War Eagle Wall\" in left field; recent capacity is around 6,300." },
@@ -408,7 +408,7 @@ const TOURNAMENT = {
     // ---- Tuscaloosa, AL Regional --------------------------------------
     "alabama": {
       id: "alabama", name: "Alabama", seed: 7, conference: "SEC",
-      record: { w: 39, l: 19 }, rpi: 6,
+      record: { w: 40, l: 19 }, rpi: 6,
       stats: { runs: 355, runsAllowed: 278, battingAvg: ".253", era: 4.28, sos: 3 },
       stadium: { name: "Sewell–Thomas Stadium", city: "Tuscaloosa", state: "AL", lat: 33.2092, lng: -87.5372, capacity: 5790, opened: 1948,
         blurb: "Opened in 1948 as Thomas Field for ex-Alabama coach Frank Thomas, it was renamed Sewell–Thomas Stadium in 1978 to add Hall of Famer Joe Sewell. A $30M-plus rebuild completed for 2016 raised capacity to about 5,800." },
@@ -465,7 +465,7 @@ const TOURNAMENT = {
     // ---- Gainesville, FL Regional -------------------------------------
     "florida": {
       id: "florida", name: "Florida", seed: 8, conference: "SEC",
-      record: { w: 41, l: 20 }, rpi: 11,
+      record: { w: 41, l: 21 }, rpi: 11,
       stats: { runs: 416, runsAllowed: 254, battingAvg: ".278", era: 4.12, sos: 2 },
       stadium: { name: "Condron Family Ballpark", city: "Gainesville", state: "FL", lat: 29.6516, lng: -82.3479, capacity: 7000, opened: 2021,
         blurb: "Condron Family Ballpark opened in February 2021, replacing McKethan Stadium (Florida's home 1988–2020). The roughly $65M park seats about 7,000 with expansive berms and a 360-degree open concourse, and was renamed for philanthropist Gary Condron in 2022." },
@@ -493,7 +493,7 @@ const TOURNAMENT = {
     },
     "troy": {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
-      record: { w: 3, l: 1 }, rpi: 35,
+      record: { w: 36, l: 30 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
       stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
         blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
@@ -579,7 +579,7 @@ const TOURNAMENT = {
     // ---- Tallahassee, FL Regional -------------------------------------
     "florida-state": {
       id: "florida-state", name: "Florida State", seed: 10, conference: "ACC",
-      record: { w: 40, l: 18 }, rpi: 7,
+      record: { w: 40, l: 19 }, rpi: 7,
       stats: { runs: 389, runsAllowed: 233, battingAvg: ".284", era: 4.01, sos: 5 },
       stadium: { name: "Dick Howser Stadium", city: "Tallahassee", state: "FL", lat: 30.436, lng: -84.3033, capacity: 6700, opened: 1983,
         blurb: "Dick Howser Stadium opened in 1983 as Seminole Stadium and was renamed in 1988 for FSU's first baseball All-American and MLB manager Dick Howser. The surface was dedicated as Mike Martin Field in 2005, and a roughly $12M renovation in 2004 raised capacity to about 6,700." },
@@ -621,7 +621,7 @@ const TOURNAMENT = {
     },
     "st-johns": {
       id: "st-johns", name: "St. John's", seed: null, conference: "Big East",
-      record: { w: 35, l: 24 }, rpi: 102,
+      record: { w: 36, l: 24 }, rpi: 102,
       stats: { runs: 352, runsAllowed: 323, battingAvg: ".279", era: 5.31, sos: 165 },
       stadium: { name: "Jack Kaiser Stadium", city: "Queens", state: "NY", lat: 40.723, lng: -73.796, capacity: 3500, opened: 2000,
         blurb: "Opened in 2000 on St. John's Queens campus as \"The Ballpark at St. John's,\" it was renamed in 2007 for Jack Kaiser, a former Red Storm player, head coach and athletic director. The natural-grass park seats about 3,500." },
@@ -693,7 +693,7 @@ const TOURNAMENT = {
     // ---- College Station, TX Regional ---------------------------------
     "texas-am": {
       id: "texas-am", name: "Texas A&M", seed: 12, conference: "SEC",
-      record: { w: 41, l: 15 }, rpi: 14,
+      record: { w: 41, l: 16 }, rpi: 14,
       stats: { runs: 477, runsAllowed: 272, battingAvg: ".305", era: 5.11, sos: 17 },
       stadium: { name: "Olsen Field at Blue Bell Park", city: "College Station", state: "TX", lat: 30.61, lng: -96.352, capacity: 7300, opened: 1978,
         blurb: "Olsen Field was dedicated in 1978 for C.E. \"Pat\" Olsen, a 1923 A&M graduate who played in the Yankees' farm system. A $24M renovation with Blue Bell Creameries naming rights reopened it as Olsen Field at Blue Bell Park in 2012; crowds regularly push toward 8,000." },
@@ -707,7 +707,7 @@ const TOURNAMENT = {
     },
     "usc": {
       id: "usc", name: "USC", seed: null, conference: "Big Ten",
-      record: { w: 46, l: 16 }, rpi: 9,
+      record: { w: 47, l: 16 }, rpi: 9,
       stats: { runs: 393, runsAllowed: 197, battingAvg: ".273", era: 3.47, sos: 37 },
       stadium: { name: "Dedeaux Field", city: "Los Angeles", state: "CA", lat: 34.022, lng: -118.288, capacity: 2500, opened: 1974,
         blurb: "Dedeaux Field opened in 1974 — the year USC won a record fifth straight College World Series — replacing old Bovard Field. It is named for legendary coach Rod Dedeaux, who led the Trojans from 1942 to 1986; the site is being redeveloped into a new stadium." },
@@ -764,7 +764,7 @@ const TOURNAMENT = {
     },
     "ole-miss": {
       id: "ole-miss", name: "Ole Miss", seed: null, conference: "SEC",
-      record: { w: 37, l: 21 }, rpi: 16,
+      record: { w: 39, l: 21 }, rpi: 16,
       stats: { runs: 393, runsAllowed: 278, battingAvg: ".266", era: 4.45, sos: 4 },
       stadium: { name: "Swayze Field", city: "Oxford", state: "MS", lat: 34.364, lng: -89.534, capacity: 11477, opened: 1989,
         blurb: "Swayze Field opened in 1989, named for former Ole Miss player and coach Tom Swayze. A roughly $18.5M expansion completed for 2009 raised seating to about 6,000, with total capacity exceeding 8,500." },
@@ -778,7 +778,7 @@ const TOURNAMENT = {
     },
     "arizona-state": {
       id: "arizona-state", name: "Arizona State", seed: null, conference: "Big 12",
-      record: { w: 38, l: 20 }, rpi: 44,
+      record: { w: 39, l: 21 }, rpi: 44,
       stats: { runs: 467, runsAllowed: 322, battingAvg: ".320", era: 5.44, sos: 74 },
       stadium: { name: "Phoenix Municipal Stadium", city: "Phoenix", state: "AZ", lat: 33.457, lng: -111.987, capacity: 8775, opened: 1964,
         blurb: "\"Muni\" opened in 1964 as a Cactus League spring home (the Giants, later the A's through 2014) and has been Arizona State's home since 2015. Its light poles famously came from New York's Polo Grounds; capacity is about 8,775." },
@@ -921,7 +921,7 @@ const TOURNAMENT = {
     // ---- Morgantown, WV Regional --------------------------------------
     "west-virginia": {
       id: "west-virginia", name: "West Virginia", seed: 16, conference: "Big 12",
-      record: { w: 42, l: 15 }, rpi: 17,
+      record: { w: 43, l: 15 }, rpi: 17,
       stats: { runs: 389, runsAllowed: 200, battingAvg: ".303", era: 3.84, sos: 56 },
       stadium: { name: "Kendrick Family Ballpark", city: "Morgantown", state: "WV", lat: 39.647, lng: -79.929, capacity: 3500, opened: 2015,
         blurb: "The ballpark opened in 2015 at University Town Centre just outside Morgantown (in Granville) and was named Ballpark of the Year for 2015. The surface became Wagener Field in 2021, and the facility was renamed for alumnus and Diamondbacks owner Ken Kendrick in 2024; capacity is about 3,500." },
@@ -949,7 +949,7 @@ const TOURNAMENT = {
     },
     "kentucky": {
       id: "kentucky", name: "Kentucky", seed: null, conference: "SEC",
-      record: { w: 33, l: 22 }, rpi: 37,
+      record: { w: 33, l: 23 }, rpi: 37,
       stats: { runs: 360, runsAllowed: 294, battingAvg: ".286", era: 5.31, sos: 31 },
       stadium: { name: "Kentucky Proud Park", city: "Lexington", state: "KY", lat: 38.021, lng: -84.529, capacity: 4500, opened: 2019,
         blurb: "Kentucky Proud Park opened for the 2019 season, replacing Cliff Hagan Stadium, with a win over Eastern Kentucky before 4,074 fans. It has about 2,500 fixed seats plus berm seating, expandable toward 7,000 for the NCAA Tournament." },
