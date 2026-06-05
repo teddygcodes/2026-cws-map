@@ -95,7 +95,7 @@ const TOURNAMENT = {
     },
     "cal-poly": {
       id: "cal-poly", name: "Cal Poly", seed: null, conference: "Big West",
-      record: { w: 39, l: 22 }, rpi: 73,
+      record: { w: 3, l: 0 }, rpi: 73,
       stats: { runs: 379, runsAllowed: 310, battingAvg: ".304", era: 4.84, sos: 121 },
       stadium: { name: "Baggett Stadium", city: "San Luis Obispo", state: "CA", lat: 35.2998, lng: -120.658, capacity: 3138, opened: 2001,
         blurb: "Baggett Stadium opened in January 2001 with a 12-inning win over No. 11 Stanford before 3,110 fans. Named for former Cal Poly player and donor Robin Baggett, added seating and netting by 2018 brought capacity to about 3,138." },
@@ -109,7 +109,7 @@ const TOURNAMENT = {
     },
     "saint-marys": {
       id: "saint-marys", name: "Saint Mary's", seed: null, conference: "West Coast Conference",
-      record: { w: 36, l: 27 }, rpi: 140,
+      record: { w: 2, l: 2 }, rpi: 140,
       stats: { runs: 441, runsAllowed: 356, battingAvg: ".332", era: 5.6, sos: 194 },
       stadium: { name: "Louis Guisto Field", city: "Moraga", state: "CA", lat: 37.842, lng: -122.109, capacity: 1500, opened: 2012,
         blurb: "The current Louis Guisto Field opened in February 2012, about 400 feet from the original diamond that served the Gaels from 1928 to 2011; alumnus and former MLB pitcher Tom Candiotti threw the first pitch. It is named for former Saint Mary's player and coach Louis Guisto." },
@@ -209,7 +209,7 @@ const TOURNAMENT = {
     },
     "liberty": {
       id: "liberty", name: "Liberty", seed: null, conference: "Conference USA",
-      record: { w: 43, l: 21 }, rpi: 32,
+      record: { w: 2, l: 2 }, rpi: 32,
       stats: { runs: 438, runsAllowed: 305, battingAvg: ".272", era: 4.73, sos: 64 },
       stadium: { name: "Liberty Baseball Stadium", city: "Lynchburg", state: "VA", lat: 37.35, lng: -79.175, capacity: 4000, opened: 2013,
         blurb: "Liberty Baseball Stadium opened in February 2013 at a cost of over $9M, replacing Al Worthington Stadium (the Flames' home since 1979). It seats about 4,000, and in 2019 the playing surface was dedicated as Worthington Field." },
@@ -493,7 +493,7 @@ const TOURNAMENT = {
     },
     "troy": {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
-      record: { w: 36, l: 30 }, rpi: 35,
+      record: { w: 4, l: 1 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
       stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
         blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
@@ -522,7 +522,7 @@ const TOURNAMENT = {
     // ---- Hattiesburg, MS Regional -------------------------------------
     "southern-miss": {
       id: "southern-miss", name: "Southern Miss", seed: 9, conference: "Sun Belt",
-      record: { w: 44, l: 17 }, rpi: 12,
+      record: { w: 0, l: 2 }, rpi: 12,
       stats: { runs: 346, runsAllowed: 215, battingAvg: ".285", era: 3.55, sos: 35 },
       stadium: { name: "Pete Taylor Park (Hill Denson Field)", city: "Hattiesburg", state: "MS", lat: 31.3288, lng: -89.336, capacity: 5200, opened: 1984,
         blurb: "Pete Taylor Park opened in 1984, named for coach C.J. \"Pete\" Taylor; the \"Hill Denson Field\" surface was added in 1999 for his successor. Turf replaced grass in 2020, and the park seats roughly 3,300 in a famously raucous setting." },
@@ -550,7 +550,7 @@ const TOURNAMENT = {
     },
     "jacksonville-state": {
       id: "jacksonville-state", name: "Jacksonville State", seed: null, conference: "Conference USA",
-      record: { w: 48, l: 15 }, rpi: 25,
+      record: { w: 2, l: 2 }, rpi: 25,
       stats: { runs: 431, runsAllowed: 247, battingAvg: ".299", era: 3.77, sos: 112 },
       stadium: { name: "Rudy Abbott Field at Jim Case Stadium", city: "Jacksonville", state: "AL", lat: 33.82, lng: -85.767, capacity: 1500, opened: 1995,
         blurb: "Rudy Abbott Field has been home since 1995, when JSU moved across campus ahead of its jump to Division I. It honors 31-year coach Rudy Abbott; after a renovation, the venue was named Jim Case Stadium in 2018, seating about 2,000." },
@@ -593,7 +593,7 @@ const TOURNAMENT = {
     },
     "coastal-carolina": {
       id: "coastal-carolina", name: "Coastal Carolina", seed: null, conference: "Sun Belt",
-      record: { w: 37, l: 23 }, rpi: 27,
+      record: { w: 0, l: 2 }, rpi: 27,
       stats: { runs: 407, runsAllowed: 313, battingAvg: ".269", era: 5.08, sos: 27 },
       stadium: { name: "Springs Brooks Stadium", city: "Conway", state: "SC", lat: 33.793, lng: -79.012, capacity: 5500, opened: 2015,
         blurb: "The rebuilt ballpark reopened in February 2015 as Springs Brooks Stadium (Vrooman Field), formerly Charles Watson Stadium. It has about 2,500 permanent seats, expandable to 5,000–6,000 for the postseason." },
@@ -621,7 +621,7 @@ const TOURNAMENT = {
     },
     "st-johns": {
       id: "st-johns", name: "St. John's", seed: null, conference: "Big East",
-      record: { w: 36, l: 24 }, rpi: 102,
+      record: { w: 3, l: 0 }, rpi: 102,
       stats: { runs: 352, runsAllowed: 323, battingAvg: ".279", era: 5.31, sos: 165 },
       stadium: { name: "Jack Kaiser Stadium", city: "Queens", state: "NY", lat: 40.723, lng: -73.796, capacity: 3500, opened: 2000,
         blurb: "Opened in 2000 on St. John's Queens campus as \"The Ballpark at St. John's,\" it was renamed in 2007 for Jack Kaiser, a former Red Storm player, head coach and athletic director. The natural-grass park seats about 3,500." },
@@ -721,7 +721,7 @@ const TOURNAMENT = {
     },
     "texas-state": {
       id: "texas-state", name: "Texas State", seed: null, conference: "Sun Belt",
-      record: { w: 37, l: 26 }, rpi: 43,
+      record: { w: 1, l: 2 }, rpi: 43,
       stats: { runs: 411, runsAllowed: 362, battingAvg: ".276", era: 5.4, sos: 32 },
       stadium: { name: "Bobcat Ballpark", city: "San Marcos", state: "TX", lat: 29.889, lng: -97.938, capacity: 2500, opened: 2009,
         blurb: "Bobcat Ballpark opened in March 2009 with a home opener against Texas. It seats about 2,000 (plus standing room) and features a brick exterior, ticket office and luxury suites on Charles Austin Drive." },
@@ -892,7 +892,7 @@ const TOURNAMENT = {
     },
     "missouri-state": {
       id: "missouri-state", name: "Missouri State", seed: null, conference: "Conference USA",
-      record: { w: 34, l: 21 }, rpi: 23,
+      record: { w: 0, l: 2 }, rpi: 23,
       stats: { runs: 421, runsAllowed: 325, battingAvg: ".299", era: 6.09, sos: 44 },
       stadium: { name: "Hammons Field", city: "Springfield", state: "MO", lat: 37.208, lng: -93.286, capacity: 7986, opened: 2004,
         blurb: "Hammons Field opened in 2004, funded entirely by hotel magnate John Q. Hammons as the centerpiece of Jordan Valley Park. The 7,900-plus-seat park is shared with the Double-A Springfield Cardinals; the city bought it in 2023." },
@@ -906,7 +906,7 @@ const TOURNAMENT = {
     },
     "northeastern": {
       id: "northeastern", name: "Northeastern", seed: null, conference: "Coastal Athletic Association",
-      record: { w: 39, l: 22 }, rpi: 88,
+      record: { w: 1, l: 2 }, rpi: 88,
       stats: { runs: 428, runsAllowed: 313, battingAvg: ".280", era: 5.04, sos: 190 },
       stadium: { name: "Friedman Diamond", city: "Brookline", state: "MA", lat: 42.311, lng: -71.253, capacity: 1000, opened: 1930,
         blurb: "Northeastern's Brookline field traces to 1930 and moved to its present location in 1972, taking the Friedman Diamond name in 1988. It shares the plot with Parsons Field, dedicated in 1969." },
