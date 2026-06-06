@@ -95,7 +95,7 @@ const TOURNAMENT = {
     },
     "cal-poly": {
       id: "cal-poly", name: "Cal Poly", seed: null, conference: "Big West",
-      record: { w: 3, l: 0 }, rpi: 73,
+      record: { w: 75, l: 46 }, rpi: 73,
       stats: { runs: 379, runsAllowed: 310, battingAvg: ".304", era: 4.84, sos: 121 },
       stadium: { name: "Baggett Stadium", city: "San Luis Obispo", state: "CA", lat: 35.2998, lng: -120.658, capacity: 3138, opened: 2001,
         blurb: "Baggett Stadium opened in January 2001 with a 12-inning win over No. 11 Stanford before 3,110 fans. Named for former Cal Poly player and donor Robin Baggett, added seating and netting by 2018 brought capacity to about 3,138." },
@@ -365,7 +365,7 @@ const TOURNAMENT = {
     },
     "uc-santa-barbara": {
       id: "uc-santa-barbara", name: "UC Santa Barbara", seed: null, conference: "Big West",
-      record: { w: 2, l: 2 }, rpi: 38,
+      record: { w: 40, l: 20 }, rpi: 38,
       stats: { runs: 340, runsAllowed: 217, battingAvg: ".274", era: 3.45, sos: 82 },
       stadium: { name: "Caesar Uyesaka Stadium", city: "Santa Barbara", state: "CA", lat: 34.415, lng: -119.848, capacity: 1000, opened: 1964,
         blurb: "Opened in 1964 as Campus Stadium, the ballpark was rededicated in 1994 as Caesar Uyesaka Stadium for the longtime UCSB booster whose gift sparked its fundraising. Permanent lights arrived in 2020, and it was first approved as an NCAA regional host in 2024." },
@@ -493,7 +493,7 @@ const TOURNAMENT = {
     },
     "troy": {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
-      record: { w: 4, l: 1 }, rpi: 35,
+      record: { w: 69, l: 59 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
       stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
         blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
@@ -621,7 +621,7 @@ const TOURNAMENT = {
     },
     "st-johns": {
       id: "st-johns", name: "St. John's", seed: null, conference: "Big East",
-      record: { w: 3, l: 0 }, rpi: 102,
+      record: { w: 36, l: 24 }, rpi: 102,
       stats: { runs: 352, runsAllowed: 323, battingAvg: ".279", era: 5.31, sos: 165 },
       stadium: { name: "Jack Kaiser Stadium", city: "Queens", state: "NY", lat: 40.723, lng: -73.796, capacity: 3500, opened: 2000,
         blurb: "Opened in 2000 on St. John's Queens campus as \"The Ballpark at St. John's,\" it was renamed in 2007 for Jack Kaiser, a former Red Storm player, head coach and athletic director. The natural-grass park seats about 3,500." },
