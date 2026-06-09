@@ -138,7 +138,7 @@ const TOURNAMENT = {
     },
     "oklahoma": {
       id: "oklahoma", name: "Oklahoma", seed: null, conference: "SEC",
-      record: { w: 36, l: 22 }, rpi: 24,
+      record: { w: 38, l: 22 }, rpi: 24,
       stats: { runs: 351, runsAllowed: 296, battingAvg: ".280", era: 5.29, sos: 6 },
       stadium: { name: "Kimrey Family Stadium", city: "Norman", state: "OK", lat: 35.201, lng: -97.442, capacity: 3180, opened: 1982,
         blurb: "Dedicated in 1982 as L. Dale Mitchell Park — named for the 1940s Sooner star and OU batting record-holder — the ballpark was later renamed Kimrey Family Stadium after a gift from donors Brian and Kim Kimrey. Its concourse, press box and clubhouse have been modernized repeatedly." },
@@ -181,7 +181,7 @@ const TOURNAMENT = {
     // ---- Athens, GA Regional ------------------------------------------
     "georgia": {
       id: "georgia", name: "Georgia", seed: 3, conference: "SEC",
-      record: { w: 49, l: 12 }, rpi: 7,
+      record: { w: 51, l: 12 }, rpi: 7,
       stats: { runs: 541, runsAllowed: 291, battingAvg: ".325", era: 4.99, sos: 24 },
       stadium: { name: "Foley Field", city: "Athens", state: "GA", lat: 33.942, lng: -83.3739, capacity: 3291, opened: 1966,
         blurb: "Foley Field has been Georgia's home since 1966 and is named for program supporter Frank Foley. It was modernized in 1990 and again for the 2025 season — the latter adding an artificial-turf surface — and seats roughly 3,600." },
@@ -294,7 +294,7 @@ const TOURNAMENT = {
     // ---- Chapel Hill, NC Regional -------------------------------------
     "north-carolina": {
       id: "north-carolina", name: "North Carolina", seed: 5, conference: "ACC",
-      record: { w: 48, l: 11 }, rpi: 4,
+      record: { w: 50, l: 12 }, rpi: 4,
       stats: { runs: 450, runsAllowed: 218, battingAvg: ".290", era: 3.71, sos: 13 },
       stadium: { name: "Boshamer Stadium", city: "Chapel Hill", state: "NC", lat: 35.9047, lng: -79.0476, capacity: 5000, opened: 1972,
         blurb: "Boshamer Stadium opened in 1972, replacing Emerson Field, and is named for UNC alum and textile executive Cary Boshamer. The park was rebuilt within its footprint in a roughly $26M renovation reopening in 2009; the surface was named Bryson Field in 2012, and capacity is about 4,100." },
@@ -351,7 +351,7 @@ const TOURNAMENT = {
     // ---- Austin, TX Regional ------------------------------------------
     "texas": {
       id: "texas", name: "Texas", seed: 6, conference: "SEC",
-      record: { w: 43, l: 13 }, rpi: 5,
+      record: { w: 45, l: 13 }, rpi: 5,
       stats: { runs: 392, runsAllowed: 238, battingAvg: ".294", era: 4.17, sos: 9 },
       stadium: { name: "UFCU Disch–Falk Field", city: "Austin", state: "TX", lat: 30.2858, lng: -97.719, capacity: 7373, opened: 1975,
         blurb: "UFCU Disch–Falk Field opened in 1975, replacing historic Clark Field, and is named for former Longhorn coaches Billy Disch and Bibb Falk. The \"UFCU\" naming was added in 2006; capacity exceeds 6,500." },
@@ -408,7 +408,7 @@ const TOURNAMENT = {
     // ---- Tuscaloosa, AL Regional --------------------------------------
     "alabama": {
       id: "alabama", name: "Alabama", seed: 7, conference: "SEC",
-      record: { w: 40, l: 19 }, rpi: 6,
+      record: { w: 42, l: 19 }, rpi: 6,
       stats: { runs: 355, runsAllowed: 278, battingAvg: ".253", era: 4.28, sos: 3 },
       stadium: { name: "Sewell–Thomas Stadium", city: "Tuscaloosa", state: "AL", lat: 33.2092, lng: -87.5372, capacity: 5790, opened: 1948,
         blurb: "Opened in 1948 as Thomas Field for ex-Alabama coach Frank Thomas, it was renamed Sewell–Thomas Stadium in 1978 to add Hall of Famer Joe Sewell. A $30M-plus rebuild completed for 2016 raised capacity to about 5,800." },
@@ -493,7 +493,7 @@ const TOURNAMENT = {
     },
     "troy": {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
-      record: { w: 70, l: 59 }, rpi: 35,
+      record: { w: 36, l: 30 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
       stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
         blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
@@ -621,7 +621,7 @@ const TOURNAMENT = {
     },
     "st-johns": {
       id: "st-johns", name: "St. John's", seed: null, conference: "Big East",
-      record: { w: 69, l: 50 }, rpi: 102,
+      record: { w: 69, l: 52 }, rpi: 102,
       stats: { runs: 352, runsAllowed: 323, battingAvg: ".279", era: 5.31, sos: 165 },
       stadium: { name: "Jack Kaiser Stadium", city: "Queens", state: "NY", lat: 40.723, lng: -73.796, capacity: 3500, opened: 2000,
         blurb: "Opened in 2000 on St. John's Queens campus as \"The Ballpark at St. John's,\" it was renamed in 2007 for Jack Kaiser, a former Red Storm player, head coach and athletic director. The natural-grass park seats about 3,500." },
@@ -764,7 +764,7 @@ const TOURNAMENT = {
     },
     "ole-miss": {
       id: "ole-miss", name: "Ole Miss", seed: null, conference: "SEC",
-      record: { w: 39, l: 21 }, rpi: 16,
+      record: { w: 41, l: 21 }, rpi: 16,
       stats: { runs: 393, runsAllowed: 278, battingAvg: ".266", era: 4.45, sos: 4 },
       stadium: { name: "Swayze Field", city: "Oxford", state: "MS", lat: 34.364, lng: -89.534, capacity: 11477, opened: 1989,
         blurb: "Swayze Field opened in 1989, named for former Ole Miss player and coach Tom Swayze. A roughly $18.5M expansion completed for 2009 raised seating to about 6,000, with total capacity exceeding 8,500." },
@@ -921,7 +921,7 @@ const TOURNAMENT = {
     // ---- Morgantown, WV Regional --------------------------------------
     "west-virginia": {
       id: "west-virginia", name: "West Virginia", seed: 16, conference: "Big 12",
-      record: { w: 43, l: 15 }, rpi: 17,
+      record: { w: 45, l: 15 }, rpi: 17,
       stats: { runs: 389, runsAllowed: 200, battingAvg: ".303", era: 3.84, sos: 56 },
       stadium: { name: "Kendrick Family Ballpark", city: "Morgantown", state: "WV", lat: 39.647, lng: -79.929, capacity: 3500, opened: 2015,
         blurb: "The ballpark opened in 2015 at University Town Centre just outside Morgantown (in Granville) and was named Ballpark of the Year for 2015. The surface became Wagener Field in 2021, and the facility was renamed for alumnus and Diamondbacks owner Ken Kendrick in 2024; capacity is about 3,500." },
