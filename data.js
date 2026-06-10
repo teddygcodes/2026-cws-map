@@ -95,7 +95,7 @@ const TOURNAMENT = {
     },
     "cal-poly": {
       id: "cal-poly", name: "Cal Poly", seed: null, conference: "Big West",
-      record: { w: 75, l: 48 }, rpi: 73,
+      record: { w: 39, l: 24 }, rpi: 73,
       stats: { runs: 379, runsAllowed: 310, battingAvg: ".304", era: 4.84, sos: 121 },
       stadium: { name: "Baggett Stadium", city: "San Luis Obispo", state: "CA", lat: 35.2998, lng: -120.658, capacity: 3138, opened: 2001,
         blurb: "Baggett Stadium opened in January 2001 with a 12-inning win over No. 11 Stanford before 3,110 fans. Named for former Cal Poly player and donor Robin Baggett, added seating and netting by 2018 brought capacity to about 3,138." },
@@ -237,7 +237,7 @@ const TOURNAMENT = {
     // ---- Auburn, AL Regional ------------------------------------------
     "auburn": {
       id: "auburn", name: "Auburn", seed: 4, conference: "SEC",
-      record: { w: 42, l: 20 }, rpi: 3,
+      record: { w: 42, l: 22 }, rpi: 3,
       stats: { runs: 387, runsAllowed: 212, battingAvg: ".297", era: 3.47, sos: 1 },
       stadium: { name: "Plainsman Park", city: "Auburn", state: "AL", lat: 32.5935, lng: -85.4858, capacity: 4096, opened: 1950,
         blurb: "Plainsman Park has been Auburn's home since 1950 and was rated the nation's best college venue by Baseball America in 2003. Overhauls in 1996, 2001 and again for 2025 expanded it, and it is famous for the 37-foot \"War Eagle Wall\" in left field; recent capacity is around 6,300." },
@@ -493,7 +493,7 @@ const TOURNAMENT = {
     },
     "troy": {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
-      record: { w: 36, l: 30 }, rpi: 35,
+      record: { w: 38, l: 30 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
       stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
         blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
@@ -621,7 +621,7 @@ const TOURNAMENT = {
     },
     "st-johns": {
       id: "st-johns", name: "St. John's", seed: null, conference: "Big East",
-      record: { w: 69, l: 52 }, rpi: 102,
+      record: { w: 36, l: 26 }, rpi: 102,
       stats: { runs: 352, runsAllowed: 323, battingAvg: ".279", era: 5.31, sos: 165 },
       stadium: { name: "Jack Kaiser Stadium", city: "Queens", state: "NY", lat: 40.723, lng: -73.796, capacity: 3500, opened: 2000,
         blurb: "Opened in 2000 on St. John's Queens campus as \"The Ballpark at St. John's,\" it was renamed in 2007 for Jack Kaiser, a former Red Storm player, head coach and athletic director. The natural-grass park seats about 3,500." },
@@ -636,7 +636,7 @@ const TOURNAMENT = {
     // ---- Eugene, OR Regional ------------------------------------------
     "oregon": {
       id: "oregon", name: "Oregon", seed: 11, conference: "Big Ten",
-      record: { w: 43, l: 16 }, rpi: 15,
+      record: { w: 43, l: 18 }, rpi: 15,
       stats: { runs: 381, runsAllowed: 247, battingAvg: ".284", era: 4.25, sos: 29 },
       stadium: { name: "PK Park", city: "Eugene", state: "OR", lat: 44.0583, lng: -123.0681, capacity: 4000, opened: 2009,
         blurb: "PK Park opened in 2009 when Oregon revived its baseball program after decades as a club sport; the Ducks won 1–0 on a walk-off in their first game. It is named for ex-AD Pat Kilkenny and shared with the minor-league Eugene Emeralds, seating about 4,000." },
@@ -707,7 +707,7 @@ const TOURNAMENT = {
     },
     "usc": {
       id: "usc", name: "USC", seed: null, conference: "Big Ten",
-      record: { w: 47, l: 16 }, rpi: 9,
+      record: { w: 48, l: 18 }, rpi: 9,
       stats: { runs: 393, runsAllowed: 197, battingAvg: ".273", era: 3.47, sos: 37 },
       stadium: { name: "Dedeaux Field", city: "Los Angeles", state: "CA", lat: 34.022, lng: -118.288, capacity: 2500, opened: 1974,
         blurb: "Dedeaux Field opened in 1974 — the year USC won a record fifth straight College World Series — replacing old Bovard Field. It is named for legendary coach Rod Dedeaux, who led the Trojans from 1942 to 1986; the site is being redeveloped into a new stadium." },
@@ -807,7 +807,7 @@ const TOURNAMENT = {
     // ---- Starkville, MS Regional --------------------------------------
     "mississippi-state": {
       id: "mississippi-state", name: "Mississippi State", seed: 14, conference: "SEC",
-      record: { w: 43, l: 17 }, rpi: 13,
+      record: { w: 43, l: 19 }, rpi: 13,
       stats: { runs: 486, runsAllowed: 259, battingAvg: ".313", era: 4.3, sos: 7 },
       stadium: { name: "Dudy Noble Field (Polk–DeMent Stadium)", city: "Starkville", state: "MS", lat: 33.4558, lng: -88.7905, capacity: 15000, opened: 1967,
         blurb: "Dudy Noble Field opened in 1967, named for longtime coach and AD Clarke \"Dudy\" Noble; the Polk–DeMent name honors coach Ron Polk and a gift from Bonnie DeMent. The roughly $68M rebuild opened in 2019 — the largest on-campus stadium in the country at 15,000-plus — and is nicknamed the \"Carnegie Hall of College Baseball.\"" },
@@ -849,7 +849,7 @@ const TOURNAMENT = {
     },
     "lipscomb": {
       id: "lipscomb", name: "Lipscomb", seed: null, conference: "ASUN",
-      record: { w: 29, l: 26 }, rpi: 155,
+      record: { w: 0, l: 2 }, rpi: 155,
       stats: { runs: 320, runsAllowed: 361, battingAvg: ".292", era: 6.26, sos: 195 },
       stadium: { name: "Ken Dugan Field at Stephen L. Marsh Stadium", city: "Nashville", state: "TN", lat: 36.105, lng: -86.796, capacity: 1000, opened: 1991,
         blurb: "Lipscomb's ballpark opened in 1991, keeping the Ken Dugan Field name first dedicated in 1984 for the coach who won over 1,000 games (1960–1996). The surrounding stadium honors Stephen Lee Marsh; capacity is about 1,500." },
@@ -864,7 +864,7 @@ const TOURNAMENT = {
     // ---- Lawrence, KS Regional ----------------------------------------
     "kansas": {
       id: "kansas", name: "Kansas", seed: 15, conference: "Big 12",
-      record: { w: 45, l: 16 }, rpi: 19,
+      record: { w: 45, l: 18 }, rpi: 19,
       stats: { runs: 448, runsAllowed: 333, battingAvg: ".289", era: 5.31, sos: 60 },
       stadium: { name: "Hoglund Ballpark", city: "Lawrence", state: "KS", lat: 38.954, lng: -95.253, capacity: 2500, opened: 1988,
         blurb: "Hoglund Ballpark opened in 1988 on the site of old Quigley Field, named for 1950s Jayhawk Forrest Hoglund. Known as Hoglund-Maupin Stadium before 1998, it holds about 2,500." },
