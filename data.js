@@ -294,7 +294,7 @@ const TOURNAMENT = {
     // ---- Chapel Hill, NC Regional -------------------------------------
     "north-carolina": {
       id: "north-carolina", name: "North Carolina", seed: 5, conference: "ACC",
-      record: { w: 50, l: 12 }, rpi: 4,
+      record: { w: 51, l: 12 }, rpi: 4,
       stats: { runs: 450, runsAllowed: 218, battingAvg: ".290", era: 3.71, sos: 13 },
       stadium: { name: "Boshamer Stadium", city: "Chapel Hill", state: "NC", lat: 35.9047, lng: -79.0476, capacity: 5000, opened: 1972,
         blurb: "Boshamer Stadium opened in 1972, replacing Emerson Field, and is named for UNC alum and textile executive Cary Boshamer. The park was rebuilt within its footprint in a roughly $26M renovation reopening in 2009; the surface was named Bryson Field in 2012, and capacity is about 4,100." },
@@ -493,7 +493,7 @@ const TOURNAMENT = {
     },
     "troy": {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
-      record: { w: 38, l: 30 }, rpi: 35,
+      record: { w: 38, l: 31 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
       stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
         blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
@@ -522,7 +522,7 @@ const TOURNAMENT = {
     // ---- Hattiesburg, MS Regional -------------------------------------
     "southern-miss": {
       id: "southern-miss", name: "Southern Miss", seed: 9, conference: "Sun Belt",
-      record: { w: 0, l: 2 }, rpi: 12,
+      record: { w: 44, l: 17 }, rpi: 12,
       stats: { runs: 346, runsAllowed: 215, battingAvg: ".285", era: 3.55, sos: 35 },
       stadium: { name: "Pete Taylor Park (Hill Denson Field)", city: "Hattiesburg", state: "MS", lat: 31.3288, lng: -89.336, capacity: 5200, opened: 1984,
         blurb: "Pete Taylor Park opened in 1984, named for coach C.J. \"Pete\" Taylor; the \"Hill Denson Field\" surface was added in 1999 for his successor. Turf replaced grass in 2020, and the park seats roughly 3,300 in a famously raucous setting." },
@@ -593,7 +593,7 @@ const TOURNAMENT = {
     },
     "coastal-carolina": {
       id: "coastal-carolina", name: "Coastal Carolina", seed: null, conference: "Sun Belt",
-      record: { w: 0, l: 2 }, rpi: 27,
+      record: { w: 37, l: 23 }, rpi: 27,
       stats: { runs: 407, runsAllowed: 313, battingAvg: ".269", era: 5.08, sos: 27 },
       stadium: { name: "Springs Brooks Stadium", city: "Conway", state: "SC", lat: 33.793, lng: -79.012, capacity: 5500, opened: 2015,
         blurb: "The rebuilt ballpark reopened in February 2015 as Springs Brooks Stadium (Vrooman Field), formerly Charles Watson Stadium. It has about 2,500 permanent seats, expandable to 5,000–6,000 for the postseason." },
@@ -721,7 +721,7 @@ const TOURNAMENT = {
     },
     "texas-state": {
       id: "texas-state", name: "Texas State", seed: null, conference: "Sun Belt",
-      record: { w: 1, l: 2 }, rpi: 43,
+      record: { w: 37, l: 26 }, rpi: 43,
       stats: { runs: 411, runsAllowed: 362, battingAvg: ".276", era: 5.4, sos: 32 },
       stadium: { name: "Bobcat Ballpark", city: "San Marcos", state: "TX", lat: 29.889, lng: -97.938, capacity: 2500, opened: 2009,
         blurb: "Bobcat Ballpark opened in March 2009 with a home opener against Texas. It seats about 2,000 (plus standing room) and features a brick exterior, ticket office and luxury suites on Charles Austin Drive." },
@@ -764,7 +764,7 @@ const TOURNAMENT = {
     },
     "ole-miss": {
       id: "ole-miss", name: "Ole Miss", seed: null, conference: "SEC",
-      record: { w: 41, l: 21 }, rpi: 16,
+      record: { w: 41, l: 22 }, rpi: 16,
       stats: { runs: 393, runsAllowed: 278, battingAvg: ".266", era: 4.45, sos: 4 },
       stadium: { name: "Swayze Field", city: "Oxford", state: "MS", lat: 34.364, lng: -89.534, capacity: 11477, opened: 1989,
         blurb: "Swayze Field opened in 1989, named for former Ole Miss player and coach Tom Swayze. A roughly $18.5M expansion completed for 2009 raised seating to about 6,000, with total capacity exceeding 8,500." },
@@ -835,7 +835,7 @@ const TOURNAMENT = {
     },
     "louisiana": {
       id: "louisiana", name: "Louisiana", seed: null, conference: "Sun Belt",
-      record: { w: 2, l: 2 }, rpi: 33,
+      record: { w: 41, l: 25 }, rpi: 33,
       stats: { runs: 378, runsAllowed: 324, battingAvg: ".268", era: 4.86, sos: 38 },
       stadium: { name: "M.L. 'Tigue' Moore Field at Russo Park", city: "Lafayette", state: "LA", lat: 30.215, lng: -92.019, capacity: 6015, opened: 1978,
         blurb: "Home of the Ragin' Cajuns since 1978, the surface became M.L. \"Tigue\" Moore Field in 1995. A major 2016 renovation funded by the Russo family added the \"at Russo Park\" name and raised capacity to about 6,000." },
@@ -921,7 +921,7 @@ const TOURNAMENT = {
     // ---- Morgantown, WV Regional --------------------------------------
     "west-virginia": {
       id: "west-virginia", name: "West Virginia", seed: 16, conference: "Big 12",
-      record: { w: 45, l: 15 }, rpi: 17,
+      record: { w: 46, l: 15 }, rpi: 17,
       stats: { runs: 389, runsAllowed: 200, battingAvg: ".303", era: 3.84, sos: 56 },
       stadium: { name: "Kendrick Family Ballpark", city: "Morgantown", state: "WV", lat: 39.647, lng: -79.929, capacity: 3500, opened: 2015,
         blurb: "The ballpark opened in 2015 at University Town Centre just outside Morgantown (in Granville) and was named Ballpark of the Year for 2015. The surface became Wagener Field in 2021, and the facility was renamed for alumnus and Diamondbacks owner Ken Kendrick in 2024; capacity is about 3,500." },
