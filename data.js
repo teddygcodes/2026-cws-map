@@ -294,7 +294,7 @@ const TOURNAMENT = {
     // ---- Chapel Hill, NC Regional -------------------------------------
     "north-carolina": {
       id: "north-carolina", name: "North Carolina", seed: 5, conference: "ACC",
-      record: { w: 51, l: 12 }, rpi: 4,
+      record: { w: 52, l: 12 }, rpi: 4,
       stats: { runs: 450, runsAllowed: 218, battingAvg: ".290", era: 3.71, sos: 13 },
       stadium: { name: "Boshamer Stadium", city: "Chapel Hill", state: "NC", lat: 35.9047, lng: -79.0476, capacity: 5000, opened: 1972,
         blurb: "Boshamer Stadium opened in 1972, replacing Emerson Field, and is named for UNC alum and textile executive Cary Boshamer. The park was rebuilt within its footprint in a roughly $26M renovation reopening in 2009; the surface was named Bryson Field in 2012, and capacity is about 4,100." },
@@ -493,7 +493,7 @@ const TOURNAMENT = {
     },
     "troy": {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
-      record: { w: 38, l: 31 }, rpi: 35,
+      record: { w: 39, l: 31 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
       stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
         blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
@@ -764,7 +764,7 @@ const TOURNAMENT = {
     },
     "ole-miss": {
       id: "ole-miss", name: "Ole Miss", seed: null, conference: "SEC",
-      record: { w: 41, l: 22 }, rpi: 16,
+      record: { w: 41, l: 23 }, rpi: 16,
       stats: { runs: 393, runsAllowed: 278, battingAvg: ".266", era: 4.45, sos: 4 },
       stadium: { name: "Swayze Field", city: "Oxford", state: "MS", lat: 34.364, lng: -89.534, capacity: 11477, opened: 1989,
         blurb: "Swayze Field opened in 1989, named for former Ole Miss player and coach Tom Swayze. A roughly $18.5M expansion completed for 2009 raised seating to about 6,000, with total capacity exceeding 8,500." },
@@ -921,7 +921,7 @@ const TOURNAMENT = {
     // ---- Morgantown, WV Regional --------------------------------------
     "west-virginia": {
       id: "west-virginia", name: "West Virginia", seed: 16, conference: "Big 12",
-      record: { w: 46, l: 15 }, rpi: 17,
+      record: { w: 46, l: 16 }, rpi: 17,
       stats: { runs: 389, runsAllowed: 200, battingAvg: ".303", era: 3.84, sos: 56 },
       stadium: { name: "Kendrick Family Ballpark", city: "Morgantown", state: "WV", lat: 39.647, lng: -79.929, capacity: 3500, opened: 2015,
         blurb: "The ballpark opened in 2015 at University Town Centre just outside Morgantown (in Granville) and was named Ballpark of the Year for 2015. The surface became Wagener Field in 2021, and the facility was renamed for alumnus and Diamondbacks owner Ken Kendrick in 2024; capacity is about 3,500." },
