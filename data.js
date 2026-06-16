@@ -138,7 +138,7 @@ const TOURNAMENT = {
     },
     "oklahoma": {
       id: "oklahoma", name: "Oklahoma", seed: null, conference: "SEC",
-      record: { w: 39, l: 22 }, rpi: 24,
+      record: { w: 40, l: 22 }, rpi: 24,
       stats: { runs: 351, runsAllowed: 296, battingAvg: ".280", era: 5.29, sos: 6 },
       stadium: { name: "Kimrey Family Stadium", city: "Norman", state: "OK", lat: 35.201, lng: -97.442, capacity: 3180, opened: 1982,
         blurb: "Dedicated in 1982 as L. Dale Mitchell Park — named for the 1940s Sooner star and OU batting record-holder — the ballpark was later renamed Kimrey Family Stadium after a gift from donors Brian and Kim Kimrey. Its concourse, press box and clubhouse have been modernized repeatedly." },
@@ -181,7 +181,7 @@ const TOURNAMENT = {
     // ---- Athens, GA Regional ------------------------------------------
     "georgia": {
       id: "georgia", name: "Georgia", seed: 3, conference: "SEC",
-      record: { w: 52, l: 12 }, rpi: 7,
+      record: { w: 52, l: 13 }, rpi: 7,
       stats: { runs: 541, runsAllowed: 291, battingAvg: ".325", era: 4.99, sos: 24 },
       stadium: { name: "Foley Field", city: "Athens", state: "GA", lat: 33.942, lng: -83.3739, capacity: 3291, opened: 1966,
         blurb: "Foley Field has been Georgia's home since 1966 and is named for program supporter Frank Foley. It was modernized in 1990 and again for the 2025 season — the latter adding an artificial-turf surface — and seats roughly 3,600." },
@@ -351,7 +351,7 @@ const TOURNAMENT = {
     // ---- Austin, TX Regional ------------------------------------------
     "texas": {
       id: "texas", name: "Texas", seed: 6, conference: "SEC",
-      record: { w: 45, l: 14 }, rpi: 5,
+      record: { w: 46, l: 14 }, rpi: 5,
       stats: { runs: 392, runsAllowed: 238, battingAvg: ".294", era: 4.17, sos: 9 },
       stadium: { name: "UFCU Disch–Falk Field", city: "Austin", state: "TX", lat: 30.2858, lng: -97.719, capacity: 7373, opened: 1975,
         blurb: "UFCU Disch–Falk Field opened in 1975, replacing historic Clark Field, and is named for former Longhorn coaches Billy Disch and Bibb Falk. The \"UFCU\" naming was added in 2006; capacity exceeds 6,500." },
@@ -408,7 +408,7 @@ const TOURNAMENT = {
     // ---- Tuscaloosa, AL Regional --------------------------------------
     "alabama": {
       id: "alabama", name: "Alabama", seed: 7, conference: "SEC",
-      record: { w: 42, l: 20 }, rpi: 6,
+      record: { w: 42, l: 21 }, rpi: 6,
       stats: { runs: 355, runsAllowed: 278, battingAvg: ".253", era: 4.28, sos: 3 },
       stadium: { name: "Sewell–Thomas Stadium", city: "Tuscaloosa", state: "AL", lat: 33.2092, lng: -87.5372, capacity: 5790, opened: 1948,
         blurb: "Opened in 1948 as Thomas Field for ex-Alabama coach Frank Thomas, it was renamed Sewell–Thomas Stadium in 1978 to add Hall of Famer Joe Sewell. A $30M-plus rebuild completed for 2016 raised capacity to about 5,800." },
