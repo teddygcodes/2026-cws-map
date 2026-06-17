@@ -181,7 +181,7 @@ const TOURNAMENT = {
     // ---- Athens, GA Regional ------------------------------------------
     "georgia": {
       id: "georgia", name: "Georgia", seed: 3, conference: "SEC",
-      record: { w: 52, l: 13 }, rpi: 7,
+      record: { w: 53, l: 13 }, rpi: 7,
       stats: { runs: 541, runsAllowed: 291, battingAvg: ".325", era: 4.99, sos: 24 },
       stadium: { name: "Foley Field", city: "Athens", state: "GA", lat: 33.942, lng: -83.3739, capacity: 3291, opened: 1966,
         blurb: "Foley Field has been Georgia's home since 1966 and is named for program supporter Frank Foley. It was modernized in 1990 and again for the 2025 season — the latter adding an artificial-turf surface — and seats roughly 3,600." },
@@ -351,7 +351,7 @@ const TOURNAMENT = {
     // ---- Austin, TX Regional ------------------------------------------
     "texas": {
       id: "texas", name: "Texas", seed: 6, conference: "SEC",
-      record: { w: 46, l: 14 }, rpi: 5,
+      record: { w: 46, l: 15 }, rpi: 5,
       stats: { runs: 392, runsAllowed: 238, battingAvg: ".294", era: 4.17, sos: 9 },
       stadium: { name: "UFCU Disch–Falk Field", city: "Austin", state: "TX", lat: 30.2858, lng: -97.719, capacity: 7373, opened: 1975,
         blurb: "UFCU Disch–Falk Field opened in 1975, replacing historic Clark Field, and is named for former Longhorn coaches Billy Disch and Bibb Falk. The \"UFCU\" naming was added in 2006; capacity exceeds 6,500." },
@@ -493,7 +493,7 @@ const TOURNAMENT = {
     },
     "troy": {
       id: "troy", name: "Troy", seed: null, conference: "Sun Belt",
-      record: { w: 39, l: 31 }, rpi: 35,
+      record: { w: 39, l: 32 }, rpi: 35,
       stats: { runs: 412, runsAllowed: 367, battingAvg: ".285", era: 5.67, sos: 8 },
       stadium: { name: "Riddle-Pace Field", city: "Troy", state: "AL", lat: 31.798, lng: -85.954, capacity: 2000, opened: 1931,
         blurb: "The field opened in 1931 as Pace Field for longtime Troy professor and president Matthew Pace. \"Riddle\" was later added for Chase Riddle, who won five conference titles from 1979–1990; a roughly $12M renovation produced a new stadium opening in 2024." },
@@ -921,7 +921,7 @@ const TOURNAMENT = {
     // ---- Morgantown, WV Regional --------------------------------------
     "west-virginia": {
       id: "west-virginia", name: "West Virginia", seed: 16, conference: "Big 12",
-      record: { w: 46, l: 16 }, rpi: 17,
+      record: { w: 47, l: 16 }, rpi: 17,
       stats: { runs: 389, runsAllowed: 200, battingAvg: ".303", era: 3.84, sos: 56 },
       stadium: { name: "Kendrick Family Ballpark", city: "Morgantown", state: "WV", lat: 39.647, lng: -79.929, capacity: 3500, opened: 2015,
         blurb: "The ballpark opened in 2015 at University Town Centre just outside Morgantown (in Granville) and was named Ballpark of the Year for 2015. The surface became Wagener Field in 2021, and the facility was renamed for alumnus and Diamondbacks owner Ken Kendrick in 2024; capacity is about 3,500." },
