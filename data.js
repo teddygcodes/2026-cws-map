@@ -138,7 +138,7 @@ const TOURNAMENT = {
     },
     "oklahoma": {
       id: "oklahoma", name: "Oklahoma", seed: null, conference: "SEC",
-      record: { w: 40, l: 22 }, rpi: 24,
+      record: { w: 41, l: 22 }, rpi: 24,
       stats: { runs: 351, runsAllowed: 296, battingAvg: ".280", era: 5.29, sos: 6 },
       stadium: { name: "Kimrey Family Stadium", city: "Norman", state: "OK", lat: 35.201, lng: -97.442, capacity: 3180, opened: 1982,
         blurb: "Dedicated in 1982 as L. Dale Mitchell Park — named for the 1940s Sooner star and OU batting record-holder — the ballpark was later renamed Kimrey Family Stadium after a gift from donors Brian and Kim Kimrey. Its concourse, press box and clubhouse have been modernized repeatedly." },
@@ -181,7 +181,7 @@ const TOURNAMENT = {
     // ---- Athens, GA Regional ------------------------------------------
     "georgia": {
       id: "georgia", name: "Georgia", seed: 3, conference: "SEC",
-      record: { w: 53, l: 13 }, rpi: 7,
+      record: { w: 53, l: 14 }, rpi: 7,
       stats: { runs: 541, runsAllowed: 291, battingAvg: ".325", era: 4.99, sos: 24 },
       stadium: { name: "Foley Field", city: "Athens", state: "GA", lat: 33.942, lng: -83.3739, capacity: 3291, opened: 1966,
         blurb: "Foley Field has been Georgia's home since 1966 and is named for program supporter Frank Foley. It was modernized in 1990 and again for the 2025 season — the latter adding an artificial-turf surface — and seats roughly 3,600." },
@@ -294,7 +294,7 @@ const TOURNAMENT = {
     // ---- Chapel Hill, NC Regional -------------------------------------
     "north-carolina": {
       id: "north-carolina", name: "North Carolina", seed: 5, conference: "ACC",
-      record: { w: 52, l: 12 }, rpi: 4,
+      record: { w: 53, l: 12 }, rpi: 4,
       stats: { runs: 450, runsAllowed: 218, battingAvg: ".290", era: 3.71, sos: 13 },
       stadium: { name: "Boshamer Stadium", city: "Chapel Hill", state: "NC", lat: 35.9047, lng: -79.0476, capacity: 5000, opened: 1972,
         blurb: "Boshamer Stadium opened in 1972, replacing Emerson Field, and is named for UNC alum and textile executive Cary Boshamer. The park was rebuilt within its footprint in a roughly $26M renovation reopening in 2009; the surface was named Bryson Field in 2012, and capacity is about 4,100." },
@@ -921,7 +921,7 @@ const TOURNAMENT = {
     // ---- Morgantown, WV Regional --------------------------------------
     "west-virginia": {
       id: "west-virginia", name: "West Virginia", seed: 16, conference: "Big 12",
-      record: { w: 47, l: 16 }, rpi: 17,
+      record: { w: 47, l: 17 }, rpi: 17,
       stats: { runs: 389, runsAllowed: 200, battingAvg: ".303", era: 3.84, sos: 56 },
       stadium: { name: "Kendrick Family Ballpark", city: "Morgantown", state: "WV", lat: 39.647, lng: -79.929, capacity: 3500, opened: 2015,
         blurb: "The ballpark opened in 2015 at University Town Centre just outside Morgantown (in Granville) and was named Ballpark of the Year for 2015. The surface became Wagener Field in 2021, and the facility was renamed for alumnus and Diamondbacks owner Ken Kendrick in 2024; capacity is about 3,500." },
